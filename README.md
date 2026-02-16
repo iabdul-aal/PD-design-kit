@@ -8,7 +8,7 @@ This repository provides a comprehensive toolkit for photodiode design, spanning
 
 ```
 PD-Design-Kit/
-├── System-Level/          # MATLAB system modeling and simulation
+├── System-Level/         # MATLAB system modeling and simulation
 │   ├── config/           # User-editable parameters
 │   ├── core/             # Signal processing functions
 │   ├── models/           # Physical device models
@@ -18,10 +18,6 @@ PD-Design-Kit/
 │
 ├── Device-Level/         # Physical device design (Coming Soon)
 │   └── pdk/              # Process design kit files
-│
-├── docs/                 # Documentation
-├── LICENSE              # CC BY 4.0 License
-└── README.md           # This file
 ```
 
 ## Features

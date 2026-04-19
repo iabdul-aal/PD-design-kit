@@ -1,4 +1,4 @@
-function metrics = calculate_metrics(tx_bits, rx_bits, tx_symbols, rx_symbols, photocurrent)
+﻿function metrics = calculate_metrics(tx_bits, rx_bits, tx_symbols, rx_symbols, photocurrent)
 
 signal_power = var(photocurrent);
 noise_power = var(photocurrent - mean(photocurrent));

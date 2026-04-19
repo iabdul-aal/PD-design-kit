@@ -1,0 +1,115 @@
+# ge_pd_device_oband_optional.lsf
+# Run with DEVICE project loaded (after ge_pd_device_oband.lsf)
+# Sections: A - i-Ge thickness | B - Temperature Arrhenius | C - Electrode comparison
+# OUTPUT: ge_charge_optional_oband.mat -> ge_pd_oband_optional_postprocess.m
+
+wg_H      = 220e-9;
+z_rib_top = wg_H;
+Npp_H     = 50e-9;
+Ge_L      = 8e-6;
+Ge_W      = 5e-6;
+Pp_ext    = 1e-6;
+
+# Section A - i-Ge thickness sweep 200-400 nm
+iGe_arr = [200,250,300,350,400]*1e-9;
+nI      = length(iGe_arr);
+Id_iGe  = matrix(1,nI);
+
+for(iI=1; iI<=nI; iI=iI+1) {
+    zt = z_rib_top + iGe_arr(iI);
+    zn = zt + Npp_H;
+    switchtolayout;
+    select("i_Ge");     set("z max",zt);
+    select("Npp_Ge");   set("z min",zt); set("z max",zn);
+    select("dope_Npp"); set("z min",zt); set("z max",zn);
+    select("dope_iGe"); set("z min",z_rib_top); set("z max",zt);
+    select("simulation region"); set("z max",zn);
+    select("SiO2_clad_left");  set("z max",zn);
+    select("SiO2_clad_right"); set("z max",zn);
+    run;
+    res = getresult("CHARGE","cathode");
+    V_a = -res.V_cathode;
+    I_a = abs(res.I);
+    d = abs(V_a-(-1)); i1=1;
+    for(k=1;k<=length(V_a);k=k+1){ if(d(k)<d(i1)){i1=k;} }
+    Id_iGe(iI) = I_a(i1);
+    ?"  i-Ge="+num2str(iGe_arr(iI)*1e9,"%.0f")+" nm  Id@-1V="+num2str(Id_iGe(iI)*1e9,"%.4f")+" nA";
+}
+
+# Restore to 350 nm
+zt_orig = z_rib_top + 350e-9;
+zn_orig = zt_orig + Npp_H;
+switchtolayout;
+select("i_Ge");     set("z max",zt_orig);
+select("Npp_Ge");   set("z min",zt_orig); set("z max",zn_orig);
+select("dope_Npp"); set("z min",zt_orig); set("z max",zn_orig);
+select("dope_iGe"); set("z min",z_rib_top); set("z max",zt_orig);
+select("simulation region"); set("z max",zn_orig);
+select("SiO2_clad_left");  set("z max",zn_orig);
+select("SiO2_clad_right"); set("z max",zn_orig);
+
+# Section B - Temperature sweep 250-400 K (Arrhenius)
+T_arr  = [250,273,300,325,350,375,400];
+nT     = length(T_arr);
+Id_T   = matrix(1,nT);
+invT   = matrix(1,nT);
+logId  = matrix(1,nT);
+
+for(iT=1; iT<=nT; iT=iT+1) {
+    switchtolayout;
+    select("CHARGE"); set("simulation temperature",T_arr(iT));
+    run;
+    res = getresult("CHARGE","cathode");
+    V_a = -res.V_cathode;
+    I_a = abs(res.I);
+    d = abs(V_a-(-1)); i1=1;
+    for(k=1;k<=length(V_a);k=k+1){ if(d(k)<d(i1)){i1=k;} }
+    Id_T(iT) = I_a(i1);
+    invT(iT) = 1.0/T_arr(iT);
+    logId(iT) = log10(max(Id_T(iT)*1e9, 1e-30));
+    ?"  T="+num2str(T_arr(iT),"%.0f")+" K  Id@-1V="+num2str(Id_T(iT)*1e9,"%.4f")+" nA";
+}
+
+switchtolayout;
+select("CHARGE"); set("simulation temperature",300);
+
+# Section C - U-shaped vs parallel electrode
+switchtolayout;
+run;
+res_U = getresult("CHARGE","cathode");
+V_u   = -res_U.V_cathode;
+I_u   = abs(res_U.I);
+
+d = abs(V_u-(-1)); i1=1;
+for(k=1;k<=length(V_u);k=k+1){ if(d(k)<d(i1)){i1=k;} }
+Id_U = I_u(i1);
+
+switchtolayout;
+select("anode_back"); delete;
+
+run;
+res_P = getresult("CHARGE","cathode");
+V_p   = -res_P.V_cathode;
+I_p   = abs(res_P.I);
+
+d = abs(V_p-(-1)); i1=1;
+for(k=1;k<=length(V_p);k=k+1){ if(d(k)<d(i1)){i1=k;} }
+Id_P = I_p(i1);
+
+?"  U-shaped  Id@-1V = "+num2str(Id_U*1e9,"%.4f")+" nA";
+?"  Parallel  Id@-1V = "+num2str(Id_P*1e9,"%.4f")+" nA";
+
+# Restore anode_back
+switchtolayout;
+addelectricalcontact; set("name","anode_back");
+set("bc mode","steady state");
+set("sweep type","single"); set("voltage",0);
+set("force ohmic",1);
+set("surface type","solid"); set("solid","Si_Pp_back");
+
+matlabsave("ge_charge_optional_oband.mat",
+           iGe_arr, Id_iGe,
+           T_arr, Id_T, invT, logId,
+           V_u, I_u, Id_U,
+           V_p, I_p, Id_P);
+?"Saved ge_charge_optional_oband.mat";

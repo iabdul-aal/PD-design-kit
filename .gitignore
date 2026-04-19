@@ -1,0 +1,41 @@
+# Lumerical binary project files (too large for git)
+*.ldev
+*.fsp
+*.lms
+
+# Simulation output data
+*.mat
+
+# Lumerical log files
+*_p0.log
+*_p1.log
+
+# KLayout GDS output
+*.gds
+*.oas
+
+# MATLAB temp files
+*.asv
+*.m~
+
+# LaTeX build artifacts
+thesis/*.aux
+thesis/*.bbl
+thesis/*.blg
+thesis/*.log
+thesis/*.out
+thesis/*.toc
+thesis/*.lot
+thesis/*.lof
+thesis/*.synctex.gz
+thesis/*.fls
+thesis/*.fdb_latexmk
+thesis/_minted-*/
+
+# OS junk
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Local papers
+*.pdf

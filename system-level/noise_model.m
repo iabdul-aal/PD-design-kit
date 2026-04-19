@@ -1,4 +1,4 @@
-function [shot_noise, thermal_noise] = noise_model(photocurrent, params, const)
+﻿function [shot_noise, thermal_noise] = noise_model(photocurrent, params, const)
 
 fs = params.symbol_rate * params.samples_per_symbol;
 BW_3dB = 0.75 * params.symbol_rate;

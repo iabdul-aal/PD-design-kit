@@ -1,4 +1,4 @@
-function plot_eye_diagram(signal, params, settings, signal_type, SNR_dB)
+﻿function plot_eye_diagram(signal, params, settings, signal_type, SNR_dB)
 
 fs = params.symbol_rate * params.samples_per_symbol;
 num_samples = length(signal);

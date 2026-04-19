@@ -1,4 +1,4 @@
-function settings = plot_settings()
+﻿function settings = plot_settings()
 
 settings.colors.blue = [0, 0.447, 0.741];
 settings.colors.red = [0.85, 0.325, 0.098];

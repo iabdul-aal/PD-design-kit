@@ -1,6 +1,6 @@
-clear all; close all; clc;
-
-addpath('config', 'core', 'models', 'analysis', 'visualization');
+clear all; close all; clc; %#ok<CLALL>
+% All functions are in the same flat folder — add it to path.
+if ~contains(path, pwd), addpath(pwd); end
 
 params = parameters();
 const = constants();

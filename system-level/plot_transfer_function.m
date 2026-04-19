@@ -1,4 +1,4 @@
-function plot_transfer_function(responsivity, Isat, P_min, P_max, Psat, params, settings)
+﻿function plot_transfer_function(responsivity, Isat, P_min, P_max, Psat, params, settings)
 
 fig = figure('Position', [75, 75, 900, 600], 'Color', 'w');
 set(fig, 'Name', 'Photodiode Transfer Function');
@@ -19,7 +19,7 @@ xline(Psat * 1e3, ':', 'Color', settings.colors.darkred, 'LineWidth', 2);
 grid on;
 xlabel('Optical Power, P (mW)', 'FontSize', settings.label_size, 'FontWeight', 'bold');
 ylabel('Photocurrent, I (mA)', 'FontSize', settings.label_size, 'FontWeight', 'bold');
-title(sprintf('Transfer Function (R = %.3f A/W, λ = %d nm)', ...
+title(sprintf('Transfer Function (R = %.3f A/W, ╬╗ = %d nm)', ...
     responsivity, round(params.lambda_center*1e9)), ...
     'FontSize', settings.title_size, 'FontWeight', 'bold');
 set(gca, 'FontSize', settings.font_size, 'LineWidth', 1.5, 'GridAlpha', settings.grid_alpha);

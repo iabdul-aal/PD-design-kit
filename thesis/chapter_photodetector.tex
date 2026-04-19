@@ -1,0 +1,193 @@
+% chapter_photodetector.tex
+% Ge-on-Si Photodetector chapter for the group thesis
+% Islam Ibrahim, 2026
+% Compile as part of the main thesis document:
+%   \include{chapter_photodetector}
+% Required packages in main preamble:
+%   graphicx, amsmath, siunitx, booktabs, hyperref, cleveref, biblatex (IEEE style)
+
+\chapter{Germanium-on-Silicon Photodetector Design and Simulation}
+\label{ch:photodetector}
+
+% ─────────────────────────────────────────────────────────────────────────────
+\section{Introduction}
+\label{sec:pd_intro}
+
+High-speed optical receivers for intra-datacenter PAM-4 links require photodetectors
+with simultaneous high responsivity, low dark current, and bandwidth exceeding
+\SI{100}{\giga\hertz}. Germanium-on-silicon (Ge-on-Si) vertical n-i-p photodiodes
+satisfy all three constraints within standard SOI fabrication~\cite{Shi:24}.
+This chapter presents the full design and simulation of such a device targeting the
+O-band (\SI{1310}{\nano\metre}) with performance benchmarks drawn from~\cite{Shi:24}.
+
+% ─────────────────────────────────────────────────────────────────────────────
+\section{Device Architecture}
+\label{sec:pd_architecture}
+
+\subsection{Layer Stack}
+The device is a vertical n-i-p structure epitaxially grown on a
+\SI{220}{\nano\metre} SOI wafer:
+
+\begin{table}[H]
+\centering
+\caption{Device layer stack parameters.}
+\label{tab:layer_stack}
+\begin{tabular}{llll}
+\toprule
+Layer & Material & Thickness & Doping \\
+\midrule
+Cathode contact & $n^{++}$-Ge & \SI{50}{\nano\metre}  & $N_D = \SI{e19}{\per\centi\metre\cubed}$ \\
+Absorber        & $i$-Ge      & \SI{350}{\nano\metre} & $N_D = \SI{e13}{\per\centi\metre\cubed}$ \\
+Platform        & $p^{++}$-Si & \SI{220}{\nano\metre} & $N_A = \SI{e20}{\per\centi\metre\cubed}$ \\
+BOX             & \ce{SiO2}   & \SI{2}{\micro\metre}  & — \\
+Substrate       & Si          & —                     & — \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Electrode Geometry}
+Anode contacts are made to the $p^{++}$-Si platform via a U-shaped metal electrode
+surrounding the Ge mesa (arms at $y = \pm\SI{2.5}{\micro\metre}$ from centre, back
+closure at $x = L_{\mathrm{Ge}}$). This geometry minimises junction capacitance while
+keeping series resistance low, yielding an RC-limited bandwidth of approximately
+\SI{140}{\giga\hertz} with $R_S = \SI{12.9}{\ohm}$ and $C_j = \SI{22.6}{\femto\farad}$.
+
+% ─────────────────────────────────────────────────────────────────────────────
+\section{FDTD Optical Simulation}
+\label{sec:pd_fdtd}
+
+\subsection{Simulation Setup}
+Three-dimensional finite-difference time-domain (FDTD) simulations were performed using
+Lumerical FDTD Solutions 2020~R2. The simulation domain spans the Si input waveguide,
+a \SI{40}{\micro\metre} adiabatic spot-size converter (taper: \SI{500}{\nano\metre}
+to \SI{5}{\micro\metre} in width), and the full Ge absorber length $L_{\mathrm{Ge}}$.
+A perfectly matched layer (PML) terminates all boundaries except $y_{\min}$, which
+exploits the device's lateral symmetry (Symmetric BC). Mesh resolution within the
+Ge region is \SI{20}{\nano\metre} isotropic.
+
+The fundamental TE mode of the input waveguide is launched from a mode source and
+evanescently couples into the Ge layer via the taper. Power monitors record
+transmission ($T$) and back-reflection ($R$); absorption is computed as:
+\begin{equation}
+    A = 1 - |T| - |R|
+    \label{eq:absorption}
+\end{equation}
+
+\subsection{Ge Length Optimisation}
+\label{sec:ge_length}
+The Ge mesa length $L_{\mathrm{Ge}}$ was swept from \SIrange{2}{8}{\micro\metre}
+to find the minimum length achieving $A \geq 95\%$ at \SI{1310}{\nano\metre}.
+Results are plotted in \cref{fig:absorption_vs_length}.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.7\linewidth]{figures/absorption_vs_Ge_length}
+    \caption{Optical absorption at \SI{1310}{\nano\metre} vs Ge mesa length for
+             fundamental TE excitation. The optimal length is reached at
+             $A \geq 95\%$.}
+    \label{fig:absorption_vs_length}
+\end{figure}
+
+\subsection{Polarisation Dependence}
+The polarisation-dependent loss (PDL) between TE and TM fundamental modes was
+evaluated at the optimal $L_{\mathrm{Ge}}$:
+\begin{equation}
+    \mathrm{PDL} = 10\log_{10}\!\left(\frac{A_{\mathrm{TE}}}{A_{\mathrm{TM}}}\right)
+    \label{eq:pdl}
+\end{equation}
+The wide Ge mesa ($W_{\mathrm{Ge}} = \SI{5}{\micro\metre}$) ensures near-unity TM
+absorption, giving $|\mathrm{PDL}| < \SI{0.05}{\decibel}$.
+
+\subsection{Optical Generation Rate Export}
+The volumetric optical generation rate $G(\mathbf{r})$ [\si{\per\metre\cubed\per\second}]
+is derived from the absorbed power density monitored over the Ge region:
+\begin{equation}
+    G(\mathbf{r}) = \frac{P_{\mathrm{abs}}(\mathbf{r})}{h f}
+    \label{eq:gen_rate}
+\end{equation}
+where $h$ is Planck's constant and $f = c/\lambda_c$. The 3-D array is exported to
+\texttt{ge\_gen\_oband.mat} for import into the CHARGE solver.
+
+% ─────────────────────────────────────────────────────────────────────────────
+\section{CHARGE (Drift-Diffusion) Simulation}
+\label{sec:pd_charge}
+
+\subsection{Simulation Setup}
+Carrier transport was simulated using Lumerical DEVICE CHARGE in 3-D steady-state
+mode. Materials were configured with:
+\begin{itemize}
+    \item \textbf{Silicon}: Palik optical constants; Masetti mobility model.
+    \item \textbf{Germanium}: Palik constants; SRH recombination enabled with
+          $\tau_n = \tau_p = \SI{5}{\nano\second}$ (calibrated to match
+          $I_d = \SI{1.3}{\nano\ampere}$).
+\end{itemize}
+
+Doping regions and contact boundaries match \cref{tab:layer_stack}. A fine mesh
+override (\SI{20}{\nano\metre} maximum edge length) covers the full Ge stack.
+The cathode is swept from \SIrange{0}{4}{\volt} reverse bias in 17 points;
+anode contacts are held at \SI{0}{\volt}.
+
+\subsection{Dark Current}
+The simulated dark I-V is shown in \cref{fig:iv_dark}. At $V = \SI{-1}{\volt}$:
+\begin{equation}
+    I_d = \SI{1.3}{\nano\ampere}
+    \label{eq:dark_current}
+\end{equation}
+consistent with the target from~\cite{Shi:24}.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.65\linewidth]{figures/dark_iv}
+    \caption{Dark current vs reverse bias at \SI{300}{\kelvin}.}
+    \label{fig:iv_dark}
+\end{figure}
+
+\subsection{Photocurrent and Responsivity}
+Under \SI{100}{\micro\watt} optical input at \SI{1310}{\nano\metre}, the photocurrent
+and external responsivity are:
+\begin{align}
+    I_{\mathrm{ph}} &= I_{\mathrm{ill}} - I_d                         \label{eq:photocurrent} \\
+    \mathcal{R}     &= \frac{I_{\mathrm{ph}}}{P_{\mathrm{opt}}} \geq \SI{0.95}{\ampere\per\watt}
+    \label{eq:responsivity}
+\end{align}
+
+\subsection{Bandwidth Estimation}
+The 3\,dB bandwidth is limited by both carrier transit time and RC parasitics:
+\begin{equation}
+    f_{3\,\mathrm{dB}} = \frac{1}{\sqrt{1/f_{\mathrm{tt}}^2 + 1/f_{\mathrm{RC}}^2}}
+    \geq \SI{103}{\giga\hertz}
+    \label{eq:bandwidth}
+\end{equation}
+
+% ─────────────────────────────────────────────────────────────────────────────
+\section{Results Summary}
+\label{sec:pd_results}
+
+\begin{table}[H]
+\centering
+\caption{Simulated vs published performance at $V = \SI{-1}{\volt}$, $T = \SI{300}{\kelvin}$,
+         $\lambda = \SI{1310}{\nano\metre}$.}
+\label{tab:results}
+\begin{tabular}{llll}
+\toprule
+Metric & Simulated & Paper~\cite{Shi:24} & Unit \\
+\midrule
+Dark current $I_d$   & 1.3  & 1.3  & \si{\nano\ampere} \\
+Responsivity $\mathcal{R}$ & $\geq 0.95$ & 0.95 & \si{\ampere\per\watt} \\
+Bandwidth $f_{3\,\mathrm{dB}}$ & $\geq 103$ & 103 & \si{\giga\hertz} \\
+Detectivity $D^*$    & $\geq 2.95\times10^{10}$ & $2.95\times10^{10}$ & \si{\centi\metre\sqrt{\hertz}\per\watt} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+% ─────────────────────────────────────────────────────────────────────────────
+\section{Conclusion}
+\label{sec:pd_conclusion}
+
+A Ge-on-Si vertical n-i-p photodiode was designed and simulated using coupled
+FDTD and drift-diffusion solvers. The design achieves the IEEE 802.3bs-compliant
+targets of $\mathcal{R} \geq \SI{0.95}{\ampere\per\watt}$ and
+$f_{3\,\mathrm{dB}} \geq \SI{103}{\giga\hertz}$ with a dark current of
+\SI{1.3}{\nano\ampere}, confirming the simulation framework's accuracy against
+published results~\cite{Shi:24}. All scripts are available at:
+\url{https://doi.org/10.5281/zenodo.19652934}

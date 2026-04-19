@@ -1,4 +1,4 @@
-function [f_axis, psd] = spectral_analysis(signal, fs, num_samples)
+﻿function [f_axis, psd] = spectral_analysis(signal, fs, num_samples)
 
 NFFT = 2^nextpow2(num_samples);
 f_axis = fs * (0:NFFT/2-1) / NFFT / 1e9;

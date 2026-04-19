@@ -1,4 +1,4 @@
-function [symbols, bits] = data_generation(num_bits)
+﻿function [symbols, bits] = data_generation(num_bits)
 
 M = 4;
 k = log2(M);

@@ -1,4 +1,4 @@
-function optical_power = modulation(symbols, pulse_filter, P_min, P_max, num_samples, samples_per_symbol)
+﻿function optical_power = modulation(symbols, pulse_filter, P_min, P_max, num_samples, samples_per_symbol)
 
 modulated_symbols = pammod(symbols, 4, 0, 'gray');
 tx_signal = upfirdn(modulated_symbols, pulse_filter, samples_per_symbol, 1);

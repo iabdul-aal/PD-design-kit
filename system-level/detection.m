@@ -1,4 +1,4 @@
-function [detected_symbols, detected_bits] = detection(received_signal, pulse_filter, num_symbols, samples_per_symbol)
+﻿function [detected_symbols, detected_bits] = detection(received_signal, pulse_filter, num_symbols, samples_per_symbol)
 
 matched_filtered = conv(received_signal, pulse_filter, 'same');
 

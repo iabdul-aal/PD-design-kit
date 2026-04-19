@@ -1,0 +1,41 @@
+cff-version: 1.2.0
+message: "If you use this toolkit, please cite it as below."
+type: software
+title: "PD-Design-Kit: Ge-on-Si Photodiode Design Toolkit for PAM-4 Optical Receivers"
+version: "1.0.0"
+date-released: "2026-04-19"
+doi: 10.5281/zenodo.19652934
+url: "https://github.com/iabdul-aal/PD-design-kit"
+license: CC-BY-4.0
+authors:
+  - family-names: Ibrahim
+    given-names: Islam
+    orcid: "https://orcid.org/0000-0000-0000-0000"
+    affiliation: "MSc Photonics, Faculty of Engineering"
+abstract: >
+  A comprehensive design and simulation toolkit for Ge-on-Si O-band photodiodes,
+  spanning system-level MATLAB modeling to device-level Lumerical FDTD and CHARGE
+  simulations. Targets high-speed PAM-4 optical receivers at 1310 nm with >100 GHz
+  bandwidth, reproducing results from Yang Shi et al., Photonics Research 12, 1 (2024).
+keywords:
+  - photodiode
+  - germanium-on-silicon
+  - silicon photonics
+  - O-band
+  - PAM-4
+  - Lumerical FDTD
+  - CHARGE simulation
+  - optical receiver
+  - 1310 nm
+repository-code: "https://github.com/iabdul-aal/PD-design-kit"
+references:
+  - type: article
+    title: "High-performance Ge-on-Si photodetectors for O-band optical communications"
+    authors:
+      - family-names: Shi
+        given-names: Yang
+    journal: "Photonics Research"
+    volume: 12
+    issue: 1
+    year: 2024
+    doi: 10.1364/PRJ.504759

@@ -1,4 +1,4 @@
-function plot_responsivity(params, const, settings)
+﻿function plot_responsivity(params, const, settings)
 
 fig = figure('Position', [50, 50, 900, 600], 'Color', 'w');
 set(fig, 'Name', 'Photodiode Responsivity');
@@ -37,13 +37,13 @@ for i = 1:length(eta_levels)
     R_diagonal = eta_levels(i) * const.e * lambda_m / (const.h * const.c);
     plot(lambda, R_diagonal, line_styles{i}, 'Color', [colors_gray(i), colors_gray(i), colors_gray(i)], 'LineWidth', 1.5);
 end
-ylabel('Quantum Efficiency, η', 'FontSize', settings.label_size, 'FontWeight', 'bold');
+ylabel('Quantum Efficiency, ╬╖', 'FontSize', settings.label_size, 'FontWeight', 'bold');
 ylim([0, 1.0]);
 ax = gca;
 ax.YColor = [0, 0, 0];
 
-xlabel('Wavelength, λ (nm)', 'FontSize', settings.label_size, 'FontWeight', 'bold');
-title(sprintf('Photodiode Responsivity (%.1f–%.1f nm, %.3f GBd PAM-4)', ...
+xlabel('Wavelength, ╬╗ (nm)', 'FontSize', settings.label_size, 'FontWeight', 'bold');
+title(sprintf('Photodiode Responsivity (%.1fΓÇô%.1f nm, %.3f GBd PAM-4)', ...
     params.lambda_min*1e9, params.lambda_max*1e9, params.symbol_rate/1e9), ...
     'FontSize', settings.title_size, 'FontWeight', 'bold');
 grid on;

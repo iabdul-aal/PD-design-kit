@@ -1,0 +1,10 @@
+parameter,value
+responsivity_A_W,1.00296257168729
+dark_current_A,1.3e-09
+bandwidth_Hz,103000000000
+Rs_Ohm,12.9
+Cj_F,2.26e-14
+Cp_F,1e-14
+Rload_Ohm,50
+Lp_H,1.753e-10
+Psat_W,0.01

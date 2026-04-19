@@ -65,13 +65,17 @@ klayout -r ge_pd_layout.rb    →    ge_pd_layout_oband.gds
 ## System-Level
 
 End-to-end MATLAB PAM-4 link simulation calibrated with device-level results.
+The `system-level` folder is intentionally consolidated into a single `main.m`
+entry point plus an `INTERCONNECT` export helper for circuit-ready compact-model data.
 
 ```matlab
 cd system-level
-main       % runs the full PAM-4 chain and plots results
+main       % runs the PAM-4 chain, exports thesis figures, and writes INTERCONNECT-ready PD data
 ```
 
-**Outputs:** BER, SER, SNR, eye diagram, responsivity curve, frequency response.
+**Outputs:** BER, SER, SNR, optical and photocurrent eye diagrams,
+responsivity curve, transfer function, thesis-ready figures in `thesis/figures/`,
+and a Lumerical `INTERCONNECT` photodetector source-data package in `system-level/interconnect/`.
 
 **Requirements:** MATLAB R2020b+, Signal Processing Toolbox, Communications Toolbox
 
@@ -98,7 +102,7 @@ Include in the main thesis document:
 
 ```bibtex
 @misc{ibrahim2026pdkit,
-  author    = {Ibrahim, Islam},
+  author    = {Abdulaal, Islam I.},
   title     = {{PD-Design-Kit}: Ge-on-Si Photodiode Design Toolkit},
   year      = {2026},
   publisher = {Zenodo},
@@ -111,5 +115,5 @@ Include in the main thesis document:
 
 ## License
 
-[CC BY 4.0](https://creativecommons.org/licenses/by/4.0/) © 2026 Islam Ibrahim  
+[CC BY 4.0](https://creativecommons.org/licenses/by/4.0/) © 2026 Islam I. Abdulaal  
 DOI: [10.5281/zenodo.19652934](https://doi.org/10.5281/zenodo.19652934)

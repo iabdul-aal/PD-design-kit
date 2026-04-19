@@ -8,15 +8,13 @@
 %
 % Behavior:
 %   - DEVICE optional figures are generated when ge_charge_optional_oband.mat exists.
-%   - FDTD optional figures are generated from ge_fdtd_optional_oband.mat when present,
-%     otherwise the script falls back to the hardcoded O-band results below.
+%   - FDTD optional figures are generated from ge_fdtd_optional_oband.mat when present.
+%   - Missing optional data is skipped without aborting the script.
 
 device_mat = 'ge_charge_optional_oband.mat';
 fdtd_mat   = 'ge_fdtd_optional_oband.mat';
-
-set(groot, 'defaultAxesFontSize', 11, 'defaultAxesFontName', 'Times New Roman', ...
-    'defaultLineLineWidth', 1.5, 'defaultAxesBox', 'on', 'defaultAxesLineWidth', 0.75, ...
-    'defaultFigureColor', 'w');
+figure_dir = fullfile(fileparts(fileparts(mfilename('fullpath'))), 'thesis', 'figures');
+style = thesis_style(figure_dir);
 
 fprintf('\n=== Optional Postprocess | FDTD + DEVICE ===\n');
 
@@ -51,6 +49,7 @@ if exist(device_mat, 'file')
         text(iGe_arr(k) * 1e9 + 3, Id_iGe(k) * 1e9, sprintf('%.3f nA', Id_iGe(k) * 1e9), ...
             'FontName', 'Times New Roman', 'FontSize', 9);
     end
+    save_thesis_figure(14, 'dark_current_vs_iGe_thickness', style);
 
     figure(15); clf;
     p = polyfit(invT, logId, 1);
@@ -76,6 +75,7 @@ if exist(device_mat, 'file')
     set(ax2, 'XTick', 1e3 ./ T_ticks, ...
         'XTickLabel', arrayfun(@(t) sprintf('%d K', t), T_ticks, 'UniformOutput', false));
     xlabel(ax2, 'Temperature T (K)');
+    save_thesis_figure(15, 'arrhenius_dark_current', style);
 
     figure(16); clf;
     semilogy(abs(V_u), I_u * 1e9, 'b-', 'DisplayName', ...
@@ -90,13 +90,16 @@ if exist(device_mat, 'file')
     legend('Location', 'northwest');
     grid on;
     xlim([0 4]);
+    save_thesis_figure(16, 'dark_iv_electrode_comparison', style);
 else
     fprintf('Skipping DEVICE optional figures: %s not found.\n', device_mat);
 end
 
 % FDTD optional postprocess
 if ~exist(fdtd_mat, 'file')
-    error('Missing %s — run ge_pd_fdtd_oband_optional.lsf first.', fdtd_mat);
+    fprintf('Skipping FDTD optional figures: %s not found.\n', fdtd_mat);
+    fprintf('=== Optional postprocess complete ===\n');
+    return;
 end
 load(fdtd_mat);
 fprintf('Loaded %s\n', fdtd_mat);
@@ -126,6 +129,7 @@ ylim([75 102]);
 grid on;
 text(Ge_L_arr(end) * 1e6 + 0.1, A_arr(end) * 100, sprintf('%.2f%%', A_arr(end) * 100), ...
     'FontName', 'Times New Roman', 'FontSize', 10);
+save_thesis_figure(10, 'absorption_vs_Ge_length', style);
 
 figure(11); clf;
 bar([A_pol(1), A_pol(2)] * 100, 0.4, 'FaceColor', [0.2 0.4 0.8]);
@@ -140,6 +144,7 @@ text(1, A_pol(1) * 100 + 0.05, sprintf('%.2f%%', A_pol(1) * 100), ...
     'HorizontalAlignment', 'center', 'FontName', 'Times New Roman', 'FontSize', 10);
 text(2, A_pol(2) * 100 + 0.05, sprintf('%.2f%%', A_pol(2) * 100), ...
     'HorizontalAlignment', 'center', 'FontName', 'Times New Roman', 'FontSize', 10);
+save_thesis_figure(11, 'polarization_absorption', style);
 
 figure(12); clf;
 yyaxis left;
@@ -155,6 +160,7 @@ title('Responsivity and Absorption Spectrum - O-band (IQE = 1 assumed)');
 grid on;
 legend('Responsivity (A/W)', 'Absorption (%)', 'Location', 'southwest');
 xlim([1255 1365]);
+save_thesis_figure(12, 'responsivity_absorption_spectrum', style);
 
 figure(13); clf;
 plot(lambda_sweep * 1e9, A_sp * 100, 'b-o', 'MarkerFaceColor', 'b', 'MarkerSize', 5);
@@ -164,5 +170,29 @@ title('O-band Absorption Spectrum - Ge-on-Si PD (L_{Ge} = 8 \mum)');
 ylim([98 100]);
 xlim([1255 1365]);
 grid on;
+save_thesis_figure(13, 'absorption_spectrum', style);
 
 fprintf('=== Optional postprocess complete ===\n');
+
+function style = thesis_style(figure_dir)
+style = struct('figure_dir', figure_dir, 'font_size', 11, 'font_name', 'Times New Roman', ...
+    'line_width', 2, 'grid_alpha', 0.15, 'figure_pos', [80, 80, 1600, 1000], 'dpi', 300);
+if ~exist(figure_dir, 'dir'), mkdir(figure_dir); end
+set(groot, 'defaultAxesFontSize', style.font_size, 'defaultAxesFontName', style.font_name, ...
+    'defaultLineLineWidth', style.line_width, 'defaultAxesBox', 'on', 'defaultAxesLineWidth', 0.9, ...
+    'defaultFigureColor', 'w');
+end
+
+function save_thesis_figure(fig_id, base_name, style)
+fig = figure(fig_id);
+set(fig, 'Color', 'w', 'InvertHardcopy', 'off', 'Renderer', 'painters', 'Position', style.figure_pos);
+axes_list = findall(fig, 'Type', 'axes');
+for k = 1:numel(axes_list)
+    set(axes_list(k), 'FontName', style.font_name, 'FontSize', style.font_size, 'LineWidth', 1.2, ...
+        'GridAlpha', style.grid_alpha, 'MinorGridAlpha', 0.08, 'TickDir', 'out');
+end
+drawnow;
+exportgraphics(fig, fullfile(style.figure_dir, [base_name, '.pdf']), 'ContentType', 'vector', 'BackgroundColor', 'white');
+exportgraphics(fig, fullfile(style.figure_dir, [base_name, '.png']), 'Resolution', style.dpi, 'BackgroundColor', 'white');
+fprintf('Saved %s.[pdf|png]\n', fullfile(style.figure_dir, base_name));
+end

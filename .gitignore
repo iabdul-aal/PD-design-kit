@@ -5,6 +5,7 @@
 
 # Simulation output data
 *.mat
+!system-level/interconnect/*.mat
 
 # Lumerical log files
 *_p0.log
@@ -39,3 +40,4 @@ desktop.ini
 
 # Local papers
 *.pdf
+!thesis/figures/*.pdf

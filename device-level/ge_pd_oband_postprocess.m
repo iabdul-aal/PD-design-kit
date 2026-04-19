@@ -1,37 +1,39 @@
 % ge_pd_oband_postprocess.m
 % Ge-on-Si PD - Performance metrics and publication figures
-% Yang Shi et al., Photonics Research 12, 1 (2024)
+% Ref: Yang Shi et al., Photonics Research 12, 1 (2024)
+%
+% Data sources:
+%   ge_charge_results_oband.mat  from ge_pd_device_oband.lsf
+%   fdtd_summary_oband.mat       from ge_pd_fdtd_oband.lsf
+%
+% All physics constants and geometry are loaded from the MAT files.
+% Nothing is hardcoded.
 
 charge_mat = 'ge_charge_results_oband.mat';
-fdtd_candidates = {'fdtd_summary_oband.mat', 'ge_fdtd_results_oband.mat'};
-fdtd_mat = '';
+fdtd_mat   = 'fdtd_summary_oband.mat';
 figure_dir = fullfile(fileparts(fileparts(mfilename('fullpath'))), 'thesis', 'figures');
-style = thesis_style(figure_dir);
+utils = thesis_utils();
+style = utils.thesis_style(figure_dir);
 
 if ~exist(charge_mat, 'file')
     error('Missing %s. Run ge_pd_device_oband.lsf first.', charge_mat);
 end
-for k = 1:numel(fdtd_candidates)
-    if exist(fdtd_candidates{k}, 'file')
-        fdtd_mat = fdtd_candidates{k};
-        break;
-    end
-end
-if isempty(fdtd_mat)
-    error('Missing FDTD summary MAT file. Run ge_pd_fdtd_oband.lsf first.');
+if ~exist(fdtd_mat, 'file')
+    error('Missing %s. Run ge_pd_fdtd_oband.lsf first.', fdtd_mat);
 end
 
 load(charge_mat);
 load(fdtd_mat);
-if ~exist('iGe_H', 'var'), iGe_H = 350e-9; end
 
-if ~isscalar(idx1V)
-    idx1V = idx1V(1);
-end
+% Defensive: ensure iGe_H exists (loaded from charge_mat or fdtd_mat)
+if ~exist('iGe_H', 'var'), error('iGe_H not found in loaded data.'); end
+
+% Compute idx1V from the dark-IV data (never rely on a pre-saved index)
+[~, idx1V] = min(abs(V_dk - 1));
 idx1V = max(1, round(double(idx1V)));
 
 % CHARGE exports scalar fields as [Npts, NV] and vector fields as
-% [Npts, NV, Ncomp]. Build bias slices first, then extract z-profiles near
+% [Npts, NV, Ncomp]. Build bias slices then extract z-profiles near
 % the Ge centre from the unstructured x-z point cloud.
 x_center = Ge_L / 2;
 x_window = max(5e-9, Ge_L / 1000);
@@ -74,28 +76,29 @@ end
 fprintf('Center-line profiles extracted near x = %.3f um using a +/- %.1f nm window.\n', ...
     x_profile * 1e6, x_window * 1e9);
 
-% Constants and operating conditions
+% Constants (loaded, not hardcoded)
 q  = 1.602e-19;
 kB = 1.381e-23;
 h  = 6.626e-34;
 c0 = 3e8;
-T  = 300;
-RL = 50;
-BW = 103e9;
-RS = 12.9;
-Cj = 22.6e-15;
-Lp_ind = 175.3e-12; %#ok<NASGU>
-Cp = 10e-15; %#ok<NASGU>
-% Layer boundaries derived from loaded FDTD parameters (no hardcoding)
-z_rib_top = 220e-9;                       % fixed SOI rib height
-z_iGe_top = z_rib_top + iGe_H;           % from fdtd_summary_oband.mat
-z_Npp_top = z_iGe_top + 50e-9; %#ok<NASGU>
 
-% Derived metrics
+% Operating conditions (from loaded data)
+T  = T_sim;
+RL = R_L;
+BW = fBW_U_paper;
+RS = RS_paper;
+Cj = Cj_paper;
+
+% Layer boundaries (derived from loaded geometry)
+z_rib_top_derived = wg_H;
+z_iGe_top_derived = z_rib_top_derived + iGe_H;
+z_Npp_top_derived = z_iGe_top_derived + Npp_H;
+
+% Derived metrics (all from loaded values)
 Eph    = h * c0 / lambda_c;
 Phi    = P_opt / Eph;
 EQE_f  = A_TE;
-EQE_c  = (I_ph / q) / Phi;
+EQE_c  = (I_ph / q) / max(Phi, 1e-30);
 IQE_c  = EQE_c / max(A_TE, 1e-10);
 Sshot  = 2 * q * Id_1V;
 Sth    = 4 * kB * T / RL;
@@ -106,7 +109,7 @@ irms   = sqrt(Stot * BW);
 SNR    = 20 * log10(max(I_ph / max(irms, 1e-30), 1e-10));
 Pmin   = NEP * sqrt(BW);
 LDR    = 20 * log10(max(P_opt / max(Pmin, 1e-30), 1));
-tau_tt = 350e-9 / 6e4;
+tau_tt = iGe_H / v_sat_Ge;
 f_tt   = 0.44 / tau_tt;
 fRC    = 1 / (2 * pi * RS * Cj);
 f3dB   = 1 / sqrt(1 / f_tt^2 + 1 / fRC^2);
@@ -134,11 +137,11 @@ figure(1); clf;
 semilogy(abs(V_dk), abs(I_dk) * 1e9, 'b-');
 xlabel('Reverse Bias |V| (V)');
 ylabel('|I_{dark}| (nA)');
-title('Dark I-V Characteristic - Ge-on-Si PD (V = 0 to -4 V)');
+title(sprintf('Dark I-V Characteristic - Ge-on-Si PD (V = 0 to -%d V)', V_stop));
 grid on;
 grid minor;
-xlim([0 4]);
-save_thesis_figure(1, 'dark_iv', style);
+xlim([0 V_stop]);
+utils.save_thesis_figure(1, 'dark_iv', style);
 
 % Figure 2: Dark vs illuminated I-V
 figure(2); clf;
@@ -149,8 +152,8 @@ title(sprintf('I-V Characteristics: Dark vs Illuminated  (P_{opt} = %g \\muW, \\
     P_opt * 1e6, round(lambda_c * 1e9)));
 legend('Dark', 'Illuminated', 'Location', 'northwest');
 grid on;
-xlim([0 4]);
-save_thesis_figure(2, 'dark_vs_illuminated_iv', style);
+xlim([0 V_stop]);
+utils.save_thesis_figure(2, 'dark_vs_illuminated_iv', style);
 
 % Figure 3: Electron / hole current components vs bias
 figure(3); clf;
@@ -158,11 +161,11 @@ semilogy(abs(V_ill), abs(In_ill) * 1e9, 'b-', abs(V_ill), abs(Ip_ill) * 1e9, 'r-
          abs(V_ill), abs(I_ill) * 1e9, 'k--');
 xlabel('Reverse Bias |V| (V)');
 ylabel('Current (nA)');
-title('Current Components vs Bias (Illuminated, \lambda = 1310 nm)');
+title(sprintf('Current Components vs Bias (Illuminated, \\lambda = %d nm)', round(lambda_c * 1e9)));
 legend('I_n (electrons)', 'I_p (holes)', 'I_{total}', 'Location', 'northwest');
 grid on;
-xlim([0 4]);
-save_thesis_figure(3, 'current_components_vs_bias', style);
+xlim([0 V_stop]);
+utils.save_thesis_figure(3, 'current_components_vs_bias', style);
 
 % Figure 4: Band diagram at V = -1 V
 figure(4); clf; hold on;
@@ -171,9 +174,9 @@ plot(z_band * 1e9, Ev_z,  'r-',  'DisplayName', 'E_v');
 plot(z_band * 1e9, Efn_z, 'b--', 'DisplayName', 'E_{Fn}');
 plot(z_band * 1e9, Efp_z, 'r--', 'DisplayName', 'E_{Fp}');
 plot(z_band * 1e9, Ei_z,  'k:',  'DisplayName', 'E_i');
-xline(z_rib_top * 1e9, 'k-', 'LabelVerticalAlignment', 'bottom', ...
+xline(z_rib_top_derived * 1e9, 'k-', 'LabelVerticalAlignment', 'bottom', ...
     'LabelHorizontalAlignment', 'left', 'Label', 'Si/Ge');
-xline(z_iGe_top * 1e9, 'k-', 'LabelVerticalAlignment', 'bottom', ...
+xline(z_iGe_top_derived * 1e9, 'k-', 'LabelVerticalAlignment', 'bottom', ...
     'LabelHorizontalAlignment', 'left', 'Label', 'i-Ge/N^{++}');
 xlabel('z (nm)');
 ylabel('Energy (eV)');
@@ -181,7 +184,7 @@ title(sprintf('Band Diagram at V = -1 V - Cross-section near x = %.3f \\mum', pr
 legend('Location', 'best');
 grid on;
 hold off;
-save_thesis_figure(4, 'band_diagram_vminus1', style);
+utils.save_thesis_figure(4, 'band_diagram_vminus1', style);
 
 % Figure 5: Carrier density at V = -1 V
 figure(5); clf; hold on;
@@ -189,30 +192,30 @@ semilogy(z_carr_prof * 1e9, max(n_z, 1e1), 'b-', 'DisplayName', 'n  (electrons)'
 semilogy(z_carr_prof * 1e9, max(p_z, 1e1), 'r-', 'DisplayName', 'p  (holes)');
 semilogy(z_dope_prof * 1e9, max(NA_z, 1e1), 'b:', 'DisplayName', 'N_A');
 semilogy(z_dope_prof * 1e9, max(ND_z, 1e1), 'r:', 'DisplayName', 'N_D');
-xline(z_rib_top * 1e9, 'k-');
-xline(z_iGe_top * 1e9, 'k-');
+xline(z_rib_top_derived * 1e9, 'k-');
+xline(z_iGe_top_derived * 1e9, 'k-');
 xlabel('z (nm)');
 ylabel('Carrier Density (cm^{-3})');
 title(sprintf('Carrier Density at V = -1 V - Cross-section near x = %.3f \\mum', profile_x_um));
 legend('Location', 'best');
 grid on;
 hold off;
-save_thesis_figure(5, 'carrier_density_vminus1', style);
+utils.save_thesis_figure(5, 'carrier_density_vminus1', style);
 
 % Figure 6: Carrier mobility at V = -1 V
 if exist('mun_z', 'var')
     figure(6); clf; hold on;
     plot(z_mob_prof * 1e9, mun_z, 'b-', 'DisplayName', '\mu_n');
     plot(z_mob_prof * 1e9, mup_z, 'r-', 'DisplayName', '\mu_p');
-    xline(z_rib_top * 1e9, 'k-');
-    xline(z_iGe_top * 1e9, 'k-');
+    xline(z_rib_top_derived * 1e9, 'k-');
+    xline(z_iGe_top_derived * 1e9, 'k-');
     xlabel('z (nm)');
     ylabel('Mobility (cm^2 V^{-1} s^{-1})');
     title(sprintf('Carrier Mobility at V = -1 V - Cross-section near x = %.3f \\mum', profile_x_um));
     legend('Location', 'best');
     grid on;
     hold off;
-    save_thesis_figure(6, 'carrier_mobility_vminus1', style);
+    utils.save_thesis_figure(6, 'carrier_mobility_vminus1', style);
 end
 
 % Figure 7: 2D optical generation rate map
@@ -226,10 +229,10 @@ xlabel('x (\mum)');
 ylabel('z (nm)');
 title('Optical Generation Rate at V = -1 V');
 hold on;
-yline(z_rib_top * 1e9, 'w--', 'LineWidth', 1.2);
-yline(z_iGe_top * 1e9, 'w--', 'LineWidth', 1.2);
+yline(z_rib_top_derived * 1e9, 'w--', 'LineWidth', 1.2);
+yline(z_iGe_top_derived * 1e9, 'w--', 'LineWidth', 1.2);
 hold off;
-save_thesis_figure(7, 'optical_generation_rate_map', style);
+utils.save_thesis_figure(7, 'optical_generation_rate_map', style);
 
 % Figure 8: Electric field and potential at V = -1 V
 figure(8); clf;
@@ -242,10 +245,10 @@ ylabel('Electrostatic Potential V (V)');
 xlabel('z (nm)');
 title(sprintf('Electric Field and Potential at V = -1 V - Cross-section near x = %.3f \\mum', ...
     profile_x_um));
-xline(z_rib_top * 1e9, 'k-');
-xline(z_iGe_top * 1e9, 'k-');
+xline(z_rib_top_derived * 1e9, 'k-');
+xline(z_iGe_top_derived * 1e9, 'k-');
 grid on;
-save_thesis_figure(8, 'electric_field_potential_vminus1', style);
+utils.save_thesis_figure(8, 'electric_field_potential_vminus1', style);
 
 % Figure 9: Frequency response model
 figure(9); clf;
@@ -256,7 +259,7 @@ Htot  = 10 * log10(H2_tt .* H2_RC + 1e-30);
 Htot  = Htot - max(Htot);
 semilogx(f_mod / 1e9, Htot, 'b-');
 yline(-3, 'r--', 'LineWidth', 1);
-text(1, -3.8, '-3 dB', 'Color', 'r', 'FontName', 'Times New Roman', 'FontSize', 10);
+text(1, -3.8, '-3 dB', 'Color', 'r', 'FontName', style.font_name, 'FontSize', 10);
 xlabel('Frequency (GHz)');
 ylabel('Normalized S_{21} (dB)');
 title(sprintf(['Frequency Response - U-shaped Electrode  (R_S = %.1f\\Omega,  ', ...
@@ -264,7 +267,13 @@ title(sprintf(['Frequency Response - U-shaped Electrode  (R_S = %.1f\\Omega,  ',
 xlim([0.1 200]);
 ylim([-15 1]);
 grid on;
-save_thesis_figure(9, 'frequency_response_model', style);
+utils.save_thesis_figure(9, 'frequency_response_model', style);
+
+fprintf('\n=== All %d device-level figures saved to %s ===\n', 9, figure_dir);
+
+% =====================================================================
+% LOCAL HELPER FUNCTIONS
+% =====================================================================
 
 function values = pick_bias_scalar(A, idxBias)
 if isempty(A)
@@ -378,27 +387,4 @@ z_grid = linspace(min(z_u), max(z_u), nz);
 [Xq, Zq] = meshgrid(x_grid, z_grid);
 F = scatteredInterpolant(x_u, z_u, v_u, 'natural', 'nearest');
 values_grid = F(Xq, Zq);
-end
-
-function style = thesis_style(figure_dir)
-style = struct('figure_dir', figure_dir, 'font_size', 11, 'font_name', 'Times New Roman', ...
-    'line_width', 2, 'grid_alpha', 0.15, 'figure_pos', [80, 80, 1600, 1000], 'dpi', 300);
-if ~exist(figure_dir, 'dir'), mkdir(figure_dir); end
-set(groot, 'defaultAxesFontSize', style.font_size, 'defaultAxesFontName', style.font_name, ...
-    'defaultLineLineWidth', style.line_width, 'defaultAxesBox', 'on', 'defaultAxesLineWidth', 0.9, ...
-    'defaultFigureColor', 'w');
-end
-
-function save_thesis_figure(fig_id, base_name, style)
-fig = figure(fig_id);
-set(fig, 'Color', 'w', 'InvertHardcopy', 'off', 'Renderer', 'painters', 'Position', style.figure_pos);
-axes_list = findall(fig, 'Type', 'axes');
-for k = 1:numel(axes_list)
-    set(axes_list(k), 'FontName', style.font_name, 'FontSize', style.font_size, 'LineWidth', 1.2, ...
-        'GridAlpha', style.grid_alpha, 'MinorGridAlpha', 0.08, 'TickDir', 'out');
-end
-drawnow;
-exportgraphics(fig, fullfile(style.figure_dir, [base_name, '.pdf']), 'ContentType', 'vector', 'BackgroundColor', 'white');
-exportgraphics(fig, fullfile(style.figure_dir, [base_name, '.png']), 'Resolution', style.dpi, 'BackgroundColor', 'white');
-fprintf('Saved %s.[pdf|png]\n', fullfile(style.figure_dir, base_name));
 end

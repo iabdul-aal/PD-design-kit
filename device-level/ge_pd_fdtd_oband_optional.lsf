@@ -39,8 +39,10 @@ for(iL=1; iL<=nL; iL=iL+1) {
     run;
     f_arr  = getdata("T_after_Ge","f");
     T_vs_f = transmission("T_after_Ge");
+    R_vs_f = transmission("R_input");
     T_c    = real(interp(T_vs_f, f_arr, f_c));
-    A_arr(iL) = max(1-abs(T_c), 0);
+    R_c    = real(interp(R_vs_f, f_arr, f_c));
+    A_arr(iL) = max(1 - abs(T_c) - abs(R_c), 0);
     ?"  Ge_L="+num2str(Ge_L_arr(iL)*1e6,"%.0f")+" um  A="+num2str(A_arr(iL)*100,"%.2f")+"%";
 }
 
@@ -61,8 +63,10 @@ for(ip=1; ip<=2; ip=ip+1) {
     run;
     f_arr  = getdata("T_after_Ge","f");
     T_vs_f = transmission("T_after_Ge");
+    R_vs_f = transmission("R_input");
     T_c    = real(interp(T_vs_f, f_arr, f_c));
-    A_pol(ip) = max(1-abs(T_c), 0);
+    R_c    = real(interp(R_vs_f, f_arr, f_c));
+    A_pol(ip) = max(1 - abs(T_c) - abs(R_c), 0);
     ?"  "+pol{ip}+"  A="+num2str(A_pol(ip)*100,"%.2f")+"%";
 }
 
@@ -120,8 +124,10 @@ for(iS=1; iS<=nS; iS=iS+1) {
     run;
     f_m   = getdata("T_after_Ge","f");
     T_m   = transmission("T_after_Ge");
+    R_m   = transmission("R_input");
     Tc    = real(interp(T_m, f_m, fc));
-    A_sp(iS) = max(1-abs(Tc), 0);
+    Rc    = real(interp(R_m, f_m, fc));
+    A_sp(iS) = max(1 - abs(Tc) - abs(Rc), 0);
     R_sp(iS) = A_sp(iS) * q_e * lc / (h_planck * c0);
     ?"  lambda="+num2str(lc*1e9,"%.0f")+" nm  A="+num2str(A_sp(iS)*100,"%.2f")+"%  R="+num2str(R_sp(iS),"%.3f")+" A/W";
 }

@@ -1,10 +1,12 @@
 % chapter_photodetector.tex
 % Ge-on-Si Photodetector chapter for the group thesis
 % Islam I. Abdulaal, 2026
+% Electronics and Communications Engineering, Alexandria University
 % Compile as part of the main thesis document:
 %   \include{chapter_photodetector}
 % Required packages in main preamble:
-%   graphicx, amsmath, siunitx, booktabs, hyperref, cleveref, biblatex (IEEE style)
+%   graphicx, amsmath, siunitx, booktabs, hyperref, cleveref, float,
+%   biblatex (IEEE style), mhchem (for \ce{})
 
 \chapter{Germanium-on-Silicon Photodetector Design and Simulation}
 \label{ch:photodetector}
@@ -108,7 +110,16 @@ is derived from the absorbed power density monitored over the Ge region:
     \label{eq:gen_rate}
 \end{equation}
 where $h$ is Planck's constant and $f = c/\lambda_c$. The 3-D array is exported to
-\texttt{ge\_gen\_oband.mat} for import into the CHARGE solver.
+\texttt{ge\_gen\_oband.mat} for import into the CHARGE solver (\cref{fig:gen_rate_map}).
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.7\linewidth]{figures/optical_generation_rate_map}
+    \caption{2-D cross-section ($x$-$z$ plane) of the optical generation rate
+             at \SI{1310}{\nano\metre}. Dashed white lines mark the Si/Ge and
+             i-Ge/$n^{++}$ interfaces.}
+    \label{fig:gen_rate_map}
+\end{figure}
 
 % ─────────────────────────────────────────────────────────────────────────────
 \section{CHARGE (Drift-Diffusion) Simulation}
@@ -121,7 +132,7 @@ mode. Materials were configured with:
     \item \textbf{Silicon}: Palik optical constants; Masetti mobility model.
     \item \textbf{Germanium}: Palik constants; SRH recombination enabled with
           $\tau_n = \tau_p = \SI{5}{\nano\second}$ (calibrated to match
-          $I_d = \SI{1.3}{\nano\ampere}$).
+          $I_d = \SI{1.3}{\nano\ampere}$ at $V = \SI{-1}{\volt}$).
 \end{itemize}
 
 Doping regions and contact boundaries match \cref{tab:layer_stack}. A fine mesh
@@ -153,6 +164,53 @@ and external responsivity are:
     \label{eq:responsivity}
 \end{align}
 
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.65\linewidth]{figures/dark_vs_illuminated_iv}
+    \caption{Dark vs illuminated I-V characteristics at \SI{1310}{\nano\metre}
+             ($P_{\mathrm{opt}} = \SI{100}{\micro\watt}$).}
+    \label{fig:iv_dark_vs_ill}
+\end{figure}
+
+\subsection{Band Diagram and Internal Physics}
+\cref{fig:band_diagram} shows the energy band diagram extracted along the $z$-axis
+at the centre of the Ge mesa under $V = \SI{-1}{\volt}$ reverse bias. The full
+depletion of the intrinsic Ge layer is confirmed by the quasi-Fermi level separation
+and the linear potential drop across the $i$-Ge region.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.7\linewidth]{figures/band_diagram_vminus1}
+    \caption{Energy band diagram at $V = \SI{-1}{\volt}$ through the n-i-p stack.
+             $E_c$, $E_v$: conduction and valence bands; $E_{Fn}$, $E_{Fp}$:
+             electron and hole quasi-Fermi levels; $E_i$: intrinsic level.}
+    \label{fig:band_diagram}
+\end{figure}
+
+The corresponding carrier density profiles (\cref{fig:carrier_density}) show the
+expected depletion of the intrinsic region and confirmation of the designed doping
+concentrations.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.7\linewidth]{figures/carrier_density_vminus1}
+    \caption{Electron and hole densities at $V = \SI{-1}{\volt}$, overlaid with
+             acceptor ($N_A$) and donor ($N_D$) doping profiles.}
+    \label{fig:carrier_density}
+\end{figure}
+
+\subsection{Electric Field and Potential}
+The electric field profile (\cref{fig:efield}) confirms that the peak field resides
+within the intrinsic Ge absorber, consistent with full depletion at \SI{-1}{\volt}.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.7\linewidth]{figures/electric_field_potential_vminus1}
+    \caption{Electric field magnitude and electrostatic potential at
+             $V = \SI{-1}{\volt}$ along the $z$-axis.}
+    \label{fig:efield}
+\end{figure}
+
 \subsection{Bandwidth Estimation}
 The 3\,dB bandwidth is limited by both carrier transit time and RC parasitics:
 \begin{equation}
@@ -160,6 +218,70 @@ The 3\,dB bandwidth is limited by both carrier transit time and RC parasitics:
     \geq \SI{103}{\giga\hertz}
     \label{eq:bandwidth}
 \end{equation}
+The modelled frequency response is shown in \cref{fig:freq_response}.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.7\linewidth]{figures/frequency_response_model}
+    \caption{Normalised $S_{21}$ frequency response combining transit-time and RC
+             transfer functions. The $-3$\,dB bandwidth exceeds \SI{103}{\giga\hertz}
+             with the U-shaped electrode geometry.}
+    \label{fig:freq_response}
+\end{figure}
+
+% ─────────────────────────────────────────────────────────────────────────────
+\section{System-Level PAM-4 Validation}
+\label{sec:pd_system}
+
+To verify the photodetector's suitability for high-speed link applications, a
+MATLAB-based PAM-4 receiver model was constructed. The model includes:
+\begin{itemize}
+    \item PAM-4 symbol generation at \SI{53.125}{\giga\baud}
+          (106\,Gb/s IEEE 802.3bs-compliant rate).
+    \item Root-raised-cosine pulse shaping with roll-off $\alpha = 0.35$.
+    \item Quantum shot noise and thermal noise at $R_L = \SI{50}{\ohm}$.
+    \item Bandwidth-limited detection through a $3^{\mathrm{rd}}$-order Butterworth
+          low-pass filter matched to $f_{3\,\mathrm{dB}}$.
+    \item Matched-filter detection with adaptive threshold estimation.
+\end{itemize}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.65\linewidth]{figures/system_transfer_function}
+    \caption{PD transfer function (photocurrent vs optical power) at
+             \SI{1310}{\nano\metre}, showing saturation at
+             $P_{\mathrm{sat}} = \SI{10}{\milli\watt}$.}
+    \label{fig:transfer_function}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.65\linewidth]{figures/system_photocurrent_eye}
+    \caption{Photocurrent eye diagram at \SI{53.125}{\giga\baud} PAM-4.}
+    \label{fig:eye_diagram}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.65\linewidth]{figures/system_pam4_histogram}
+    \caption{PAM-4 matched-filter output histogram showing four distinct amplitude
+             levels with decision thresholds (dashed red).}
+    \label{fig:pam4_histogram}
+\end{figure}
+
+A Lumerical INTERCONNECT-ready compact photodetector model was also exported,
+enabling the PD to be inserted directly into photonic circuit simulations
+(\cref{fig:interconnect}). The exported package includes frequency-dependent
+responsivity, bias-dependent bandwidth and dark current tables, and equivalent-circuit
+parameters.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.7\linewidth]{figures/system_interconnect_compact_model}
+    \caption{INTERCONNECT-ready compact PD model: optical-to-electrical transimpedance
+             $|Z_t|$ and normalised electro-optic response vs frequency.}
+    \label{fig:interconnect}
+\end{figure}
 
 % ─────────────────────────────────────────────────────────────────────────────
 \section{Results Summary}
@@ -174,10 +296,12 @@ The 3\,dB bandwidth is limited by both carrier transit time and RC parasitics:
 \toprule
 Metric & Simulated & Paper~\cite{Shi:24} & Unit \\
 \midrule
-Dark current $I_d$   & 1.3  & 1.3  & \si{\nano\ampere} \\
-Responsivity $\mathcal{R}$ & $\geq 0.95$ & 0.95 & \si{\ampere\per\watt} \\
-Bandwidth $f_{3\,\mathrm{dB}}$ & $\geq 103$ & 103 & \si{\giga\hertz} \\
-Detectivity $D^*$    & $\geq 2.95\times10^{10}$ & $2.95\times10^{10}$ & \si{\centi\metre\sqrt{\hertz}\per\watt} \\
+Dark current $I_d$          & 1.3                      & 1.3                   & \si{\nano\ampere} \\
+Responsivity $\mathcal{R}$  & $\geq 0.95$              & 0.95                  & \si{\ampere\per\watt} \\
+Bandwidth $f_{3\,\mathrm{dB}}$ & $\geq 103$            & 103                   & \si{\giga\hertz} \\
+Detectivity $D^*$           & $\geq 2.95\times10^{10}$ & $2.95\times10^{10}$   & \si{\centi\metre\sqrt{\hertz}\per\watt} \\
+EQE                         & $\geq 95$                & —                     & \% \\
+IQE                         & $\geq 99$                & —                     & \% \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -187,9 +311,12 @@ Detectivity $D^*$    & $\geq 2.95\times10^{10}$ & $2.95\times10^{10}$ & \si{\cen
 \label{sec:pd_conclusion}
 
 A Ge-on-Si vertical n-i-p photodiode was designed and simulated using coupled
-FDTD and drift-diffusion solvers. The design achieves the IEEE 802.3bs-compliant
-targets of $\mathcal{R} \geq \SI{0.95}{\ampere\per\watt}$ and
+FDTD and drift-diffusion solvers, and validated at the system level with a PAM-4
+receiver model. The design achieves the IEEE 802.3bs-compliant targets of
+$\mathcal{R} \geq \SI{0.95}{\ampere\per\watt}$ and
 $f_{3\,\mathrm{dB}} \geq \SI{103}{\giga\hertz}$ with a dark current of
 \SI{1.3}{\nano\ampere}, confirming the simulation framework's accuracy against
-published results~\cite{Shi:24}. All scripts are available at:
+published results~\cite{Shi:24}. The exported INTERCONNECT-ready compact model
+enables direct insertion of this device into photonic link simulations.
+All scripts and data are available at:
 \url{https://doi.org/10.5281/zenodo.19652934}

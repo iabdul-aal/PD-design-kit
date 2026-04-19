@@ -2,7 +2,7 @@ cff-version: 1.2.0
 message: "If you use this toolkit, please cite it as below."
 type: software
 title: "PD-Design-Kit: Ge-on-Si Photodiode Design Toolkit for PAM-4 Optical Receivers"
-version: "1.1.0"
+version: "1.2.0"
 date-released: "2026-04-19"
 doi: 10.5281/zenodo.19652934
 url: "https://github.com/iabdul-aal/PD-design-kit"
@@ -10,8 +10,8 @@ license: CC-BY-4.0
 authors:
   - family-names: Abdulaal
     given-names: Islam I.
-    orcid: "https://orcid.org/0000-0000-0000-0000"
-    affiliation: "MSc Photonics, Faculty of Engineering"
+    orcid: "https://orcid.org/0009-0004-9300-3936"
+    affiliation: "Electronics and Communications Engineering, Faculty of Engineering, Alexandria University"
 abstract: >
   A comprehensive design and simulation toolkit for Ge-on-Si O-band photodiodes,
   spanning system-level MATLAB modeling to device-level Lumerical FDTD and CHARGE

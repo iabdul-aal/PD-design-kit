@@ -83,7 +83,7 @@ style: |
 ### O-band vertical n-i-p photodiode for high-speed PAM-4 optical receivers
 
 **Islam I. Abdulaal**  
-MSc Photonics, 2026
+Electronics and Communications Engineering, Alexandria University, 2026
 
 <div class="muted">
 Companion Marp deck for the thesis chapter and repo figures.
@@ -148,8 +148,8 @@ Strong optical absorption comes from the Ge layer, while the electrical design i
 ### Key optical design points
 
 - TE-driven O-band operation
-- Adiabatic spot-size converter
-- 3D generation-rate export for electrical simulation
+- Adiabatic spot-size converter (500 nm → 5 µm over 40 µm)
+- 3D generation-rate export: G = P_abs / (hf)
 
 </div>
 <div>
@@ -164,13 +164,13 @@ Strong optical absorption comes from the Ge layer, while the electrical design i
 ## Electrical Simulation Flow
 
 - **Lumerical DEVICE CHARGE** solves carrier transport under reverse bias.
+- SRH recombination enabled with **τ_n = τ_p = 5 ns** (calibrated to match 1.3 nA).
+- Fine mesh override: **20 nm** max edge length over the Ge active region.
 - Extracted quantities include:
-  - dark current
-  - illuminated current
-  - band diagram
-  - carrier density and mobility
+  - dark current and illuminated current
+  - band diagram, carrier density
   - electric field and potential
-- Bandwidth is estimated from **transit-time + RC** limits.
+- Bandwidth estimated from **transit-time + RC** limits.
 
 ---
 
@@ -186,7 +186,7 @@ Strong optical absorption comes from the Ge layer, while the electrical design i
   - robust PAM-4 eye opening
 
 <div class="card">
-The thesis chapter uses this dark-current calibration as a key electrical acceptance criterion.
+The SRH lifetime (τ = 5 ns) was calibrated against published dark current data to anchor the electrical simulation.
 </div>
 
 </div>
@@ -242,9 +242,8 @@ Band alignment, carrier density, and depletion shaping near -1 V explain the tra
 
 ## System-Level Receiver View
 
-- The repo extends the device into a **MATLAB PAM-4 receiver model**.
+- The repo extends the device into a **MATLAB PAM-4 receiver model** at **53.125 GBd**.
 - Exported figures are thesis-ready and share a unified style.
-- The PD can now be studied both as a device and as a circuit block.
 
 <div class="cols">
 <div>
@@ -261,16 +260,57 @@ Band alignment, carrier density, and depletion shaping near -1 V explain the tra
 
 ---
 
+## PAM-4 Signal Quality
+
+<div class="cols">
+<div>
+
+![w:100%](./figures/system_pam4_histogram.png)
+
+</div>
+<div>
+
+- Matched-filter output shows **4 distinct PAM-4 levels**.
+- Decision thresholds (red dashed) separate the symbol clusters.
+- SNR, BER, and SER are computed from the simulation.
+- The PD can now be studied both as a device and as a circuit block.
+
+</div>
+</div>
+
+---
+
 ## INTERCONNECT-Ready Compact Model
 
-- The current repo also exports a **Lumerical INTERCONNECT-ready** photodetector data package.
+- The repo also exports a **Lumerical INTERCONNECT-ready** photodetector data package.
 - Generated artifacts include:
-  - responsivity table
-  - bandwidth table
+  - responsivity table (frequency-dependent)
+  - bandwidth table (bias-dependent)
   - dark-current table
   - compact-model `.mat` source data
+  - equivalent-circuit parameters CSV
 
 ![w:78%](./figures/system_interconnect_compact_model.png)
+
+---
+
+## Data Pipeline Overview
+
+```text
+ge_pd_fdtd_oband.lsf  ──►  ge_gen_oband.mat  ──►  ge_pd_device_oband.lsf
+        │                                                    │
+        ▼                                                    ▼
+fdtd_summary_oband.mat              ge_charge_results_oband.mat
+        │                                                    │
+        └────────────────►  ge_pd_oband_postprocess.m  ◄─────┘
+                                     │
+                                     ▼
+                            thesis/figures/*.pdf
+```
+
+<div class="card">
+All parameters flow from Lumerical → MAT files → MATLAB postprocess → thesis figures. Nothing is hardcoded in the pipeline.
+</div>
 
 ---
 
@@ -278,12 +318,12 @@ Band alignment, carrier density, and depletion shaping near -1 V explain the tra
 
 - The chapter demonstrates a **Ge-on-Si O-band photodiode** that aligns with published high-speed targets.
 - The workflow is consistent across:
-  - **device-level FDTD**
-  - **device-level CHARGE**
-  - **system-level MATLAB**
-  - **INTERCONNECT-ready export**
-- The thesis chapter, figures, and this Marp presentation now live together inside the same repo.
+  - **device-level FDTD** (optical absorption, generation rate)
+  - **device-level CHARGE** (dark current, responsivity, band structure)
+  - **system-level MATLAB** (PAM-4 BER, eye diagrams, histograms)
+  - **INTERCONNECT-ready export** (circuit-level integration)
+- The thesis chapter, figures, and this Marp presentation live together inside the same repo.
 
 <div class="muted">
-Source deck: <code>thesis/chapter_photodetector_slides.md</code>
+Source deck: <code>thesis/chapter_photodetector_slides.md</code> · Version 1.2.0
 </div>

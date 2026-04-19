@@ -1,4 +1,4 @@
-% system-level/main.m
+% system-level/model.m
 % Ge-on-Si PD - PAM-4 System-Level Simulation
 % Ref: Yang Shi et al., Photonics Research 12, 1 (2024)
 %

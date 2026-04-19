@@ -14,7 +14,7 @@ All notable changes to PD-Design-Kit are documented here.
 - **SRH recombination**: CHARGE script now explicitly sets SRH recombination parameters for Ge (τ_n = τ_p = 5 ns, calibrated to I_d = 1.3 nA).
 - **CHARGE mesh override**: Fine mesh (20 nm max edge) over the Ge active region.
 - **`thesis_utils.m`**: Shared thesis figure styling and export utility to eliminate code duplication between postprocess scripts.
-- **PAM-4 histogram**: System-level `main.m` now generates a PAM-4 matched-filter-output histogram with decision thresholds.
+- **PAM-4 histogram**: System-level `model.m` now generates a PAM-4 matched-filter-output histogram with decision thresholds.
 - **Thesis chapter expansion**: Added figure floats for band diagram, carrier density, electric field, frequency response, optical generation rate map, eye diagrams, and INTERCONNECT model. Added system-level validation section.
 - **`CHANGELOG.md`**: Version history (this file).
 

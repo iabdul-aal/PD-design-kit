@@ -90,11 +90,11 @@ The MATLAB postprocess reads these variables directly — no hardcoded values.
 
 End-to-end MATLAB PAM-4 link simulation calibrated with device-level results and positioned as the photodetector block within a silicon-based MDM photonic 400 Gb/s IEEE 802.3 high-speed link flow.
 
-The `system-level` folder is intentionally consolidated into a single `model.m` entry point plus an `INTERCONNECT` export helper for circuit-ready compact-model data.
+The `system-level` folder is intentionally consolidated into a single `transfer_model.m` entry point plus an `INTERCONNECT` export helper for circuit-ready compact-model data.
 
 ```matlab
 cd system-level
-model      % runs the PAM-4 chain, exports thesis figures, and writes INTERCONNECT-ready PD data
+transfer_model      % runs the PAM-4 chain, exports thesis figures, and writes INTERCONNECT-ready PD data
 ```
 
 **Outputs:** BER, SER, SNR, optical and photocurrent eye diagrams, PAM-4 level histogram, responsivity curve, transfer function, thesis-ready figures in `thesis/figures/`, and a Lumerical `INTERCONNECT` photodetector source-data package in `system-level/interconnect/`.

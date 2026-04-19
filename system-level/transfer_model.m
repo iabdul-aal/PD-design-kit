@@ -1,5 +1,5 @@
-% system-level/model.m
-% Ge-on-Si PD - PAM-4 System-Level Simulation
+% system-level/transfer_model.m
+% Ge-on-Si PD - PAM-4 Transfer Model Simulation
 % Ref: Yang Shi et al., Photonics Research 12, 1 (2024)
 %
 % Runs the full PAM-4 receiver chain, exports thesis figures,

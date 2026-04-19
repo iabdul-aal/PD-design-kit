@@ -88,12 +88,19 @@ LaTeX source for the Ge-on-Si photodetector chapter of the MSc group thesis.
 | File | Description |
 |------|-------------|
 | `chapter_photodetector.tex` | Full chapter: architecture, FDTD, CHARGE, results |
+| `chapter_photodetector_slides.md` | Marp presentation companion for the chapter |
+| `chapter_photodetector_slides.html` | Rendered HTML presentation generated from the Marp deck |
 | `references.bib` | BibTeX entries (Shi 2024, Zenodo, Bogaerts 2012) |
 
 Include in the main thesis document:
 ```latex
 \addbibresource{references.bib}
 \include{chapter_photodetector}
+```
+
+Render the presentation with Marp:
+```powershell
+npx @marp-team/marp-cli thesis/chapter_photodetector_slides.md --html --allow-local-files -o thesis/chapter_photodetector_slides.html
 ```
 
 ---

@@ -1,7 +1,7 @@
 # ge_pd_fdtd_oband_optional.lsf
-# Run with FDTD project loaded (after ge_pd_fdtd_oband.lsf)
-# Sections: A - Ge_L sweep | B - TE/TM | C - Taper loss | D - R(lambda)
-# OUTPUT: ge_fdtd_optional_oband.mat -> ge_pd_oband_optional_postprocess.m
+# Sweep figures: Ge_L absorption, TE/TM PDL, taper IL, spectral responsivity
+# Run with FDTD project loaded after ge_pd_fdtd_oband.lsf
+# Output: ge_fdtd_optional_oband.mat -> ge_pd_oband_optional_postprocess.m
 
 c0         = 3e8;
 h_planck   = 6.626e-34;
@@ -24,61 +24,71 @@ z_iGe_top  = z_rib_top + iGe_H;
 z_Npp_top  = z_rib_top + iGe_H + Npp_H;
 taper_L    = 40e-6;
 
-# Section A - Ge_L sweep
-Ge_L_arr = [2,3,4,5,6,8]*1e-6;
+# Ge_L parametric sweep
+?"--- Ge_L sweep ---";
+
+Ge_L_arr = [2, 3, 4, 5, 6, 8] * 1e-6;
 nL       = length(Ge_L_arr);
-A_arr    = matrix(1,nL);
+A_arr    = matrix(1, nL);
 
-for(iL=1; iL<=nL; iL=iL+1) {
+Ge_L_optimal = Ge_L_arr(nL);   # default to max if no point reaches 95%
+found_opt    = 0;
+
+for (iL = 1; iL <= nL; iL = iL+1) {
+    Ge_L = Ge_L_arr(iL);
     switchtolayout;
-    select("i_Ge");              set("x max", Ge_L_arr(iL));
-    select("Npp_Ge");            set("x max", Ge_L_arr(iL));
-    select("Ge_absorption_3D");  set("x max", Ge_L_arr(iL));
-    select("T_after_Ge");        set("x", Ge_L_arr(iL)+0.5e-6);
-    select("mesh_Ge");           set("x max", Ge_L_arr(iL)+0.2e-6);
+    select("i_Ge");             set("x max", Ge_L);
+    select("Npp_Ge");           set("x max", Ge_L);
+    select("Ge_absorption_3D"); set("x max", Ge_L);
+    select("T_after_Ge");       set("x",  Ge_L+0.5e-6);
+    select("mesh_Ge");          set("x max", Ge_L+0.2e-6);
     run;
-    f_arr  = getdata("T_after_Ge","f");
-    T_vs_f = transmission("T_after_Ge");
-    R_vs_f = transmission("R_input");
-    T_c    = real(interp(T_vs_f, f_arr, f_c));
-    R_c    = real(interp(R_vs_f, f_arr, f_c));
+    f_arr_s   = getdata("T_after_Ge","f");
+    T_c       = real(interp(transmission("T_after_Ge"), f_arr_s, f_c));
+    R_c       = real(interp(transmission("R_input"),    f_arr_s, f_c));
     A_arr(iL) = max(1 - abs(T_c) - abs(R_c), 0);
-    ?"  Ge_L="+num2str(Ge_L_arr(iL)*1e6,"%.0f")+" um  A="+num2str(A_arr(iL)*100,"%.2f")+"%";
+    if ((A_arr(iL) >= 0.95) & (found_opt == 0)) {
+        Ge_L_optimal = Ge_L_arr(iL);
+        found_opt    = 1;
+    }
+    ?"  Ge_L="+num2str(Ge_L*1e6,"%.0f")+" um  A="+num2str(A_arr(iL)*100,"%.2f")+"%";
 }
+?"Ge_L_optimal = "+num2str(Ge_L_optimal*1e6,"%.0f")+" um";
 
+# Restore geometry to Ge_L_max (8 um)
 switchtolayout;
-select("i_Ge");              set("x max", 8e-6);
-select("Npp_Ge");            set("x max", 8e-6);
-select("Ge_absorption_3D");  set("x max", 8e-6);
-select("T_after_Ge");        set("x", 8.5e-6);
-select("mesh_Ge");           set("x max", 8.2e-6);
+select("i_Ge");             set("x max", 8e-6);
+select("Npp_Ge");           set("x max", 8e-6);
+select("Ge_absorption_3D"); set("x max", 8e-6);
+select("T_after_Ge");       set("x", 8.5e-6);
+select("mesh_Ge");          set("x max", 8.2e-6);
 
-# Section B - TE vs TM polarisation
+# TE vs TM polarisation
+?"--- TE/TM polarisation ---";
+
 pol   = {"fundamental TE mode","fundamental TM mode"};
 A_pol = matrix(1,2);
 
-for(ip=1; ip<=2; ip=ip+1) {
+for (ip = 1; ip <= 2; ip = ip+1) {
     switchtolayout;
     select("source"); set("mode selection", pol{ip});
     run;
-    f_arr  = getdata("T_after_Ge","f");
-    T_vs_f = transmission("T_after_Ge");
-    R_vs_f = transmission("R_input");
-    T_c    = real(interp(T_vs_f, f_arr, f_c));
-    R_c    = real(interp(R_vs_f, f_arr, f_c));
+    f_arr_s   = getdata("T_after_Ge","f");
+    T_c       = real(interp(transmission("T_after_Ge"), f_arr_s, f_c));
+    R_c       = real(interp(transmission("R_input"),    f_arr_s, f_c));
     A_pol(ip) = max(1 - abs(T_c) - abs(R_c), 0);
     ?"  "+pol{ip}+"  A="+num2str(A_pol(ip)*100,"%.2f")+"%";
 }
-
 PDL_dB = 10*log10(max(A_pol(1),1e-10) / max(A_pol(2),1e-10));
 ?"  PDL = "+num2str(PDL_dB,"%.3f")+" dB";
 
 switchtolayout;
 select("source"); set("mode selection","fundamental TE mode");
 
-# Section C - Taper insertion loss
-switchtolayout;
+# Taper insertion loss
+?"--- Taper insertion loss ---";
 
+switchtolayout;
 addpower; set("name","T_in");
 set("monitor type",5);
 set("output power",1);
@@ -97,23 +107,25 @@ set("z min",z_Si_bot-0.2e-6); set("z max",z_rib_top+0.2e-6);
 
 run;
 
-f_arr = getdata("T_in","f");
-T_in  = real(interp(transmission("T_in"),  f_arr, f_c));
-T_out = real(interp(transmission("T_out"), f_arr, f_c));
-IL_dB = -10*log10(max(T_out/max(T_in,1e-10), 1e-10));
-?"  Taper insertion loss @ 1310 nm: "+num2str(IL_dB,"%.3f")+" dB";
+f_arr_s = getdata("T_in","f");
+T_in    = real(interp(transmission("T_in"),  f_arr_s, f_c));
+T_out   = real(interp(transmission("T_out"), f_arr_s, f_c));
+IL_dB   = -10*log10(max(T_out/max(T_in,1e-10), 1e-10));
+?"  Taper IL @ 1310 nm: "+num2str(IL_dB,"%.3f")+" dB";
 
 switchtolayout;
 select("T_in");  delete;
 select("T_out"); delete;
 
-# Section D - Responsivity spectrum across O-band
-lambda_sweep = [1260,1270,1280,1290,1300,1310,1320,1330,1340,1350,1360]*1e-9;
-nS    = length(lambda_sweep);
-A_sp  = matrix(1,nS);
-R_sp  = matrix(1,nS);
+# Spectral responsivity across O-band
+?"--- Spectral responsivity ---";
 
-for(iS=1; iS<=nS; iS=iS+1) {
+lambda_sweep = [1260,1270,1280,1290,1300,1310,1320,1330,1340,1350,1360]*1e-9;
+nS   = length(lambda_sweep);
+A_sp = matrix(1,nS);
+R_sp = matrix(1,nS);
+
+for (iS = 1; iS <= nS; iS = iS+1) {
     lc = lambda_sweep(iS);
     fc = c0 / lc;
     switchtolayout;
@@ -122,21 +134,20 @@ for(iS=1; iS<=nS; iS=iS+1) {
     select("Ge_absorption_3D");
     set("wavelength center",lc); set("wavelength span",20e-9);
     run;
-    f_m   = getdata("T_after_Ge","f");
-    T_m   = transmission("T_after_Ge");
-    R_m   = transmission("R_input");
-    Tc    = real(interp(T_m, f_m, fc));
-    Rc    = real(interp(R_m, f_m, fc));
+    f_arr_s  = getdata("T_after_Ge","f");
+    Tc       = real(interp(transmission("T_after_Ge"), f_arr_s, fc));
+    Rc       = real(interp(transmission("R_input"),    f_arr_s, fc));
     A_sp(iS) = max(1 - abs(Tc) - abs(Rc), 0);
     R_sp(iS) = A_sp(iS) * q_e * lc / (h_planck * c0);
-    ?"  lambda="+num2str(lc*1e9,"%.0f")+" nm  A="+num2str(A_sp(iS)*100,"%.2f")+"%  R="+num2str(R_sp(iS),"%.3f")+" A/W";
+    ?"  "+num2str(lc*1e9,"%.0f")+" nm  A="+num2str(A_sp(iS)*100,"%.2f")+"%  R="+num2str(R_sp(iS),"%.3f")+" A/W";
 }
 
+# Restore source and monitor to main simulation settings
 switchtolayout;
 select("source");
 set("wavelength start",lambda_min); set("wavelength stop",lambda_max);
 select("Ge_absorption_3D");
-set("wavelength center",lambda_c); set("wavelength span",20e-9);
+set("wavelength center",lambda_c); set("wavelength span",0);   # restore to single frequency
 
 matlabsave("ge_fdtd_optional_oband.mat",
            Ge_L_arr, A_arr,

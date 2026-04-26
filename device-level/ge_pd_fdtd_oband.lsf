@@ -1,10 +1,4 @@
-# ge_pd_fdtd_oband.lsf
-# Ge-on-Si PD — FDTD O-band 1310 nm
-# Yang Shi et al., Photonics Research 12, 1 (2024)
-# Ridge 500x220 nm | slab 90 nm | taper 40 um | Ge 8x5 um | i-Ge 350 nm | N++ 50 nm | BOX 2 um
-# OUTPUT : ge_gen_oband.mat            -> ge_pd_device_oband.lsf
-#          ge_fdtd_results_oband.mat   -> ge_pd_oband_postprocess.lsf
-
+﻿
 switchtolayout;
 newproject;
 
@@ -13,15 +7,12 @@ lambda_c   = 1.31e-6;
 lambda_min = 1.26e-6;
 lambda_max = 1.36e-6;
 f_c        = c0 / lambda_c;
-# omega cancels in G = P_abs/(hbar*omega) = eps0*Im{eps}*|E|^2/(2*hbar) — no omega needed
 P_opt      = 100e-6;
 
-# ── Materials ──────────────────────────────────────────────────────────────────
 mat_Si   = "Si (Silicon) - Palik";
 mat_Ge   = "Ge (Germanium) - Palik";
 mat_SiO2 = "SiO2 (Glass) - Palik";
 
-# ── Geometry ───────────────────────────────────────────────────────────────────
 wg_W    = 500e-9;
 wg_H    = 220e-9;
 slab_H  = 90e-9;
@@ -44,30 +35,25 @@ z_Npp_top  = z_rib_top + Ge_H;
 src_x      = -(taper_L + 2e-6);
 fdtd_x_min = -(taper_L + 4.5e-6);
 
-# ── BOX ────────────────────────────────────────────────────────────────────────
 addrect; set("name","BOX"); set("material",mat_SiO2);
 set("x min",fdtd_x_min-1e-6); set("x max",Ge_L+3e-6);
 set("y min",-(Ge_W/2+3e-6));  set("y max",Ge_W/2+3e-6);
 set("z min",z_BOX_bot);        set("z max",z_Si_bot);
 set("override mesh order from material database",1); set("mesh order",3);
 
-# ── Si slab ────────────────────────────────────────────────────────────────────
 addrect; set("name","Si_slab"); set("material",mat_Si);
 set("x min",fdtd_x_min-1e-6); set("x max",Ge_L+3e-6);
 set("y min",-(Ge_W/2+3e-6));  set("y max",Ge_W/2+3e-6);
 set("z min",z_Si_bot);         set("z max",z_slab_top);
 set("override mesh order from material database",1); set("mesh order",3);
 
-# ── Si ridge ───────────────────────────────────────────────────────────────────
 addrect; set("name","Si_ridge"); set("material",mat_Si);
 set("x min",fdtd_x_min-1e-6); set("x max",0);
 set("y min",-wg_W/2);          set("y max",wg_W/2);
 set("z min",z_slab_top);       set("z max",z_rib_top);
 set("override mesh order from material database",1); set("mesh order",2);
 
-# ── Si taper ───────────────────────────────────────────────────────────────────
 addpoly; set("name","Si_taper"); set("material",mat_Si);
-# [FIX 2] CCW winding: original CW order can misrender in some FDTD builds
 V = [-taper_L, -wg_W/2;
       0,       -Ge_W/2;
       0,        Ge_W/2;
@@ -76,28 +62,24 @@ set("vertices",V);
 set("z min",z_slab_top); set("z max",z_rib_top);
 set("override mesh order from material database",1); set("mesh order",2);
 
-# ── P++ Si platform ────────────────────────────────────────────────────────────
 addrect; set("name","Si_Ppp"); set("material",mat_Si);
 set("x min",0); set("x max",Ge_L);
 set("y min",-Ge_W/2); set("y max",Ge_W/2);
 set("z min",z_slab_top); set("z max",z_rib_top);
 set("override mesh order from material database",1); set("mesh order",2);
 
-# ── i-Ge 350 nm ────────────────────────────────────────────────────────────────
 addrect; set("name","i_Ge"); set("material",mat_Ge);
 set("x min",0); set("x max",Ge_L);
 set("y min",-Ge_W/2); set("y max",Ge_W/2);
 set("z min",z_iGe_bot); set("z max",z_iGe_top);
 set("override mesh order from material database",1); set("mesh order",1);
 
-# ── N++ Ge cap 50 nm ───────────────────────────────────────────────────────────
 addrect; set("name","Npp_Ge"); set("material",mat_Ge);
 set("x min",0); set("x max",Ge_L);
 set("y min",-Ge_W/2); set("y max",Ge_W/2);
 set("z min",z_iGe_top); set("z max",z_Npp_top);
 set("override mesh order from material database",1); set("mesh order",1);
 
-# ── FDTD region ────────────────────────────────────────────────────────────────
 addfdtd;
 set("dimension","3D");
 set("background material",mat_SiO2);
@@ -110,22 +92,19 @@ set("x min bc","PML"); set("x max bc","PML");
 set("y min bc","PML"); set("y max bc","PML");
 set("z min bc","PML"); set("z max bc","PML");
 
-# ── Ge mesh ────────────────────────────────────────────────────────────────────
 addmesh; set("name","mesh_Ge");
 set("x min",-0.2e-6);           set("x max",Ge_L+0.2e-6);
 set("y min",-(Ge_W/2+0.1e-6));  set("y max",Ge_W/2+0.1e-6);
 set("z min",z_iGe_bot-0.05e-6); set("z max",z_Npp_top+0.05e-6);
 set("dx",20e-9); set("dy",20e-9); set("dz",20e-9);
 
-# ── [FIX 3] Reference monitor — needed for a proper absorption budget ─────────
 addpower; set("name","T_ref");
 set("monitor type",5);
 set("override global monitor settings",1); set("frequency points",100);
-set("x",src_x + 2e-6);                       # [FIX] ≥2 um from source — avoids near-field overlap
+set("x",src_x + 2e-6);
 set("y min",-(wg_W/2+1e-6)); set("y max",wg_W/2+1e-6);
 set("z min",z_Si_bot-0.3e-6); set("z max",z_rib_top+0.3e-6);
 
-# ── Transmission monitor ───────────────────────────────────────────────────────
 addpower; set("name","T_after_Ge");
 set("monitor type",5);
 set("override global monitor settings",1); set("frequency points",100);
@@ -133,7 +112,6 @@ set("x",Ge_L+0.5e-6);
 set("y min",-(Ge_W/2+1e-6)); set("y max",Ge_W/2+1e-6);
 set("z min",z_Si_bot-0.2e-6); set("z max",z_Npp_top+0.4e-6);
 
-# ── 3D field monitor ───────────────────────────────────────────────────────────
 addpower; set("name","Ge_abs_3D");
 set("monitor type",8);
 set("override global monitor settings",1);
@@ -144,7 +122,6 @@ set("x min",0); set("x max",Ge_L);
 set("y min",-Ge_W/2); set("y max",Ge_W/2);
 set("z min",z_iGe_bot); set("z max",z_Npp_top);
 
-# ── Mode source ────────────────────────────────────────────────────────────────
 addmode; set("name","source");
 set("injection axis","x"); set("direction","forward");
 set("x",src_x);
@@ -155,20 +132,15 @@ set("mode selection","fundamental TE mode");
 
 ?"=== FDTD O-band | Ge_L="+num2str(Ge_L*1e6)+" um | src_x="+num2str(src_x*1e6,"%.1f")+" um ===";
 
-# [FIX] Validate simulation before committing to a full run
 switchtolayout;
-save("ge_pd_oband_check.fsp");        # save layout so you can inspect if run fails
+save("ge_pd_oband_check.fsp");
 run;
 
-# Guard: confirm solver produced data before attempting extraction
 if (havedata("T_after_Ge","f") == 0) {
-    ?"ERROR: simulation produced no data — open ge_pd_oband_check.fsp and check geometry/mesh";
+    ?"ERROR: simulation produced no data â€” open ge_pd_oband_check.fsp and check geometry/mesh";
     break;
 }
 
-# ── Absorption ─────────────────────────────────────────────────────────────────
-# [FIX 5] Use T_ref as the incident baseline so back-reflection from the taper
-#         is not silently counted as absorption.
 f_arr   = getdata("T_after_Ge","f");
 T_vs_f  = transmission("T_after_Ge");
 T_ref_f = transmission("T_ref");
@@ -177,10 +149,6 @@ T_r     = real(interp(T_ref_f, f_arr, f_c));
 A_TE    = max([(T_r - abs(T_c)) / T_r, 0]);
 ?"Absorption @ 1310 nm: "+num2str(A_TE*100,"%.2f")+" %";
 
-# ── Generation rate G [m^-3 s^-1] ──────────────────────────────────────────────
-# G = (eps0 * Im{eps} * omega) / (2*hbar) * |E|^2 * (P_opt/sp)
-# Im{eps} = 2nk  (Ge Palik @ 1310 nm: n=4.275, k=0.368)
-# [FIX 6] omega_c multiplier was absent — produced wrong units and ~10^15 error
 eps_i_Ge = 2 * 4.275 * 0.368;
 
 E_data  = getresult("Ge_abs_3D","E");
@@ -194,20 +162,17 @@ sp   = sourcepower(f_c);
 G_3d = (eps0 * eps_i_Ge / (2*hbar)) * E2 * (P_opt / sp);
 ?"Peak G = "+num2str(max(G_3d),"%.3e")+" m^-3 s^-1";
 
-# ── Alignment guard — print bounds so CHARGE import can be verified ────────────
 ?"--- Gen dataset bounds (must match Ge volume in CHARGE) ---";
 ?"  x : "+num2str(min(x_g)*1e6,"%.3f")+" to "+num2str(max(x_g)*1e6,"%.3f")+" um  (expect 0 to "+num2str(Ge_L*1e6,"%.1f")+")";
 ?"  y : "+num2str(min(y_g)*1e6,"%.3f")+" to "+num2str(max(y_g)*1e6,"%.3f")+" um  (expect "+num2str(-Ge_W/2*1e6,"%.2f")+" to "+num2str(Ge_W/2*1e6,"%.2f")+")";
 ?"  z : "+num2str(min(z_g)*1e6,"%.3f")+" to "+num2str(max(z_g)*1e6,"%.3f")+" um  (expect "+num2str(z_iGe_bot*1e6,"%.3f")+" to "+num2str(z_Npp_top*1e6,"%.3f")+")";
-?"  Peak G = "+num2str(max(G_3d),"%.3e")+" m^-3 s^-1  (expect ~1e27–1e28)";
+?"  Peak G = "+num2str(max(G_3d),"%.3e")+" m^-3 s^-1  (expect ~1e27â€“1e28)";
 ?"-----------------------------------------------------------";
 
-# ── Export generation dataset ──────────────────────────────────────────────────
-G_ds = rectilineardataset("G", x_g, y_g, z_g);   # [FIX 7] renamed from G to avoid
-G_ds.addattribute("G", G_3d);                     #         shadowing the scalar below
+G_ds = rectilineardataset("G", x_g, y_g, z_g);
+G_ds.addattribute("G", G_3d);
 matlabsave("ge_gen_oband.mat", G_ds);
 
-# ── Export scalar results ──────────────────────────────────────────────────────
 matlabsave("ge_fdtd_results_oband.mat", A_TE, lambda_c, P_opt, Ge_L, Ge_W);
 ?"Saved ge_gen_oband.mat and ge_fdtd_results_oband.mat";
-?"=== FDTD done — run ge_pd_device_oband.lsf next ===";
+?"=== FDTD done â€” run ge_pd_device_oband.lsf next ===";

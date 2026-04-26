@@ -1,4 +1,4 @@
-function model = interconnect_model(cfg, responsivity)
+﻿function model = interconnect_model(cfg, responsivity)
 scriptDir = fileparts(mfilename('fullpath'));
 dataDir = fullfile(scriptDir, 'interconnect');
 if ~exist(dataDir, 'dir'), mkdir(dataDir); end

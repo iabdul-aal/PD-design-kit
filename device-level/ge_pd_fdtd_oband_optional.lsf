@@ -1,8 +1,4 @@
-# ge_pd_fdtd_oband_optional.lsf
-# Sweep figures: Ge_L absorption, TE/TM PDL, taper IL, spectral responsivity
-# Run with FDTD project loaded after ge_pd_fdtd_oband.lsf
-# Output: ge_fdtd_optional_oband.mat -> ge_pd_oband_optional_postprocess.m
-
+﻿
 c0         = 3e8;
 h_planck   = 6.626e-34;
 q_e        = 1.602e-19;
@@ -24,14 +20,13 @@ z_iGe_top  = z_rib_top + iGe_H;
 z_Npp_top  = z_rib_top + iGe_H + Npp_H;
 taper_L    = 40e-6;
 
-# Ge_L parametric sweep
 ?"--- Ge_L sweep ---";
 
 Ge_L_arr = [2, 3, 4, 5, 6, 8] * 1e-6;
 nL       = length(Ge_L_arr);
 A_arr    = matrix(1, nL);
 
-Ge_L_optimal = Ge_L_arr(nL);   # default to max if no point reaches 95%
+Ge_L_optimal = Ge_L_arr(nL);
 found_opt    = 0;
 
 for (iL = 1; iL <= nL; iL = iL+1) {
@@ -55,7 +50,6 @@ for (iL = 1; iL <= nL; iL = iL+1) {
 }
 ?"Ge_L_optimal = "+num2str(Ge_L_optimal*1e6,"%.0f")+" um";
 
-# Restore geometry to Ge_L_max (8 um)
 switchtolayout;
 select("i_Ge");             set("x max", 8e-6);
 select("Npp_Ge");           set("x max", 8e-6);
@@ -63,7 +57,6 @@ select("Ge_absorption_3D"); set("x max", 8e-6);
 select("T_after_Ge");       set("x", 8.5e-6);
 select("mesh_Ge");          set("x max", 8.2e-6);
 
-# TE vs TM polarisation
 ?"--- TE/TM polarisation ---";
 
 pol   = {"fundamental TE mode","fundamental TM mode"};
@@ -85,7 +78,6 @@ PDL_dB = 10*log10(max(A_pol(1),1e-10) / max(A_pol(2),1e-10));
 switchtolayout;
 select("source"); set("mode selection","fundamental TE mode");
 
-# Taper insertion loss
 ?"--- Taper insertion loss ---";
 
 switchtolayout;
@@ -117,7 +109,6 @@ switchtolayout;
 select("T_in");  delete;
 select("T_out"); delete;
 
-# Spectral responsivity across O-band
 ?"--- Spectral responsivity ---";
 
 lambda_sweep = [1260,1270,1280,1290,1300,1310,1320,1330,1340,1350,1360]*1e-9;
@@ -142,12 +133,11 @@ for (iS = 1; iS <= nS; iS = iS+1) {
     ?"  "+num2str(lc*1e9,"%.0f")+" nm  A="+num2str(A_sp(iS)*100,"%.2f")+"%  R="+num2str(R_sp(iS),"%.3f")+" A/W";
 }
 
-# Restore source and monitor to main simulation settings
 switchtolayout;
 select("source");
 set("wavelength start",lambda_min); set("wavelength stop",lambda_max);
 select("Ge_absorption_3D");
-set("wavelength center",lambda_c); set("wavelength span",0);   # restore to single frequency
+set("wavelength center",lambda_c); set("wavelength span",0);
 
 matlabsave("ge_fdtd_optional_oband.mat",
            Ge_L_arr, A_arr,

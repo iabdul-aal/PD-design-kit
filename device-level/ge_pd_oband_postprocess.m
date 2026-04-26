@@ -1,8 +1,4 @@
-% ge_pd_oband_postprocess.m
-% Ge-on-Si PD performance metrics and publication figures
-% Ref: Yang Shi et al., Photonics Research 12, 1 (2024)
-% Inputs: ge_charge_results_oband.mat, fdtd_summary_oband.mat
-
+﻿
 charge_mat = 'ge_charge_results_oband.mat';
 fdtd_mat   = 'fdtd_summary_oband.mat';
 figure_dir = fullfile(fileparts(fileparts(mfilename('fullpath'))), 'thesis', 'figures');
@@ -20,11 +16,9 @@ load(fdtd_mat);
 
 if ~exist('iGe_H', 'var'), error('iGe_H not found in loaded data.'); end
 
-% Recompute idx1V from loaded dark IV (never rely on a pre-saved index)
 [~, idx1V] = min(abs(V_dk - 1));
 idx1V = max(1, round(double(idx1V)));
 
-% Extract z-profiles at Ge centre from the unstructured x-z point cloud
 x_center = Ge_L / 2;
 x_window = max(5e-9, Ge_L / 1000);
 
@@ -61,24 +55,20 @@ if exist('mun_bulk','var') && exist('mup_bulk','var') && ~isempty(mun_bulk) && ~
     [~,          mup_z] = extract_z_profile(x_mob, z_mob, mup_bias, x_center, x_window);
 end
 
-% Layer boundaries derived from geometry
 z_rib_top_derived = wg_H;
 z_iGe_top_derived = z_rib_top_derived + iGe_H;
 
-% Constants
 q  = 1.602e-19;
 kB = 1.381e-23;
 h  = 6.626e-34;
 c0 = 3e8;
 
-% Operating parameters from loaded data
 T  = T_sim;
 RL = R_L;
 BW = fBW_U_paper;
 RS = RS_paper;
 Cj = Cj_paper;
 
-% Performance metrics
 Eph    = h * c0 / lambda_c;
 Phi    = P_opt / Eph;
 EQE_f  = A_TE;
@@ -115,7 +105,6 @@ fprintf('  Combined BW       : %.1f GHz   [paper: 103 GHz]\n', f3dB/1e9);
 
 profile_x_um = x_center * 1e6;
 
-% --- Figure 1: Dark I-V ---
 figure(1); clf;
 semilogy(abs(V_dk), abs(I_dk)*1e9, 'b-');
 xlabel('Reverse Bias |V| (V)');
@@ -125,7 +114,6 @@ grid on; grid minor;
 xlim([0 V_stop]);
 save_thesis_figure(1, 'dark_iv', style);
 
-% --- Figure 2: Dark vs illuminated I-V ---
 figure(2); clf;
 semilogy(abs(V_ill), abs(I_dk)*1e9, 'b-', abs(V_ill), abs(I_ill)*1e9, 'r-');
 xlabel('Reverse Bias |V| (V)');
@@ -137,7 +125,6 @@ grid on;
 xlim([0 V_stop]);
 save_thesis_figure(2, 'dark_vs_illuminated_iv', style);
 
-% --- Figure 3: Current components vs bias ---
 figure(3); clf;
 semilogy(abs(V_ill), abs(In_ill)*1e9, 'b-', ...
          abs(V_ill), abs(Ip_ill)*1e9, 'r-', ...
@@ -150,7 +137,6 @@ grid on;
 xlim([0 V_stop]);
 save_thesis_figure(3, 'current_components_vs_bias', style);
 
-% --- Figure 4: Band diagram at V = -1 V ---
 figure(4); clf; hold on;
 plot(z_band*1e9, Ec_z,  'b-',  'DisplayName', 'E_c');
 plot(z_band*1e9, Ev_z,  'r-',  'DisplayName', 'E_v');
@@ -166,7 +152,6 @@ title(sprintf('Band Diagram at V=-1V  (x=%.3f \\mum)', profile_x_um));
 legend('Location','best'); grid on; hold off;
 save_thesis_figure(4, 'band_diagram_vminus1', style);
 
-% --- Figure 5: Carrier density at V = -1 V ---
 figure(5); clf; hold on;
 semilogy(z_carr_prof*1e9, max(n_z,  1e1), 'b-',  'DisplayName', 'n');
 semilogy(z_carr_prof*1e9, max(p_z,  1e1), 'r-',  'DisplayName', 'p');
@@ -179,7 +164,6 @@ title(sprintf('Carrier Density at V=-1V  (x=%.3f \\mum)', profile_x_um));
 legend('Location','best'); grid on; hold off;
 save_thesis_figure(5, 'carrier_density_vminus1', style);
 
-% --- Figure 6: Carrier mobility at V = -1 V (only if exported) ---
 if exist('mun_z', 'var')
     figure(6); clf; hold on;
     plot(z_mob_prof*1e9, mun_z, 'b-', 'DisplayName', '\mu_n');
@@ -192,7 +176,6 @@ if exist('mun_z', 'var')
     save_thesis_figure(6, 'carrier_mobility_vminus1', style);
 end
 
-% --- Figure 7: 2D optical generation rate map ---
 figure(7); clf;
 imagesc(x_map*1e6, z_map*1e9, log10(max(Ropt_xz, 1e10)));
 axis xy; colormap('hot');
@@ -205,7 +188,6 @@ yline(z_iGe_top_derived*1e9, 'w--', 'LineWidth', 1.2);
 hold off;
 save_thesis_figure(7, 'optical_generation_rate_map', style);
 
-% --- Figure 8: Electric field and potential at V = -1 V ---
 figure(8); clf;
 yyaxis left;
 plot(z_field_prof*1e9, E_z/1e6, 'b-');
@@ -220,7 +202,6 @@ xline(z_iGe_top_derived*1e9, 'k-');
 grid on;
 save_thesis_figure(8, 'electric_field_potential_vminus1', style);
 
-% --- Figure 9: Frequency response model ---
 figure(9); clf;
 f_mod = logspace(8, 11.1, 1000);
 H2_tt = (sin(pi*f_mod*tau_tt) ./ max(pi*f_mod*tau_tt, 1e-30)).^2;
@@ -237,10 +218,6 @@ xlim([0.1 200]); ylim([-15 1]); grid on;
 save_thesis_figure(9, 'frequency_response_model', style);
 
 fprintf('\nSaved 9 figures to %s\n', figure_dir);
-
-% =========================================================================
-% Helper functions
-% =========================================================================
 
 function values = pick_bias_scalar(A, idxBias)
 if isempty(A), values = []; return; end
@@ -280,7 +257,6 @@ x_used = x(idx_near);
 tol    = max(x_window, 1e-12);
 mask   = abs(x - x_used) <= tol;
 
-% Grow window until at least 25 points are found
 grow_count = 0;
 while nnz(mask) < 25 && grow_count < 8
     tol  = tol * 2;

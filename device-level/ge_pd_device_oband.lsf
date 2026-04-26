@@ -1,59 +1,10 @@
-# ge_pd_device_oband.lsf  [FIXED]
-# Ge-on-Si PD — DEVICE CHARGE O-band 1310 nm
-# Yang Shi et al., Photonics Research 12, 1 (2024)
-# n-i-p : N++ Ge 50 nm | i-Ge 350 nm | P++ Si 220 nm | U-shaped electrode
-# INPUT  : ge_gen_oband.mat               <- ge_pd_fdtd_oband.lsf
-# OUTPUT : ge_charge_results_oband.mat    -> ge_pd_oband_postprocess.m
-#
-# ═══════════════════════════════════════════════════════════════════════════════
-# FIXES APPLIED  (all bugs are documented inline with [FIX N])
-# ───────────────────────────────────────────────────────────────────────────────
-# [FIX 1] Added N++ Ge and P++ Si doping — was COMPLETELY ABSENT.
-#          Root cause of EVERY error in the error log:
-#           • Without a junction the solver has no depletion region to build
-#             the initial potential from → "Initialization failed to converge
-#             charge update" (error 9002)
-#           • No junction also means no built-in field → thermal generation
-#             dominates → dark current ~2 µA instead of ~1 nA
-#           • The Grizzly refinement warnings follow from the solver thrashing
-#             because the charge distribution never settles
-#          Doping added: N++ Ge (1×10²⁰ cm⁻³ phosphorus, Npp_Ge cap)
-#                        P++ Si (1×10²⁰ cm⁻³ boron, all anode Si regions)
-#
-# [FIX 2] Voltage sweep corrected: cathode range −4 V → 0 V
-#          Was: range_start=−2, range_stop=+4  → included +4 V forward bias
-#          Consequence: solver diverged at heavy forward bias before ever
-#          reaching the −1 V operating point; also produced error code 9002
-#
-# [FIX 3] Removed erroneous sign flip on V_cathode in result extraction.
-#          Was: V_dk = -res_dk.V_cathode  then searching for V_dk == −1
-#          → actually found V_cathode = +1 V (forward bias), not −1 V
-#          Fix: V_dk = res_dk.V_cathode; search stays abs(V_dk−(−1))
-#          Same fix applied to the illuminated-run block (V_ill)
-#
-# [FIX 4] Optical-generation mesh coarsened: 10 nm → 20 nm
-#          The FDTD exports G on a 20 nm grid (mesh_Ge: dx=dy=dz=20 nm).
-#          Asking CHARGE to resolve to 10 nm forces Grizzly to extrapolate
-#          sub-grid detail that does not exist → "Refinement limit exceeded
-#          for optical generation rate constraint" warnings × 4
-#
-# [FIX 5] Global iteration limit raised 200 → 500
-#          Even with correct doping, a 9-point reverse-bias sweep of a
-#          heterojunction needs headroom; 200 is often insufficient.
-#
-# [FIX minor] Si_Pp_back width increased 10 nm → 200 nm
-#          A 10 nm back-bar creates aspect-ratio ~800:1 mesh elements that
-#          slow convergence; 200 nm still represents a thin U-bar and avoids
-#          degenerate tetrahedra in the Grizzly mesh.
-# ═══════════════════════════════════════════════════════════════════════════════
-
+﻿
 switchtolayout;
 deleteall;
 
 q_e   = 1.602e-19;
 P_opt = 100e-6;
 
-# ── Materials ──────────────────────────────────────────────────────────────────
 addmodelmaterial; set("name","silicon");   addmaterialproperties("CT","Si (Silicon)");
 addmodelmaterial; set("name","germanium"); addmaterialproperties("CT","Ge (Germanium)");
 addmodelmaterial; set("name","sio2");      addmaterialproperties("CT","SiO2 (Glass) - Sze");
@@ -61,7 +12,6 @@ mat_Si   = "silicon";
 mat_Ge   = "germanium";
 mat_SiO2 = "sio2";
 
-# ── Geometry ───────────────────────────────────────────────────────────────────
 wg_W   = 500e-9;
 wg_H   = 220e-9;
 slab_H = 90e-9;
@@ -86,31 +36,26 @@ z_sim_top  = z_Npp_top;
 y_left     = -(Ge_W/2 + Pp_ext);
 y_right    =   Ge_W/2 + Pp_ext;
 
-# ── Si substrate ───────────────────────────────────────────────────────────────
 addrect; set("name","Si_substrate"); set("material",mat_Si);
 set("x min",0); set("x max",Ge_L);
 set("y min",y_left); set("y max",y_right);
 set("z min",z_sub_bot); set("z max",z_BOX_bot);
 
-# ── BOX ────────────────────────────────────────────────────────────────────────
 addrect; set("name","BOX"); set("material",mat_SiO2);
 set("x min",0); set("x max",Ge_L);
 set("y min",y_left); set("y max",y_right);
 set("z min",z_BOX_bot); set("z max",z_Si_bot);
 
-# ── Si slab 90 nm ──────────────────────────────────────────────────────────────
 addrect; set("name","Si_slab"); set("material",mat_Si);
 set("x min",0); set("x max",Ge_L);
 set("y min",y_left); set("y max",y_right);
 set("z min",z_Si_bot); set("z max",z_slab_top);
 
-# ── Si rib under Ge (z=90→220 nm, central region) ─────────────────────────────
 addrect; set("name","Si_rib"); set("material",mat_Si);
 set("x min",0); set("x max",Ge_L);
 set("y min",-Ge_W/2); set("y max",Ge_W/2);
 set("z min",z_slab_top); set("z max",z_rib_top);
 
-# ── P++ Si arms (U-shaped anode, z=90→220 nm) ─────────────────────────────────
 addrect; set("name","Si_Pp_left"); set("material",mat_Si);
 set("x min",0); set("x max",Ge_L);
 set("y min",y_left); set("y max",-Ge_W/2);
@@ -121,13 +66,11 @@ set("x min",0); set("x max",Ge_L);
 set("y min",Ge_W/2); set("y max",y_right);
 set("z min",z_slab_top); set("z max",z_rib_top);
 
-# [FIX minor] 200 nm bar instead of 10 nm — avoids 800:1 aspect-ratio elements
 addrect; set("name","Si_Pp_back"); set("material",mat_Si);
 set("x min",Ge_L-200e-9); set("x max",Ge_L);
 set("y min",-Ge_W/2); set("y max",Ge_W/2);
 set("z min",z_slab_top); set("z max",z_rib_top);
 
-# ── Ge stack ───────────────────────────────────────────────────────────────────
 addrect; set("name","i_Ge"); set("material",mat_Ge);
 set("x min",0); set("x max",Ge_L);
 set("y min",-Ge_W/2); set("y max",Ge_W/2);
@@ -138,7 +81,6 @@ set("x min",0); set("x max",Ge_L);
 set("y min",-Ge_W/2); set("y max",Ge_W/2);
 set("z min",z_iGe_top); set("z max",z_Npp_top);
 
-# ── SiO2 cladding ──────────────────────────────────────────────────────────────
 addrect; set("name","SiO2_clad_left"); set("material",mat_SiO2);
 set("x min",0); set("x max",Ge_L);
 set("y min",y_left); set("y max",-Ge_W/2);
@@ -149,7 +91,6 @@ set("x min",0); set("x max",Ge_L);
 set("y min",Ge_W/2); set("y max",y_right);
 set("z min",z_rib_top); set("z max",z_sim_top);
 
-# ── Simulation region ──────────────────────────────────────────────────────────
 select("simulation region");
 set("dimension",4);
 set("x",Ge_L/2);  set("x span",Ge_L);
@@ -157,23 +98,12 @@ set("y",0);       set("y span",Ge_W + 2*Pp_ext);
 set("z min",z_Si_bot);
 set("z max",z_sim_top);
 
-# ── CHARGE solver ──────────────────────────────────────────────────────────────
 addchargesolver;
 set("name","CHARGE");
 set("solver mode","steady state");
 set("simulation temperature",300);
-set("global iteration limit",500);   # [FIX 5] was 200
+set("global iteration limit",500);
 
-# ══════════════════════════════════════════════════════════════════════════════
-# [FIX 1] DOPING — this entire block was absent in the original script
-# Using coordinate-box doping (min/max) — the ONLY scripting-accessible form.
-# "volume type"+"solid" is a GUI-only path; set("solid",...) has no scripting
-# property, which is what caused: "line 176: property was not found".
-# All concentrations in cm⁻³ (Lumerical DEVICE scripting convention).
-# ══════════════════════════════════════════════════════════════════════════════
-
-# N++ Ge cathode cap — phosphorus, 1e20 cm^-3
-# Box matches Npp_Ge exactly: top 50 nm of the Ge stack
 adddope;
 set("name","dope_Npp_Ge");
 set("dopant type","n");
@@ -182,10 +112,6 @@ set("x min",0);        set("x max",Ge_L);
 set("y min",-Ge_W/2);  set("y max",Ge_W/2);
 set("z min",z_iGe_top); set("z max",z_Npp_top);
 
-# P++ Si anode — boron, 1e20 cm^-3
-# One box covers slab (0-90 nm) + rib + all U-arms (90-220 nm), full y-width.
-# The box stops at z_rib_top = z_iGe_bot = 220 nm, so there is ZERO overlap
-# with the intrinsic Ge layer which begins at z_iGe_bot.
 adddope;
 set("name","dope_Ppp_Si");
 set("dopant type","p");
@@ -194,9 +120,6 @@ set("x min",0);      set("x max",Ge_L);
 set("y min",y_left); set("y max",y_right);
 set("z min",z_Si_bot); set("z max",z_rib_top);
 
-# ══════════════════════════════════════════════════════════════════════════════
-
-# ── SCR mesh (full Ge stack) ───────────────────────────────────────────────────
 addchargemesh;
 set("name","mesh_SCR");
 set("x",Ge_L/2); set("x span",Ge_L);
@@ -205,7 +128,6 @@ set("z",(z_iGe_bot+z_Npp_top)/2);
 set("z span",Ge_H + 50e-9);
 set("max edge length",20e-9);
 
-# ── Junction mesh (N++/i-Ge interface) ────────────────────────────────────────
 addchargemesh;
 set("name","mesh_junction");
 set("x",Ge_L/2); set("x span",Ge_L);
@@ -214,33 +136,25 @@ set("z",z_iGe_top);
 set("z span",Npp_H + 60e-9);
 set("max edge length",5e-9);
 
-# ── Optical generation mesh ────────────────────────────────────────────────────
-# [FIX 4] 20 nm matches the FDTD export grid (mesh_Ge dx=dy=dz=20 nm).
-#          The original 10 nm asked Grizzly to resolve sub-grid detail that
-#          does not exist in the imported G dataset → refinement-limit warnings.
 addchargemesh;
 set("name","mesh_optical");
 set("x",Ge_L/2); set("x span",Ge_L);
 set("y",0);      set("y span",Ge_W);
 set("z",z_iGe_bot + 100e-9);
 set("z span",200e-9);
-set("max edge length",20e-9);   # [FIX 4] was 10e-9
+set("max edge length",20e-9);
 
-# ── Contacts ───────────────────────────────────────────────────────────────────
-# cathode on Npp_Ge — top z face of simulation region
 addelectricalcontact; set("name","cathode");
 set("bc mode","steady state");
 set("sweep type","range");
-# [FIX 2] reverse-bias range −4 V → 0 V (was −2 → +4 V, i.e. forward bias)
 set("range start",-4); set("range stop",0); set("range num points",9);
 set("force ohmic",1);
 set("surface type","solid:simulation region");
 set("solid","Npp_Ge");
 set("x min",0); set("x max",0);
 set("y min",0); set("y max",0);
-set("z min",0); set("z max",1);   # z max face = top of N++ Ge
+set("z min",0); set("z max",1);
 
-# anode_side1 on Si_Pp_left — outer y min face of simulation region
 addelectricalcontact; set("name","anode_side1");
 set("bc mode","steady state");
 set("sweep type","single"); set("voltage",0);
@@ -248,10 +162,9 @@ set("force ohmic",1);
 set("surface type","solid:simulation region");
 set("solid","Si_Pp_left");
 set("x min",0); set("x max",0);
-set("y min",1); set("y max",0);   # y min face = outer left edge
+set("y min",1); set("y max",0);
 set("z min",0); set("z max",0);
 
-# anode_side2 on Si_Pp_right — outer y max face of simulation region
 addelectricalcontact; set("name","anode_side2");
 set("bc mode","steady state");
 set("sweep type","single"); set("voltage",0);
@@ -259,43 +172,37 @@ set("force ohmic",1);
 set("surface type","solid:simulation region");
 set("solid","Si_Pp_right");
 set("x min",0); set("x max",0);
-set("y min",0); set("y max",1);   # y max face = outer right edge
+set("y min",0); set("y max",1);
 set("z min",0); set("z max",0);
 
-# anode_back on Si_Pp_back — x max face of simulation region
 addelectricalcontact; set("name","anode_back");
 set("bc mode","steady state");
 set("sweep type","single"); set("voltage",0);
 set("force ohmic",1);
 set("surface type","solid:simulation region");
 set("solid","Si_Pp_back");
-set("x min",0); set("x max",1);   # x max face = back end of U
+set("x min",0); set("x max",1);
 set("y min",0); set("y max",0);
 set("z min",0); set("z max",0);
 
 mat_file = "ge_gen_oband.mat";
 
-# ── Dark current run ───────────────────────────────────────────────────────────
 ?"=== CHARGE dark current | T=300 K ===";
 run;
 
 res_dk = getresult("CHARGE","cathode");
-# [FIX 3] Remove sign flip: V_cathode IS the applied bias on the cathode.
-#          Original: V_dk = -res_dk.V_cathode  then searched for V_dk == -1
-#          → found V_cathode = +1 V (forward bias), not -1 V (reverse).
 V_dk   = res_dk.V_cathode;
 I_dk   = res_dk.I;
 In_dk  = res_dk.In;
 Ip_dk  = res_dk.Ip;
 
-diff_V = abs(V_dk-(-1)); idx1V = 1;   # search for V_cathode = -1 V
+diff_V = abs(V_dk-(-1)); idx1V = 1;
 for(k=1; k<=length(V_dk); k=k+1) {
     if(diff_V(k) < diff_V(idx1V)) { idx1V = k; }
 }
 Id_1V = abs(I_dk(idx1V));
 ?"Dark current @ -1 V: "+num2str(Id_1V*1e9,"%.3f")+" nA   (paper: 1.3 nA)";
 
-# ── Illuminated run ────────────────────────────────────────────────────────────
 if (fileexists(mat_file)) {
     switchtolayout;
 
@@ -308,7 +215,7 @@ if (fileexists(mat_file)) {
     run;
 
     res_ill = getresult("CHARGE","cathode");
-    V_ill   = res_ill.V_cathode;   # [FIX 3] same sign correction
+    V_ill   = res_ill.V_cathode;
     I_ill   = res_ill.I;
     In_ill  = res_ill.In;
     Ip_ill  = res_ill.Ip;
@@ -327,7 +234,6 @@ if (fileexists(mat_file)) {
     ?"Responsivity   : "+num2str(R_AW,"%.3f")+" A/W   (paper: 0.95 A/W)";
     ?"D*             : "+num2str(D_star,"%.3e")+" cm Hz^0.5 W^-1   (paper: 2.95e10)";
 
-    # ── Physics results ────────────────────────────────────────────────────────
     res_band  = getresult("CHARGE","bandstructure");
     res_carr  = getresult("CHARGE","charge");
     res_recmb = getresult("CHARGE","recombination");
@@ -364,6 +270,6 @@ if (fileexists(mat_file)) {
                NA_bulk,  ND_bulk,  mun_bulk, mup_bulk);
 
 } else {
-    ?"WARNING: "+mat_file+" not found — run ge_pd_fdtd_oband.lsf first.";
+    ?"WARNING: "+mat_file+" not found â€” run ge_pd_fdtd_oband.lsf first.";
 }
-?"=== CHARGE done — run ge_pd_oband_postprocess.m in MATLAB next ===";
+?"=== CHARGE done â€” run ge_pd_oband_postprocess.m in MATLAB next ===";

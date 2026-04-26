@@ -1,322 +1,420 @@
 % chapter_photodetector.tex
 % Ge-on-Si Photodetector chapter for the group thesis
 % Islam I. Abdulaal, 2026
-% Electronics and Communications Engineering, Alexandria University
 % Compile as part of the main thesis document:
 %   \include{chapter_photodetector}
-% Required packages in main preamble:
+% Required packages in the main preamble:
 %   graphicx, amsmath, siunitx, booktabs, hyperref, cleveref, float,
-%   biblatex (IEEE style), mhchem (for \ce{})
+%   biblatex (IEEE style), mhchem
 
 \chapter{Germanium-on-Silicon Photodetector Design and Simulation}
 \label{ch:photodetector}
 
-\noindent\textit{Companion presentation: a Marp slide deck summarising this chapter is included in the repository as \texttt{thesis/chapter\_photodetector\_slides.md}, with a rendered HTML deck saved alongside it.}
+\noindent\textit{Companion presentation: a Marp slide deck summarizing this chapter is included in the repository as \texttt{thesis/chapter\_photodetector\_slides.md}, with a rendered HTML version saved alongside it.}
 
-% ─────────────────────────────────────────────────────────────────────────────
-\section{Introduction}
-\label{sec:pd_intro}
+Waveguide-integrated germanium-on-silicon photodetectors are central to modern
+silicon photonics receivers because they combine strong absorption in the telecom
+bands with monolithic integration on a silicon platform~\cite{SalehTeich1991,Hecht2021,Yariv1997,Chrostowski2015,Kaminow2013VIA}. This chapter follows a
+standard research-paper structure organized into three main sections: a concept
+review, a literature review, and a design-and-evaluation section covering the
+device architecture, trade-offs, methodology, validation, results, and outlook.
+The design target is an O-band vertical n-i-p Ge-on-Si photodiode centered at
+\SI{1310}{\nano\metre}, with benchmarks taken from the \SI{103}{\giga\hertz}
+U-shaped-electrode photodiode of Shi \textit{et al.}~\cite{Shi2024}.
 
-High-speed optical receivers for intra-datacenter PAM-4 links require photodetectors
-with simultaneous high responsivity, low dark current, and bandwidth exceeding
-\SI{100}{\giga\hertz}. Germanium-on-silicon (Ge-on-Si) vertical n-i-p photodiodes
-satisfy all three constraints within standard SOI fabrication~\cite{Shi:24}.
-This chapter presents the full design and simulation of such a device targeting the
-O-band (\SI{1310}{\nano\metre}) with performance benchmarks drawn from~\cite{Shi:24}.
+\section{Concept Review}
+\label{sec:pd_concept}
 
-% ─────────────────────────────────────────────────────────────────────────────
-\section{Device Architecture}
-\label{sec:pd_architecture}
+\subsection{Performance Targets for O-Band Receivers}
+Photodetectors used in short-reach optical interconnects must satisfy several
+constraints at the same time: high responsivity for sensitivity, low dark current
+for noise control, sufficient saturation power for linearity, and bandwidth well
+above 50~GBd signaling rates~\cite{Agrawal1997FOCS,Zhong2018,ProakisSalehi2007,Pilori2019}. For the photodiode studied here, the
+main figures of merit are the external responsivity,
+\begin{equation}
+    \mathcal{R} = \frac{I_{\mathrm{ph}}}{P_{\mathrm{opt}}},
+    \label{eq:pd_responsivity}
+\end{equation}
+the optical absorption,
+\begin{equation}
+    A = 1 - |T| - |R|,
+    \label{eq:pd_absorption}
+\end{equation}
+and the combined transit-time and RC-limited bandwidth,
+\begin{equation}
+    f_{3\,\mathrm{dB}} = \frac{1}{\sqrt{1/f_{\mathrm{tt}}^2 + 1/f_{\mathrm{RC}}^2}}.
+    \label{eq:pd_bandwidth}
+\end{equation}
 
-\subsection{Layer Stack}
-The device is a vertical n-i-p structure epitaxially grown on a
-\SI{220}{\nano\metre} SOI wafer:
+Dark current matters because it enters directly into the shot-noise floor,
+\begin{equation}
+    i_{n,\mathrm{shot}} = \sqrt{2 q (I_d + I_{\mathrm{ph}}) B},
+    \label{eq:pd_shot_noise}
+\end{equation}
+so an optical improvement that significantly increases leakage may degrade the
+system-level link margin. This makes Ge-on-Si photodiode design a multiphysics
+problem in which optical confinement, electrostatics, carrier transport, and
+parasitic circuit elements must be optimized together rather than separately~\cite{Yan2024,Alasio2024}.
+
+\subsection{Operating Principle of the Vertical n-i-p Ge-on-Si Photodiode}
+The device considered in this chapter is a waveguide-coupled vertical n-i-p
+photodiode, combining integrated-waveguide optics with semiconductor carrier
+transport~\cite{Iizuka2002Vol2,Basu2003,Rossler2009,AshcroftMermin2021,Kantorovich2004,Ziman1972}. Light first propagates in a silicon input waveguide, then expands
+through a taper and couples into a germanium mesa where absorption generates
+electron-hole pairs. The intrinsic Ge region forms the main depletion and
+collection volume, the $n^{++}$-Ge top layer provides the cathode contact, and
+the $p^{++}$-Si underneath provides the anode path.
+
+In the optical domain, absorbed power density is converted into a volumetric
+generation rate,
+\begin{equation}
+    G(\mathbf{r}) = \frac{P_{\mathrm{abs}}(\mathbf{r})}{h f},
+    \label{eq:pd_generation_rate}
+\end{equation}
+which is then imported into the drift-diffusion simulation. This coupling is
+important because the electrical response depends not only on the total absorbed
+power but also on where carriers are generated inside the stack and how quickly
+they can be swept out by the internal field.
+
+\subsection{Core Design Trade-Offs}
+Four trade-offs dominate the design of high-speed Ge-on-Si photodetectors.
+\begin{itemize}
+    \item \textbf{Absorber length versus capacitance:} longer Ge mesas improve
+          absorption and responsivity, but also increase junction area and RC
+          loading.
+    \item \textbf{Intrinsic thickness versus transit time:} thicker intrinsic Ge
+          can support stronger absorption and lower capacitance density, but the
+          longer carrier travel distance can reduce speed.
+    \item \textbf{Contact placement versus optical perturbation:} bringing metal
+          contacts closer reduces series resistance but may increase optical loss
+          and field non-uniformity.
+    \item \textbf{Field strength versus dark current:} stronger electric fields
+          improve carrier sweep-out and bandwidth, but poorly managed junction
+          fields can elevate dark current and reliability risk.
+\end{itemize}
+
+The U-shaped electrode geometry is attractive because it balances these competing
+needs. It preserves a relatively large optical interaction region while reducing
+series resistance and keeping capacitance low enough for \SI{100}{\giga\hertz}-class
+operation.
+
+\section{Literature Review}
+\label{sec:pd_literature}
+
+\subsection{Evolution of Waveguide-Integrated Ge-on-Si Photodetectors}
+The field of Ge-on-Si photodetection matured through a sequence of advances in
+integration, speed, responsivity, and circuit compatibility. Early work by Vivien
+\textit{et al.} demonstrated a \SI{42}{\giga\hertz} waveguide-integrated germanium
+photodetector on SOI~\cite{Vivien2009}, while Ang \textit{et al.} showed low-thermal-budget
+evanescent coupling on a Si CMOS-compatible platform~\cite{Ang2010}. These studies
+established the viability of germanium as the absorber of choice for monolithic
+silicon photonics photodiodes. Recent overview articles and a closely related
+doctoral dissertation provide broader context for this design space~\cite{Wang2024,Yan2024,Alasio2024}.
+
+Subsequent work expanded the design space. Ramaswamy \textit{et al.} targeted
+high-power microwave-photonic applications~\cite{Ramaswamy2010}, Fang \textit{et al.}
+demonstrated a vertical pin Ge-on-Si structure on a wet-etched silicon recess~\cite{Fang2013},
+and Novack \textit{et al.} used inductive gain peaking to push bandwidth to
+\SI{60}{\giga\hertz}~\cite{Novack2013}. Other groups emphasized low-voltage operation,
+high responsivity, or polarization robustness, including the silicon-contacted
+devices of Chen \textit{et al.}~\cite{Chen2015,Chen2016Si}, the high-responsivity
+waveguide-coupled photodiode of Lischke \textit{et al.}~\cite{Lischke2015}, and the
+polarization-insensitive lumped detector of Chen \textit{et al.}~\cite{Chen2016Pol}.
+
+The more recent literature focuses on narrowing the remaining trade-offs between
+responsivity, dark current, bandwidth, and saturation power. This includes
+mode-evolution coupling for higher saturation power~\cite{Byrd2017}, lateral
+Si/Ge/Si heterojunctions~\cite{Virot2017}, footprint reduction by photonic bandgap
+engineering~\cite{Zhou2018}, low-voltage heterostructured waveguide detectors~\cite{Benedikovic2019},
+zero-bias operation~\cite{deCea2021}, ultra-fast germanium photodiodes with bandwidths
+up to \SI{265}{\giga\hertz}~\cite{Lischke2021}, parasitic-parameter engineering~\cite{Shi2021},
+and receiver-level demonstrations for high-speed data links~\cite{Su2022}. The most
+relevant recent reference for this chapter is the \SI{103}{\giga\hertz}
+germanium-on-silicon photodiode of Shi \textit{et al.} using an optimized U-shaped
+electrode~\cite{Shi2024}, while Cao \textit{et al.} illustrate the ongoing interest
+in high-power Ge/Si waveguide photodetectors on the same platform~\cite{Cao2024}.
+
+\subsection{Representative Milestones}
+\begin{table}[H]
+\centering
+\caption{Representative Ge-on-Si photodetector milestones relevant to this chapter.}
+\label{tab:pd_literature}
+\begin{tabular}{p{1.3cm} p{3.1cm} p{6.2cm} p{2.3cm}}
+\toprule
+Year & Reference & Contribution & Highlight \\
+\midrule
+2009 & Vivien \textit{et al.}~\cite{Vivien2009} & Early waveguide-integrated Ge detector on SOI & \SI{42}{\giga\hertz} \\
+2010 & Ang \textit{et al.}~\cite{Ang2010} & Low thermal budget evanescent-coupled Ge-on-SOI integration & CMOS-compatible platform \\
+2013 & Fang \textit{et al.}~\cite{Fang2013} & Vertical pin Ge-on-Si detector on wet-etched Si recess & Vertical structure \\
+2015 & Chen \textit{et al.}~\cite{Chen2015} & Low-voltage silicon-contacted Ge p-i-n detector & 28-Gb/s operation \\
+2016 & Chen \textit{et al.}~\cite{Chen2016Si} & Si-contacted waveguide p-i-n detector for optical links & \SI{67}{\giga\hertz} at \SI{1}{\volt} \\
+2021 & Lischke \textit{et al.}~\cite{Lischke2021} & Ultra-fast germanium photodiode & \SI{265}{\giga\hertz} \\
+2021 & Shi \textit{et al.}~\cite{Shi2021} & Parasitic-parameter engineering in Ge waveguide PDs & \SI{80}{\giga\hertz} \\
+2024 & Shi \textit{et al.}~\cite{Shi2024} & Optimized U-shaped electrode Ge-on-Si photodiode & \SI{103}{\giga\hertz}, \SI{0.95}{\ampere\per\watt} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Positioning of the Present Chapter}
+Taken together, the literature shows that high-speed Ge-on-Si photodiodes are not
+limited by absorption alone. The dominant challenge is achieving strong absorption,
+low dark current, and large electrical bandwidth in the same layout. This chapter
+therefore focuses on a vertical n-i-p architecture with a U-shaped anode path,
+because that architecture directly addresses the resistance-capacitance bottleneck
+identified in the recent high-speed literature while remaining compatible with the
+waveguide-coupled Ge-on-Si design lineage established by earlier work.
+
+\section{Design, Methodology, Validation, and Outlook}
+\label{sec:pd_design}
+
+\subsection{Design Objectives and Device Architecture}
+The design objective is a compact O-band photodiode suitable for
+53.125~GBd PAM-4 links, with target metrics aligned to the benchmark
+reported in~\cite{Shi2024}: responsivity near \SI{0.95}{\ampere\per\watt}, dark
+current near \SI{1.3}{\nano\ampere} at \SI{-1}{\volt}, and electrical bandwidth
+above \SI{100}{\giga\hertz}. The structure is implemented on a
+\SI{220}{\nano\metre} SOI platform with a germanium mesa integrated above the
+silicon rib region.
 
 \begin{table}[H]
 \centering
-\caption{Device layer stack parameters.}
+\caption{Layer stack and primary material parameters used in the Ge-on-Si photodiode model.}
 \label{tab:layer_stack}
 \begin{tabular}{llll}
 \toprule
 Layer & Material & Thickness & Doping \\
 \midrule
-Cathode contact & $n^{++}$-Ge & \SI{50}{\nano\metre}  & $N_D = \SI{e19}{\per\centi\metre\cubed}$ \\
-Absorber        & $i$-Ge      & \SI{350}{\nano\metre} & $N_D = \SI{e13}{\per\centi\metre\cubed}$ \\
-Platform        & $p^{++}$-Si & \SI{220}{\nano\metre} & $N_A = \SI{e20}{\per\centi\metre\cubed}$ \\
-BOX             & \ce{SiO2}   & \SI{2}{\micro\metre}  & — \\
-Substrate       & Si          & —                     & — \\
+Cathode contact & $n^{++}$-Ge & \SI{50}{\nano\metre}  & \SI{1e19}{\per\centi\metre\cubed} \\
+Absorber        & $i$-Ge      & \SI{350}{\nano\metre} & \SI{1e13}{\per\centi\metre\cubed} \\
+Platform        & $p^{++}$-Si & \SI{220}{\nano\metre} & \SI{1e20}{\per\centi\metre\cubed} \\
+BOX             & \ce{SiO2}   & \SI{2}{\micro\metre}  & --- \\
+Substrate       & Si          & ---                   & --- \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-\subsection{Electrode Geometry}
-Anode contacts are made to the $p^{++}$-Si platform via a U-shaped metal electrode
-surrounding the Ge mesa (arms at $y = \pm\SI{2.5}{\micro\metre}$ from centre, back
-closure at $x = L_{\mathrm{Ge}}$). This geometry minimises junction capacitance while
-keeping series resistance low, yielding an RC-limited bandwidth of approximately
-\SI{140}{\giga\hertz} with $R_S = \SI{12.9}{\ohm}$ and $C_j = \SI{22.6}{\femto\farad}$.
+The anode contact is implemented through a U-shaped metal geometry surrounding the
+Ge mesa. This geometry reduces the effective current path in silicon and improves
+the resistance-capacitance trade-off without placing excessive metal directly in
+the optical interaction region. The optical coupling path includes a
+\SI{40}{\micro\metre} adiabatic taper that expands the mode from the input silicon
+waveguide into the wider Ge absorption region.
 
-% ─────────────────────────────────────────────────────────────────────────────
-\section{FDTD Optical Simulation}
-\label{sec:pd_fdtd}
+\subsection{Design Trade-Offs}
+The adopted geometry follows the trade-offs discussed in \cref{sec:pd_concept}. In
+particular, the Ge length is chosen to achieve high O-band absorption without
+excessive junction capacitance, the intrinsic Ge thickness is selected to balance
+carrier collection and transit time, and the U-shaped electrode reduces the series
+resistance associated with the anode path. This means the design is not optimized
+for a single metric in isolation; instead, it is tuned to reach a balanced receiver
+operating point where responsivity, dark current, and bandwidth all remain within
+target.
 
-\subsection{Simulation Setup}
-Three-dimensional finite-difference time-domain (FDTD) simulations were performed using
-Lumerical FDTD Solutions 2020~R2. The simulation domain spans the Si input waveguide,
-a \SI{40}{\micro\metre} adiabatic spot-size converter (taper: \SI{500}{\nano\metre}
-to \SI{5}{\micro\metre} in width), and the full Ge absorber length $L_{\mathrm{Ge}}$.
-A perfectly matched layer (PML) terminates all boundaries except $y_{\min}$, which
-exploits the device's lateral symmetry (Symmetric BC). Mesh resolution within the
-Ge region is \SI{20}{\nano\metre} isotropic.
+\subsection{Methodology}
+\subsubsection{Optical FDTD Methodology}
+Three-dimensional finite-difference time-domain simulations were performed in
+Lumerical FDTD Solutions 2020 R2. The model includes the input silicon waveguide,
+the \SI{40}{\micro\metre} taper, the full Ge absorber length, and the surrounding
+cladding regions. A fundamental TE mode is launched at the input, with power
+monitors used to record transmission and reflection so that absorption can be
+computed through \cref{eq:pd_absorption}. The Ge region uses a
+\SI{20}{\nano\metre} isotropic mesh override. The optical generation profile
+derived from \cref{eq:pd_generation_rate} is exported to
+\texttt{ge\_gen\_oband.mat} for electrical simulation.
 
-The fundamental TE mode of the input waveguide is launched from a mode source and
-evanescently couples into the Ge layer via the taper. Power monitors record
-transmission ($T$) and back-reflection ($R$); absorption is computed as:
-\begin{equation}
-    A = 1 - |T| - |R|
-    \label{eq:absorption}
-\end{equation}
+\subsubsection{Electrical CHARGE Methodology}
+Carrier transport is simulated in Lumerical DEVICE CHARGE under 3-D steady-state
+operation. Silicon and germanium material models are configured with appropriate
+mobility and recombination settings, and Shockley-Read-Hall recombination is
+enabled in germanium with calibrated carrier lifetimes
+$\tau_n = \tau_p = \SI{5}{\nano\second}$ so that the dark current matches the
+published benchmark near \SI{-1}{\volt}. The cathode is reverse biased while the
+anode is held at ground, and the imported optical generation map is used to
+compute photocurrent under illumination.
 
-\subsection{Ge Length Optimisation}
-\label{sec:ge_length}
-The Ge mesa length $L_{\mathrm{Ge}}$ was swept from \SIrange{2}{8}{\micro\metre}
-to find the minimum length achieving $A \geq 95\%$ at \SI{1310}{\nano\metre}.
-Results are plotted in \cref{fig:absorption_vs_length}.
+\subsubsection{System-Level Validation Methodology}
+To connect device-level behavior to link-level implications, the photodiode
+response is inserted into a MATLAB-based PAM-4 receiver flow operating at
+53.125~GBd. The model includes pulse shaping, bandwidth limitation,
+shot noise, thermal noise, matched filtering, and decision-threshold extraction.
+This system-level step does not replace device validation, but it confirms that the
+simulated photodiode can act as a realistic receiver front end rather than only as
+an isolated device~\cite{Agrawal1997FOCS,Zhong2018,ProakisSalehi2007,Pilori2019}.
+
+\subsection{Validation Strategy}
+Validation is performed at three levels. First, the optical solver is checked by
+verifying that the chosen Ge length delivers the expected O-band absorption. Second,
+the drift-diffusion solver is benchmarked against published dark current,
+responsivity, and bandwidth targets from~\cite{Shi2024}. Third, the exported compact
+response is exercised in a PAM-4 receiver chain to verify that the device-level
+metrics remain meaningful under a communication-system workload. In other words,
+the validation loop progresses from optical absorption, to carrier transport, to
+system-level eye opening and level separation.
+
+\subsection{Results and Discussion}
+\subsubsection{Optical Results}
+The Ge mesa length was swept from \SIrange{2}{8}{\micro\metre} to identify the
+shortest absorber that still provides near-complete absorption at
+\SI{1310}{\nano\metre}. This sweep captures the fundamental optical versus
+capacitance trade-off: beyond a certain length, additional absorption becomes
+incremental while the electrical penalty continues to grow.
+
+The optical generation-rate map in \cref{fig:gen_rate_map} shows how absorbed power
+is distributed across the active region. This distribution matters because it sets
+the initial condition for carrier generation in the electrical solver.
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.7\linewidth]{figures/absorption_vs_Ge_length}
-    \caption{Optical absorption at \SI{1310}{\nano\metre} vs Ge mesa length for
-             fundamental TE excitation. The optimal length is reached at
-             $A \geq 95\%$.}
-    \label{fig:absorption_vs_length}
-\end{figure}
-
-\subsection{Polarisation Dependence}
-The polarisation-dependent loss (PDL) between TE and TM fundamental modes was
-evaluated at the optimal $L_{\mathrm{Ge}}$:
-\begin{equation}
-    \mathrm{PDL} = 10\log_{10}\!\left(\frac{A_{\mathrm{TE}}}{A_{\mathrm{TM}}}\right)
-    \label{eq:pdl}
-\end{equation}
-The wide Ge mesa ($W_{\mathrm{Ge}} = \SI{5}{\micro\metre}$) ensures near-unity TM
-absorption, giving $|\mathrm{PDL}| < \SI{0.05}{\decibel}$.
-
-\subsection{Optical Generation Rate Export}
-The volumetric optical generation rate $G(\mathbf{r})$ [\si{\per\metre\cubed\per\second}]
-is derived from the absorbed power density monitored over the Ge region:
-\begin{equation}
-    G(\mathbf{r}) = \frac{P_{\mathrm{abs}}(\mathbf{r})}{h f}
-    \label{eq:gen_rate}
-\end{equation}
-where $h$ is Planck's constant and $f = c/\lambda_c$. The 3-D array is exported to
-\texttt{ge\_gen\_oband.mat} for import into the CHARGE solver (\cref{fig:gen_rate_map}).
-
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=0.7\linewidth]{figures/optical_generation_rate_map}
-    \caption{2-D cross-section ($x$-$z$ plane) of the optical generation rate
-             at \SI{1310}{\nano\metre}. Dashed white lines mark the Si/Ge and
-             i-Ge/$n^{++}$ interfaces.}
+    \includegraphics[width=0.70\linewidth]{figures/optical_generation_rate_map}
+    \caption{Cross-sectional optical generation rate map used as the optical input
+    to the drift-diffusion simulation.}
     \label{fig:gen_rate_map}
 \end{figure}
 
-% ─────────────────────────────────────────────────────────────────────────────
-\section{CHARGE (Drift-Diffusion) Simulation}
-\label{sec:pd_charge}
-
-\subsection{Simulation Setup}
-Carrier transport was simulated using Lumerical DEVICE CHARGE in 3-D steady-state
-mode. Materials were configured with:
-\begin{itemize}
-    \item \textbf{Silicon}: Palik optical constants; Masetti mobility model.
-    \item \textbf{Germanium}: Palik constants; SRH recombination enabled with
-          $\tau_n = \tau_p = \SI{5}{\nano\second}$ (calibrated to match
-          $I_d = \SI{1.3}{\nano\ampere}$ at $V = \SI{-1}{\volt}$).
-\end{itemize}
-
-Doping regions and contact boundaries match \cref{tab:layer_stack}. A fine mesh
-override (\SI{20}{\nano\metre} maximum edge length) covers the full Ge stack.
-The cathode is swept from \SIrange{0}{4}{\volt} reverse bias in 17 points;
-anode contacts are held at \SI{0}{\volt}.
-
-\subsection{Dark Current}
-The simulated dark I-V is shown in \cref{fig:iv_dark}. At $V = \SI{-1}{\volt}$:
-\begin{equation}
-    I_d = \SI{1.3}{\nano\ampere}
-    \label{eq:dark_current}
-\end{equation}
-consistent with the target from~\cite{Shi:24}.
+\subsubsection{Electrical Results}
+The dark current extracted from the CHARGE simulation is shown in \cref{fig:iv_dark}.
+At \SI{-1}{\volt}, the calibrated device reproduces the low-leakage operating point
+reported in the benchmark work, which anchors the rest of the electrical analysis.
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.65\linewidth]{figures/dark_iv}
-    \caption{Dark current vs reverse bias at \SI{300}{\kelvin}.}
+    \includegraphics[width=0.66\linewidth]{figures/dark_iv}
+    \caption{Dark current versus reverse bias at \SI{300}{\kelvin}.}
     \label{fig:iv_dark}
 \end{figure}
 
-\subsection{Photocurrent and Responsivity}
-Under \SI{100}{\micro\watt} optical input at \SI{1310}{\nano\metre}, the photocurrent
-and external responsivity are:
-\begin{align}
-    I_{\mathrm{ph}} &= I_{\mathrm{ill}} - I_d                         \label{eq:photocurrent} \\
-    \mathcal{R}     &= \frac{I_{\mathrm{ph}}}{P_{\mathrm{opt}}} \geq \SI{0.95}{\ampere\per\watt}
-    \label{eq:responsivity}
-\end{align}
+Under illumination, the separation between dark and illuminated current yields the
+photocurrent and therefore the responsivity reported by the model. The corresponding
+current-voltage characteristics are shown in \cref{fig:iv_dark_vs_ill}.
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.65\linewidth]{figures/dark_vs_illuminated_iv}
-    \caption{Dark vs illuminated I-V characteristics at \SI{1310}{\nano\metre}
-             ($P_{\mathrm{opt}} = \SI{100}{\micro\watt}$).}
+    \includegraphics[width=0.66\linewidth]{figures/dark_vs_illuminated_iv}
+    \caption{Dark and illuminated current-voltage characteristics at
+    \SI{1310}{\nano\metre} and \SI{100}{\micro\watt} input power.}
     \label{fig:iv_dark_vs_ill}
 \end{figure}
 
-\subsection{Band Diagram and Internal Physics}
-\cref{fig:band_diagram} shows the energy band diagram extracted along the $z$-axis
-at the centre of the Ge mesa under $V = \SI{-1}{\volt}$ reverse bias. The full
-depletion of the intrinsic Ge layer is confirmed by the quasi-Fermi level separation
-and the linear potential drop across the $i$-Ge region.
+The internal device physics are examined through the band diagram and carrier
+density profiles. The band diagram of \cref{fig:band_diagram} shows the expected
+potential drop across the intrinsic Ge region under reverse bias, while the carrier
+density plot of \cref{fig:carrier_density} confirms depletion in the intrinsic
+region and proper separation of the doped layers.
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.7\linewidth]{figures/band_diagram_vminus1}
-    \caption{Energy band diagram at $V = \SI{-1}{\volt}$ through the n-i-p stack.
-             $E_c$, $E_v$: conduction and valence bands; $E_{Fn}$, $E_{Fp}$:
-             electron and hole quasi-Fermi levels; $E_i$: intrinsic level.}
+    \includegraphics[width=0.72\linewidth]{figures/band_diagram_vminus1}
+    \caption{Energy band diagram through the vertical n-i-p stack at
+    \SI{-1}{\volt}.}
     \label{fig:band_diagram}
 \end{figure}
 
-The corresponding carrier density profiles (\cref{fig:carrier_density}) show the
-expected depletion of the intrinsic region and confirmation of the designed doping
-concentrations.
-
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.7\linewidth]{figures/carrier_density_vminus1}
-    \caption{Electron and hole densities at $V = \SI{-1}{\volt}$, overlaid with
-             acceptor ($N_A$) and donor ($N_D$) doping profiles.}
+    \includegraphics[width=0.72\linewidth]{figures/carrier_density_vminus1}
+    \caption{Electron and hole densities together with doping profiles across the
+    device stack at \SI{-1}{\volt}.}
     \label{fig:carrier_density}
 \end{figure}
 
-\subsection{Electric Field and Potential}
-The electric field profile (\cref{fig:efield}) confirms that the peak field resides
-within the intrinsic Ge absorber, consistent with full depletion at \SI{-1}{\volt}.
+The electric field and electrostatic potential in \cref{fig:efield} show that the
+highest field is confined to the active depletion region, which is consistent with
+fast carrier extraction. The resulting frequency response estimate, shown in
+\cref{fig:freq_response}, combines transit-time and RC effects through
+\cref{eq:pd_bandwidth}.
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.7\linewidth]{figures/electric_field_potential_vminus1}
+    \includegraphics[width=0.72\linewidth]{figures/electric_field_potential_vminus1}
     \caption{Electric field magnitude and electrostatic potential at
-             $V = \SI{-1}{\volt}$ along the $z$-axis.}
+    \SI{-1}{\volt} along the vertical stack.}
     \label{fig:efield}
 \end{figure}
 
-\subsection{Bandwidth Estimation}
-The 3\,dB bandwidth is limited by both carrier transit time and RC parasitics:
-\begin{equation}
-    f_{3\,\mathrm{dB}} = \frac{1}{\sqrt{1/f_{\mathrm{tt}}^2 + 1/f_{\mathrm{RC}}^2}}
-    \geq \SI{103}{\giga\hertz}
-    \label{eq:bandwidth}
-\end{equation}
-The modelled frequency response is shown in \cref{fig:freq_response}.
-
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.7\linewidth]{figures/frequency_response_model}
-    \caption{Normalised $S_{21}$ frequency response combining transit-time and RC
-             transfer functions. The $-3$\,dB bandwidth exceeds \SI{103}{\giga\hertz}
-             with the U-shaped electrode geometry.}
+    \includegraphics[width=0.72\linewidth]{figures/frequency_response_model}
+    \caption{Modeled frequency response combining transit-time and RC limits.}
     \label{fig:freq_response}
 \end{figure}
 
-% ─────────────────────────────────────────────────────────────────────────────
-\section{System-Level PAM-4 Validation}
-\label{sec:pd_system}
-
-To verify the photodetector's suitability for high-speed link applications, a
-MATLAB-based PAM-4 receiver model was constructed. The model includes:
-\begin{itemize}
-    \item PAM-4 symbol generation at \SI{53.125}{\giga\baud}
-          (106\,Gb/s IEEE 802.3bs-compliant rate).
-    \item Root-raised-cosine pulse shaping with roll-off $\alpha = 0.35$.
-    \item Quantum shot noise and thermal noise at $R_L = \SI{50}{\ohm}$.
-    \item Bandwidth-limited detection through a $3^{\mathrm{rd}}$-order Butterworth
-          low-pass filter matched to $f_{3\,\mathrm{dB}}$.
-    \item Matched-filter detection with adaptive threshold estimation.
-\end{itemize}
+\subsubsection{System-Level Validation Results}
+At the system level, the extracted device behavior is mapped into a
+53.125~GBd PAM-4 receiver. The transfer-function plot in
+\cref{fig:transfer_function} provides the optical-to-electrical static response,
+the eye diagram in \cref{fig:eye_diagram} visualizes timing and amplitude opening,
+and the histogram in \cref{fig:pam4_histogram} shows that the four PAM-4 levels
+remain distinguishable after filtering and noise.
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.65\linewidth]{figures/system_transfer_function}
-    \caption{PD transfer function (photocurrent vs optical power) at
-             \SI{1310}{\nano\metre}, showing saturation at
-             $P_{\mathrm{sat}} = \SI{10}{\milli\watt}$.}
+    \includegraphics[width=0.66\linewidth]{figures/system_transfer_function}
+    \caption{Photodiode transfer function used in the receiver-level validation
+    flow.}
     \label{fig:transfer_function}
 \end{figure}
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.65\linewidth]{figures/system_photocurrent_eye}
-    \caption{Photocurrent eye diagram at \SI{53.125}{\giga\baud} PAM-4.}
+    \includegraphics[width=0.66\linewidth]{figures/system_photocurrent_eye}
+    \caption{Photocurrent eye diagram for the PAM-4 validation case.}
     \label{fig:eye_diagram}
 \end{figure}
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.65\linewidth]{figures/system_pam4_histogram}
-    \caption{PAM-4 matched-filter output histogram showing four distinct amplitude
-             levels with decision thresholds (dashed red).}
+    \includegraphics[width=0.66\linewidth]{figures/system_pam4_histogram}
+    \caption{Matched-filter output histogram showing the four PAM-4 signal levels.}
     \label{fig:pam4_histogram}
 \end{figure}
 
-A Lumerical INTERCONNECT-ready compact photodetector model was also exported,
-enabling the PD to be inserted directly into photonic circuit simulations
-(\cref{fig:interconnect}). The exported package includes frequency-dependent
-responsivity, bias-dependent bandwidth and dark current tables, and equivalent-circuit
-parameters.
+The compact data package exported for circuit co-simulation is summarized in
+\cref{fig:interconnect}. This step is important because it turns the device model
+into a reusable photonic-circuit block instead of a stand-alone simulation result.
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.7\linewidth]{figures/system_interconnect_compact_model}
-    \caption{INTERCONNECT-ready compact PD model: optical-to-electrical transimpedance
-             $|Z_t|$ and normalised electro-optic response vs frequency.}
+    \includegraphics[width=0.72\linewidth]{figures/system_interconnect_compact_model}
+    \caption{INTERCONNECT-ready compact photodiode representation exported from the
+    simulation flow.}
     \label{fig:interconnect}
 \end{figure}
 
-% ─────────────────────────────────────────────────────────────────────────────
-\section{Results Summary}
-\label{sec:pd_results}
-
 \begin{table}[H]
 \centering
-\caption{Simulated vs published performance at $V = \SI{-1}{\volt}$, $T = \SI{300}{\kelvin}$,
-         $\lambda = \SI{1310}{\nano\metre}$.}
+\caption{Simulated photodiode performance compared with the benchmark of~\cite{Shi2024}
+at \SI{-1}{\volt}, \SI{300}{\kelvin}, and \SI{1310}{\nano\metre}.}
 \label{tab:results}
 \begin{tabular}{llll}
 \toprule
-Metric & Simulated & Paper~\cite{Shi:24} & Unit \\
+Metric & Simulated & Benchmark~\cite{Shi2024} & Unit \\
 \midrule
-Dark current $I_d$          & 1.3                      & 1.3                   & \si{\nano\ampere} \\
-Responsivity $\mathcal{R}$  & $\geq 0.95$              & 0.95                  & \si{\ampere\per\watt} \\
-Bandwidth $f_{3\,\mathrm{dB}}$ & $\geq 103$            & 103                   & \si{\giga\hertz} \\
-Detectivity $D^*$           & $\geq 2.95\times10^{10}$ & $2.95\times10^{10}$   & \si{\centi\metre\sqrt{\hertz}\per\watt} \\
-EQE                         & $\geq 95$                & —                     & \% \\
-IQE                         & $\geq 99$                & —                     & \% \\
+Dark current $I_d$                & 1.3                      & 1.3                    & nA \\
+Responsivity $\mathcal{R}$        & $\geq 0.95$              & 0.95                   & A/W \\
+Bandwidth $f_{3\,\mathrm{dB}}$    & $\geq 103$               & 103                    & GHz \\
+Detectivity $D^*$                 & $\geq 2.95\times10^{10}$ & $2.95\times10^{10}$    & cm Hz$^{1/2}$/W \\
+External quantum efficiency (EQE) & $\geq 95$                & ---                    & \% \\
+Internal quantum efficiency (IQE) & $\geq 99$                & ---                    & \% \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-% ─────────────────────────────────────────────────────────────────────────────
-\section{Conclusion}
-\label{sec:pd_conclusion}
+Overall, the results show that the chosen architecture is not only optically
+absorptive but also electrically credible. The main value of the simulation flow is
+that it links optical design decisions directly to internal electrostatics and then
+to communication-level behavior.
 
-A Ge-on-Si vertical n-i-p photodiode was designed and simulated using coupled
-FDTD and drift-diffusion solvers, and validated at the system level with a PAM-4
-receiver model. The design achieves the IEEE 802.3bs-compliant targets of
-$\mathcal{R} \geq \SI{0.95}{\ampere\per\watt}$ and
-$f_{3\,\mathrm{dB}} \geq \SI{103}{\giga\hertz}$ with a dark current of
-\SI{1.3}{\nano\ampere}, confirming the simulation framework's accuracy against
-published results~\cite{Shi:24}. The exported INTERCONNECT-ready compact model
-enables direct insertion of this device into photonic link simulations.
-All scripts and data are available at:
-\url{https://doi.org/10.5281/zenodo.19652934}
+\subsection{Outlook}
+Several extensions would strengthen this work further. First, the compact model can
+be expanded to include temperature dependence, process corners, and packaging
+parasitics so that link-level simulations capture more of the real implementation
+environment. Second, experimental validation should be added to confirm the
+calibrated Shockley-Read-Hall lifetime assumptions and the extracted parasitic
+parameters. Third, the same workflow can be extended toward high-power operation,
+alternative junction geometries, and more advanced receiver co-design. The present
+chapter therefore serves both as a device study and as a reusable methodology for
+future Ge-on-Si photodetector development.
+
+The scripts, generated data products, and thesis-ready figures for this chapter are
+maintained inside the same repository so that the workflow remains reproducible from
+FDTD, through CHARGE, to the system-level MATLAB validation stage.

@@ -17,7 +17,7 @@ This repository develops the Ge-on-Si photodetector as a device-level and compac
 ```text
 PD-Design-Kit/
 |-- device-level/     Lumerical FDTD + CHARGE scripts, MATLAB postprocess, KLayout mask
-|-- system-level/     MATLAB PAM-4 and INTERCONNECT-ready PD compact model flow
+|-- system-level/     MATLAB PAM-4 transfer model with Wartak computational photonics
 |-- thesis/           LaTeX chapter, Marp presentation, figures
 |-- CHANGELOG.md      Version history
 |-- CITATION.cff      Machine-readable citation
@@ -47,12 +47,6 @@ Complete simulation chain for a vertical n-i-p Ge-on-Si photodiode at 1310 nm.
 | `ge_pd_device_oband_optional.lsf` | CHARGE | `ge_charge_optional_oband.mat` |
 | `ge_pd_oband_optional_postprocess.m` | MATLAB | Figures 10–16 |
 
-**Shared utility:**
-
-| File | Purpose |
-|------|---------|
-| `thesis_utils.m` | Shared thesis figure styling and export (used by both postprocess scripts) |
-
 **GDS layout:**
 ```text
 klayout -r ge_pd_layout.rb    ->    ge_pd_layout_oband.gds
@@ -76,7 +70,6 @@ The CHARGE script (`ge_pd_device_oband.lsf`) exports a comprehensive `.mat` file
 - Geometry parameters (`Ge_L`, `Ge_W`, `iGe_H`, `Npp_H`, `wg_H`)
 - Spatial data for band diagrams, carrier densities, doping, electric field, generation rate
 - Bandwidth parameters (`RS_paper`, `Cj_paper`, `fBW_U_paper`, `f_t_paper`)
-- Sweep results (i-Ge thickness, temperature Arrhenius, electrode comparison)
 
 The MATLAB postprocess reads these variables directly — no hardcoded values.
 
@@ -88,16 +81,43 @@ The MATLAB postprocess reads these variables directly — no hardcoded values.
 
 ## System-Level
 
-End-to-end MATLAB PAM-4 link simulation calibrated with device-level results and positioned as the photodetector block within a silicon-based MDM photonic 400 Gb/s IEEE 802.3 high-speed link flow.
-
-The `system-level` folder is intentionally consolidated into a single `transfer_model.m` entry point plus an `INTERCONNECT` export helper for circuit-ready compact-model data.
+End-to-end MATLAB PAM-4 link simulation with physics-based photodetector models from Wartak's *Computational Photonics* (Cambridge, 2013, Ch. 10 & 14), calibrated with device-level results.
 
 ```matlab
 cd system-level
-transfer_model      % runs the PAM-4 chain, exports thesis figures, and writes INTERCONNECT-ready PD data
+transfer_model
 ```
 
-**Outputs:** BER, SER, SNR, optical and photocurrent eye diagrams, PAM-4 level histogram, responsivity curve, transfer function, thesis-ready figures in `thesis/figures/`, and a Lumerical `INTERCONNECT` photodetector source-data package in `system-level/interconnect/`.
+**Physics models (Wartak Ch. 10):**
+
+| Model | Equation | Config Parameter |
+|-------|----------|-----------------|
+| Quantum efficiency | η(λ) = (1-Rf)(1-exp(-Γα(λ)L)) | `alpha_abs`, `L_absorber`, `Gamma_conf` |
+| Transit-time BW | f_tr = 0.45·v_sat/d | `d_depletion`, `v_sat_e`, `v_sat_h` |
+| RC bandwidth | f_RC = 1/(2π(Rs+RL)Ctot) | `Rs`, `Cj`, `Cp`, `R_load` |
+| Combined BW | 1/f² = 1/f_tr² + 1/f_RC² | — |
+| Analytical SNR | SNR = (RP)²/[2q(RP+Id)B + 4kTB/RL] | — |
+| Q-factor (PAM-4) | Q = (I₁-I₀)/[(M-1)(σ₁+σ₀)] | — |
+| BER | BER = (3/2log₂M)·½·erfc(Q/√2) | — |
+| NEP | NEP = √(2qId + 4kT/RL) / R | — |
+| Detectivity | D* = R√A / √(2qId + 4kT/RL) | `A_detector` |
+| Saturation | hard, smooth I/(1+I/Isat), tanh | `saturation_model` |
+
+**Outputs (9 thesis-ready figures):**
+
+| Figure | Description |
+|--------|-------------|
+| `system_responsivity_curve` | Spectral responsivity — empirical + Wartak physical model |
+| `system_transfer_function` | Transfer function with three saturation models |
+| `system_optical_eye` | Optical power eye diagram |
+| `system_photocurrent_eye` | Photocurrent eye diagram |
+| `system_pam4_histogram` | PAM-4 level histogram with decision thresholds |
+| `system_quantum_efficiency` | Ge absorption coefficient + QE vs wavelength |
+| `system_bandwidth_budget` | f_tr/f_RC/f_3dB decomposition + QE–length trade-off |
+| `system_noise_analysis` | Shot/thermal noise histograms + NEP/D* vs bandwidth |
+| `system_ber_vs_power` | BER waterfall (analytical + Monte Carlo) + Q-factor |
+
+**INTERCONNECT export:** The `interconnect_model.m` helper writes a Lumerical INTERCONNECT-ready compact PD model to `system-level/interconnect/`.
 
 **Requirements:** MATLAB R2020b+, Signal Processing Toolbox, Communications Toolbox
 
@@ -147,7 +167,7 @@ npx @marp-team/marp-cli thesis/chapter_photodetector_slides.md --html --allow-lo
 
 ## Acknowledgements
 
-This work reproduces and extends the photodetector design presented by Yang Shi et al. in *Photonics Research* Vol. 12, No. 1 (2024). The Lumerical simulation framework was developed as part of a thesis project in Electronics and Communications Engineering at Alexandria University.
+This work reproduces and extends the photodetector design presented by Yang Shi et al. in *Photonics Research* Vol. 12, No. 1 (2024). Physics models follow Marek S. Wartak, *Computational Photonics: An Introduction with MATLAB* (Cambridge, 2013). The Lumerical simulation framework was developed as part of a thesis project in Electronics and Communications Engineering at Alexandria University.
 
 ---
 

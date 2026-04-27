@@ -41,3 +41,12 @@ desktop.ini
 # Local papers
 *.pdf
 !thesis/figures/*.pdf
+
+# Excluded thesis drafts
+thesis/papers.csv
+thesis/chapter_photodetector_extensions.tex
+thesis/chapter_photodetector_extensions_set2.tex
+thesis/chapter_photodetector_extensions_set3.tex
+
+# Temp scripts
+strip_comments.ps1

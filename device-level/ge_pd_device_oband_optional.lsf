@@ -1,8 +1,4 @@
-# ge_pd_device_oband_optional.lsf
-# Sweep analyses: i-Ge thickness, temperature (Arrhenius), U vs Parallel electrode
-# Run after ge_pd_device_oband.lsf in the same DEVICE session
-# Output: ge_charge_optional_oband.mat -> ge_pd_oband_optional_postprocess.m
-
+﻿
 wg_H      = 220e-9;
 z_rib_top = wg_H;
 iGe_H_nom = 350e-9;
@@ -21,7 +17,6 @@ function find_V_idx(V_arr, V_target) {
     return best;
 }
 
-# i-Ge thickness sweep
 ?"--- i-Ge thickness sweep ---";
 
 iGe_arr = [200, 250, 300, 350, 400] * 1e-9;
@@ -49,7 +44,6 @@ for (iI = 1; iI <= nI; iI = iI+1) {
     ?"  i-Ge="+num2str(iGe_arr(iI)*1e9,"%.0f")+" nm  Id@-1V="+num2str(Id_iGe(iI)*1e9,"%.4f")+" nA";
 }
 
-# Restore nominal i-Ge geometry
 zt_nom = z_rib_top + iGe_H_nom;
 zn_nom = zt_nom + Npp_H;
 switchtolayout;
@@ -60,7 +54,6 @@ select("dope_iGe");        set("z min", z_rib_top); set("z max", zt_nom);
 select("SiO2_clad_left");  set("z max", zn_nom);
 select("SiO2_clad_right"); set("z max", zn_nom);
 
-# Temperature sweep (Arrhenius analysis)
 ?"--- Temperature sweep (Arrhenius) ---";
 
 T_arr = [250, 273, 300, 325, 350, 375, 400];
@@ -83,14 +76,11 @@ for (iT = 1; iT <= nT; iT = iT+1) {
     ?"  T="+num2str(T_arr(iT))+" K  Id@-1V="+num2str(Id_T(iT)*1e9,"%.4f")+" nA";
 }
 
-# Restore nominal temperature
 switchtolayout;
 select("CHARGE"); set("simulation temperature", T_sim);
 
-# U-shaped vs Parallel electrode comparison
 ?"--- U-shaped vs Parallel electrode ---";
 
-# U-shaped: all three anode contacts active
 switchtolayout;
 run;
 res_U  = getresult("CHARGE","cathode");
@@ -98,7 +88,6 @@ V_u    = res_U.V_cathode;
 I_u    = abs(res_U.I);
 Id_U   = I_u(find_V_idx(V_u, 1));
 
-# Parallel: remove back anode
 switchtolayout;
 select("anode_back"); delete;
 run;
@@ -110,7 +99,6 @@ Id_P   = I_p(find_V_idx(V_p, 1));
 ?"  U-shaped  Id@-1V="+num2str(Id_U*1e9,"%.4f")+" nA";
 ?"  Parallel  Id@-1V="+num2str(Id_P*1e9,"%.4f")+" nA";
 
-# Restore anode_back contact
 switchtolayout;
 addelectricalcontact; set("name","anode_back");
 set("bc mode","steady state");

@@ -1,18 +1,4 @@
-% ge_pd_oband_optional_postprocess.m
-% Ge-on-Si PD - Optional FDTD + DEVICE postprocess figures
-% Ref: Yang Shi et al., Photonics Research 12, 1 (2024)
-%
-% Data sources:
-%   ge_charge_optional_oband.mat  from ge_pd_device_oband_optional.lsf
-%   ge_fdtd_optional_oband.mat    from ge_pd_fdtd_oband_optional.lsf
-%
-% Behavior:
-%   - DEVICE optional figures are generated when ge_charge_optional_oband.mat exists.
-%   - FDTD optional figures are generated from ge_fdtd_optional_oband.mat when present.
-%   - Missing optional data is skipped without aborting the script.
-%
-% All constants and geometry are loaded from the MAT files. Nothing is hardcoded.
-
+﻿
 device_mat = 'ge_charge_optional_oband.mat';
 fdtd_mat   = 'ge_fdtd_optional_oband.mat';
 figure_dir = fullfile(fileparts(fileparts(mfilename('fullpath'))), 'thesis', 'figures');
@@ -20,7 +6,6 @@ style = thesis_style(figure_dir);
 
 fprintf('\n=== Optional Postprocess | FDTD + DEVICE ===\n');
 
-% DEVICE optional postprocess
 if exist(device_mat, 'file')
     load(device_mat);
     fprintf('Loaded %s\n', device_mat);
@@ -97,7 +82,6 @@ else
     fprintf('Skipping DEVICE optional figures: %s not found.\n', device_mat);
 end
 
-% FDTD optional postprocess
 if ~exist(fdtd_mat, 'file')
     fprintf('Skipping FDTD optional figures: %s not found.\n', fdtd_mat);
     fprintf('=== Optional postprocess complete ===\n');

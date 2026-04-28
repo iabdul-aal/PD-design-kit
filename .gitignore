@@ -23,15 +23,19 @@
 thesis/*.aux
 thesis/*.bbl
 thesis/*.blg
+thesis/*.bcf
 thesis/*.log
 thesis/*.out
 thesis/*.toc
 thesis/*.lot
 thesis/*.lof
+thesis/*.run.xml
 thesis/*.synctex.gz
 thesis/*.fls
 thesis/*.fdb_latexmk
+thesis/*-SAVE-ERROR
 thesis/_minted-*/
+thesis/_chapter_*_check.pdf
 
 # OS junk
 .DS_Store

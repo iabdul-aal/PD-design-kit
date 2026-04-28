@@ -988,9 +988,11 @@ Before reviewing the experimental record, the device choice itself must be
 justified. The waveguide-integrated Ge-on-Si PIN is not merely a historical
 endpoint; it is the architecture that remains after simpler and apparently more
 aggressive alternatives are eliminated by the metric framework of
-\cref{sec:pd_concept}. The logic is progressive: each stage fixes a specific
-deficiency of the previous one, and each transition can be traced directly to
-the governing equations already established in Section~\ref{sec:pd_concept}.
+\cref{sec:pd_concept}. The optical, material, and transport arguments have
+already been established there; this subsection uses them only as decision
+criteria. The logic is progressive: each stage fixes a specific deficiency of
+the previous one until the architecture of interest is the only one that
+simultaneously satisfies the O-band, bandwidth, and integration constraints.
 
 \paragraph{Stage I --- The photoconductor: gain at the cost of speed.}
 The photoconductor is the simplest optical transducer because it requires no
@@ -1063,91 +1065,72 @@ needs the bandwidth headroom more urgently than it needs internal gain, which
 is why the low-bias PIN remains preferable to the higher-voltage APD.
 
 \paragraph{Stage IV --- Why germanium on silicon?}
-The choice of absorber is constrained by the O-band photon energy. The material
-requirement can be written compactly as
-$E_{g,\mathrm{dir}}^{\mathrm{Ge}} < hc/\lambda_{1310}
-\ll E_{g,\mathrm{dir}}^{\mathrm{Si}}$, which is simply another way of saying
-that germanium absorbs strongly where silicon is effectively transparent.
-Through \cref{eq:abs_fraction}, this gives a practical absorber length in the
-few-micrometre range instead of the prohibitively long interaction length that
-silicon would require. Section~\ref{subsec:pd_bandstructure} and
-\cref{tab:material_compare} then complete the remaining argument: Ge preserves
-CMOS compatibility while still offering the absorption coefficient and carrier
-transport needed for a compact O-band device.
+At this stage the material argument is no longer re-derived; it is inherited
+directly from \cref{subsec:pd_bandstructure,tab:material_compare}.
+Section~\ref{sec:pd_concept} has already shown that germanium is the only absorber in the candidate set
+that combines strong O-band absorption with silicon-photonics compatibility.
+In the staged device story, this step simply removes Si-only and non-CMOS
+absorber options from the design space and fixes the discussion to Ge-on-Si.
 
 \paragraph{Stage V --- Why waveguide coupling rather than surface illumination?}
 Once the PIN and the Ge absorber are fixed, the final architectural decision is
-the illumination geometry. In a surface-normal detector, the thickness that
-sets absorption is the same thickness that sets transit time. The constraints
-therefore conflict directly: the Beer-Lambert requirement
-$1-\exp(-\alpha W_i)\gtrsim0.9$ pushes $W_i$ toward the multi-micrometre range,
-whereas the transit-time requirement from \cref{eq:bw_tt} pushes $W_i$ toward
-the sub-micrometre range. At \SI{1310}{\nano\metre}, this incompatibility is
-severe enough that the same dimension cannot satisfy both constraints.
-Waveguide coupling resolves the conflict by making the absorption dimension
-$L$ longitudinal and the transport dimension $W_i$ vertical:
-\begin{equation}
-    \mathcal{A}(L) = 1-\exp(-\alpha L),
-    \qquad
-    f_{\mathrm{tt}} \propto \frac{1}{W_i}.
-    \label{eq:wg_orthogonality}
-\end{equation}
-That orthogonality is the decisive refinement: absorber length and depletion
-thickness become independently tunable, which is precisely what enables the
-present vertical PIN architecture.
+the illumination geometry. Section~\ref{sec:pd_concept} has already established
+the governing trade-off through \cref{eq:abs_fraction,eq:bw_tt}: in a surface-normal device,
+the same thickness must satisfy both absorption and transit-time requirements,
+so the problem is overconstrained at \SI{1310}{\nano\metre}. Waveguide coupling
+resolves that conflict by assigning absorption to the longitudinal length $L$
+and carrier collection to the vertical thickness $W_i$, thereby restoring
+independent control of responsivity and bandwidth. That orthogonality is the
+final elimination step that makes the present vertical PIN architecture viable.
+\Cref{fig:pd_evolution_ladder} condenses the full sequence, while
+\cref{fig:wg_vs_sni} isolates the geometric argument behind the final choice.
 
 \begin{figure}[H]
-\centering
-\fbox{\begin{minipage}{0.9\linewidth}
-\textbf{Figure Placeholder --- Device Evolution from Photoconductor to Waveguide-Integrated PIN}\\[4pt]
-\textbf{Prompt:}
-\textit{Five-stage narrative figure laid out left-to-right or top-to-bottom.
-Stage 1: photoconductor with two ohmic contacts, surface illumination, long
-carrier lifetime, and a gain-bandwidth annotation using
-$G_{\mathrm{PC}}=\tau_r/\tau_{\mathrm{tr}}$ and
-$f_{3\,\mathrm{dB,PC}}=1/(2\pi\tau_r)$. Stage 2: PN photodiode cross-section
-showing depletion region, built-in field, and a slow diffusion tail in the
-impulse response. Stage 3: PIN photodiode cross-section with fully depleted
-intrinsic region, uniform field across $W_i$, and a clean drift-limited pulse.
-Add a side note comparing PIN and APD, making clear that APD improves
-responsivity through multiplication $M$ but loses bandwidth and adds excess
-noise. Stage 4: material-choice panel contrasting Ge and Si at
-\SI{1310}{\nano\metre}, with the O-band photon energy above the Ge direct-gap
-threshold and below the Si direct-transition threshold. Stage 5: geometry panel
-contrasting surface-normal illumination against waveguide coupling, explicitly
-showing that waveguide coupling decouples absorber length $L$ from depletion
-thickness $W_i$. Use arrows and short equations so that the reader can follow
-the causal chain without reading the surrounding text first.}
-\end{minipage}}
-\caption{Progressive elimination of alternative detector architectures. Each
-stage fixes a specific physical limitation of the previous one, leaving the
-waveguide-integrated Ge-on-Si PIN as the architecture compatible with the
-O-band, low-voltage, high-bandwidth target of this chapter.}
+    \centering
+    \missingfigure[figwidth=0.88\linewidth]{
+        Generate a five-stage narrative figure showing the progression from
+        photoconductor to waveguide-integrated Ge-on-Si PIN. Stage 1:
+        photoconductor with two ohmic contacts, surface illumination, long
+        carrier lifetime, and annotations
+        $G_{\mathrm{PC}}=\tau_r/\tau_{\mathrm{tr}}$ and
+        $f_{3\,\mathrm{dB,PC}}=1/(2\pi\tau_r)$. Stage 2: PN photodiode with
+        depletion region, built-in field, and a slow diffusion tail. Stage 3:
+        PIN photodiode with fully depleted intrinsic region and drift-limited
+        collection. Stage 4: Ge versus Si at \SI{1310}{\nano\metre}, showing
+        why Ge absorbs efficiently in the O-band while Si does not. Stage 5:
+        surface-normal illumination versus waveguide coupling, explicitly
+        highlighting that waveguide coupling decouples absorber length $L$
+        from depletion thickness $W_i$. Use arrows and short equations so that
+        the causal design progression is readable on its own.
+    }
+    \caption{Progressive elimination of alternative detector architectures.
+    Each stage resolves a specific limitation of the previous one, leaving the
+    waveguide-integrated Ge-on-Si PIN as the architecture compatible with the
+    O-band, low-voltage, high-bandwidth target of this chapter.}
 \label{fig:pd_evolution_ladder}
 \end{figure}
 
 \begin{figure}[H]
-\centering
-\fbox{\begin{minipage}{0.9\linewidth}
-\textbf{Figure Placeholder --- Surface-Normal Illumination versus Waveguide Coupling}\\[4pt]
-\textbf{Prompt:}
-\textit{Four-panel figure. Panel (a): surface-normal PIN cross-section with
-light propagation and carrier collection both vertical, annotated to show the
-conflict between absorption thickness and transit-time thickness. Panel (b):
-waveguide-coupled PIN side view showing optical propagation along the waveguide
-axis and carrier collection along the growth axis, with $L$ and $W_i$ marked as
-independent dimensions. Panel (c): mode-transfer sketch comparing abrupt
-butt-coupling to taper-assisted evanescent coupling, including qualitative
-reflection and insertion-loss annotations. Panel (d): design-space plot or
-schematic map highlighting the feasible region enabled by waveguide coupling,
-with absorption improving with $L$ and bandwidth improving as $W_i$ shrinks.
-The key message must be that waveguide coupling restores independent control of
-the optical and electrical dimensions.}
-\end{minipage}}
-\caption{Waveguide coupling is the decisive architectural refinement because it
-decouples the absorption dimension from the transit-time dimension. That single
-geometric change turns an overconstrained surface-normal problem into a
-two-parameter design space.}
+    \centering
+    \missingfigure[figwidth=0.88\linewidth]{
+        Generate a four-panel comparison of surface-normal illumination and
+        waveguide coupling. Panel (a): surface-normal PIN cross-section with
+        both optical propagation and carrier collection along the vertical
+        axis, annotated to show the conflict between absorption thickness and
+        transit-time thickness. Panel (b): waveguide-coupled PIN showing
+        optical propagation along the waveguide and carrier collection across
+        the vertical depletion region, with $L$ and $W_i$ marked as
+        independent dimensions. Panel (c): coupling sketch comparing abrupt
+        butt-coupling and taper-assisted evanescent coupling with qualitative
+        reflection and insertion-loss annotations. Panel (d): design-space map
+        showing absorption improving with $L$ and bandwidth improving as
+        $W_i$ shrinks. The central message is that waveguide coupling restores
+        independent control of the optical and electrical dimensions.
+    }
+    \caption{Waveguide coupling is the decisive architectural refinement
+    because it decouples the absorption dimension from the transit-time
+    dimension. That geometric change turns an overconstrained surface-normal
+    problem into a two-parameter design space.}
 \label{fig:wg_vs_sni}
 \end{figure}
 
@@ -1157,9 +1140,10 @@ two-parameter design space.}
 The Ge-on-Si waveguide photodetector field has evolved over approximately two
 decades through successive generations of electrode and junction engineering,
 each interpretable through the metric framework of \cref{sec:pd_concept}.
-What follows is a causal narrative: each development is evaluated in terms of
-which specific term in \cref{eq:bw_total,eq:idark_decomposed,eq:qe_full} it
-addressed and why a residual performance gap persisted.
+What follows is a causal narrative: each development is best understood as an
+attempt to relax one bottleneck in
+\cref{eq:bw_total,eq:idark_decomposed,eq:qe_full} while leaving another
+constraint behind.
 
 The landmark demonstration of Vivien~\textit{et al.}~\cite{Vivien2009}
 established a silicon-on-insulator (SOI) waveguide-coupled Ge p-i-n detector
@@ -1171,29 +1155,26 @@ RC-limited: the electrode geometry left $R_s$ at a value that caused
 $f_{\mathrm{RC}}$ to dominate over $f_{\mathrm{tt}}$.
 Ang~\textit{et al.}~\cite{Ang2010} subsequently demonstrated evanescently
 coupled Ge-on-SOI fabricated at low thermal budget to remain CMOS-compatible,
-establishing process integration as an additional hard constraint.
+establishing process integration as a design constraint alongside
+responsivity and bandwidth.
 
-The mid-2010s were characterised by systematic reductions of $R_s$ through
-contact geometry engineering. Chen~\textit{et al.}~\cite{Chen2015} demonstrated
-a silicon-contacted Ge p-i-n delivering $\mathcal{R}=\SI{0.74}{\ampere\per\watt}$
-and $f_{3\,\mathrm{dB}}=\SI{35}{\giga\hertz}$. The same group subsequently achieved
-$f_{3\,\mathrm{dB}}=\SI{67}{\giga\hertz}$ at only \SI{1}{\volt} reverse bias
-through electrode repositioning~\cite{Chen2016Si}, reducing $\ell_a$ in
-\cref{eq:rs_anode} until $f_{\mathrm{RC}}$ no longer dominated \cref{eq:bw_total}.
-Novack~\textit{et al.}~\cite{Novack2013} achieved $f_{3\,\mathrm{dB}}=\SI{60}{\giga\hertz}$
-by introducing wire-bond inductance as an equivalent-circuit peaking element.
-It is instructive to situate this strategy within a broader equivalent-circuit
-taxonomy: three canonical peaking topologies---series gain peaking, enhanced series
-gain peaking, and shunt peaking---produce qualitatively different modifications to
-the small-signal transfer function~\cite{Yan2024}. In series gain peaking,
-an inductance inserted in series with $R_L$ forms an LC resonance with
-$C_j+C_{\mathrm{par}}$ at $\omega_0=1/\sqrt{L(C_j+C_{\mathrm{par}})}$;
-the achievable bandwidth extension relative to the passive $f_{\mathrm{RC}}$
-of \cref{eq:bw_rc} can theoretically reach a factor of two for ideal reactive
-elements, but distributed parasitic resistance limits the practical improvement
-to approximately 40--60\%. The U-shaped electrode architecture of the present
-device deliberately avoids this co-design complexity by achieving
-$f_{\mathrm{RC}}>f_{\mathrm{tt}}$ through passive $R_s$ reduction alone.
+The next phase of the literature attacked $R_sC_j$ more directly through
+contact and pad engineering. Chen~\textit{et al.}~\cite{Chen2015} demonstrated
+a silicon-contacted Ge p-i-n with
+$\mathcal{R}=\SI{0.74}{\ampere\per\watt}$ and
+$f_{3\,\mathrm{dB}}=\SI{35}{\giga\hertz}$, and the same group later pushed to
+$\SI{67}{\giga\hertz}$ at only \SI{1}{\volt} reverse bias through electrode
+repositioning~\cite{Chen2016Si}, thereby reducing $\ell_a$ in
+\cref{eq:rs_anode} until $f_{\mathrm{RC}}$ no longer dominated
+\cref{eq:bw_total}. Novack~\textit{et al.}~\cite{Novack2013} reached
+$\SI{60}{\giga\hertz}$ by adding wire-bond inductance as a gain-peaking
+element. That approach is effective, but it is also system-dependent: the
+added inductance partially resonates with $C_j+C_{\mathrm{par}}$, so the
+bandwidth extension depends on the surrounding RF environment and package
+parasitics~\cite{Yan2024}. The U-shaped-anode strategy pursued in this chapter
+therefore targets a more structural solution by reducing $R_s$ geometrically
+until $f_{\mathrm{RC}}>f_{\mathrm{tt}}$ without relying on resonant
+compensation.
 
 The lateral junction architecture introduced by Virot~\textit{et al.}~\cite{Virot2017}
 decouples the optical mode depth from the depletion region width, providing an
@@ -1212,32 +1193,28 @@ threshold in the vertical architecture through a U-shaped anode electrode that
 reduces $R_s$---and therefore $\tau_{\mathrm{RC}}=R_sC_j$ of \cref{eq:tau_rc}---by
 approximately \SI{36}{\percent} relative to a straight-electrode design, while
 simultaneously delivering $\mathcal{R}=\SI{0.95}{\ampere\per\watt}$ and
-$I_d=\SI{1.3}{\nano\ampere}$ at \SI{-1}{\volt}.
+$I_d=\SI{1.3}{\nano\ampere}$ at \SI{-1}{\volt}. Taken together, these results
+split the literature into two trajectories: vertical devices keep improving by
+parasitic suppression within a foundry-friendly stack, whereas lateral devices
+push the transport limit itself through more aggressive geometric scaling.
+That divergence is summarised visually in \cref{fig:pd_literature_trends}.
 
 \paragraph{Evanescent coupling versus butt-coupling.}
 The choice of evanescent wave coupling over direct butt-coupling is justified
-through the generation-rate distribution of \cref{eq:gen_rate}. In the
-butt-coupled geometry, the full waveguide modal power is launched directly into
-the Ge absorber end-face, producing a strongly peaked $G_{\mathrm{opt}}$ at
-$z=0$ that decays exponentially over the absorption length
-$\alpha^{-1}\approx\SI{4.8}{\micro\metre}$. This front-loading concentrates
-photogenerated carriers at a single cross-section, inducing a local carrier
-density that can substantially screen the internal electric field under moderate
-optical powers via \cref{eq:p_screening}---precisely the screening mechanism
-characterised in \cref{sec:pd_discussion}. Evanescent wave coupling mitigates
-this concentration by distributing the energy transfer over the full taper
-length (\SI{40}{\micro\metre} in the present device), producing a
-$G_{\mathrm{opt}}$ profile that is more axially distributed and that maintains
-lower peak carrier density for a given total absorbed power. Crucially,
-evanescent coupling decouples the optical propagation direction from the carrier
-collection direction: photogenerated carriers travel vertically from the
-intrinsic Ge layer to the ohmic contacts, orthogonal to the longitudinal optical
-propagation, so that $L$ can be independently optimised for absorption via
-\cref{eq:abs_fraction} without affecting the vertical drift time
-$W_i/v_{\mathrm{d,sat},h}$ that enters \cref{eq:bw_tt}~\cite{Wang2024,Yan2024}.
-This orthogonality---the defining feature of waveguide-coupled over
-surface-coupled photodetectors---enables simultaneous optimisation of
-$\mathcal{R}$ through $L$ and of $f_{\mathrm{tt}}$ through $W_i$.
+through the generation-rate distribution of \cref{eq:gen_rate}. In a
+butt-coupled device, the full waveguide modal power is injected at the Ge
+entrance facet, so $G_{\mathrm{opt}}(z)$ is strongly front-loaded and decays
+over the absorption length $\alpha^{-1}\approx\SI{4.8}{\micro\metre}$. That
+concentration raises the local carrier density and therefore the risk of field
+screening under moderate optical power, the same mechanism analysed in
+\cref{sec:pd_discussion}. Evanescent coupling spreads the power transfer over
+the full taper length (\SI{40}{\micro\metre} here), lowering the peak
+generation density for the same absorbed power. More importantly, it preserves
+geometric orthogonality: $L$ controls $\mathcal{A}$ through
+\cref{eq:abs_fraction}, whereas $W_i$ controls the vertical drift time and thus
+$f_{\mathrm{tt}}$ through \cref{eq:bw_tt}~\cite{Wang2024,Yan2024}. That
+separation of optical and electrical design variables is the real architectural
+advantage of waveguide integration over surface-normal reception.
 
 \paragraph{Resonant-cavity-enhanced and uni-travelling-carrier alternatives.}
 Two architectural alternatives provide additional context. The
@@ -1267,27 +1244,23 @@ $P_{\mathrm{screening}}$ of \cref{eq:p_screening} by eliminating the slower
 hole contribution to carrier density buildup~\cite{Yan2024}.
 
 \begin{figure}[H]
-\centering
-\fbox{\begin{minipage}{0.9\linewidth}
-\textbf{Figure Placeholder --- Literature Trends for Waveguide Photodetectors}\\[4pt]
-\textbf{Prompt:}
-\textit{Two-panel trend figure. Left panel: vertical Ge-on-Si
-waveguide-integrated photodetectors plotted as bandwidth versus publication
-year, with markers labelled or colour-coded by the main design lever
-(straight contact, inductive peaking, parasitic-capacitance reduction,
-U-shaped anode, and so on). Right panel: lateral Ge-on-Si waveguide
-photodetectors plotted on the same bandwidth-versus-year basis, highlighting
-the higher absolute bandwidth enabled by lateral scaling. Distinguish vertical
-and lateral device families clearly, and annotate the present benchmark
-(\SI{103}{\giga\hertz} single-U vertical PIN) as well as the Ge-fin results
-above \SI{200}{\giga\hertz}. The visual should communicate not only the upward
-trend, but the physical reason for that trend: parasitic reduction in vertical
-devices and geometry decoupling in lateral devices.}
-\end{minipage}}
-\caption{State-of-the-art trend summary for waveguide-integrated Ge-on-Si
-photodetectors. The chronology is best read as a sequence of physical
-interventions into $R_s$, $C_j$, and the transport path, rather than as a
-collection of disconnected record values.}
+    \centering
+    \missingfigure[figwidth=0.88\linewidth]{
+        Generate a two-panel literature-trend figure. Left panel: vertical
+        Ge-on-Si waveguide photodetectors plotted as bandwidth versus year,
+        with markers distinguished by the main design lever such as straight
+        contact, inductive peaking, pad-capacitance reduction, and U-shaped
+        anode. Right panel: lateral Ge-on-Si waveguide photodetectors on the
+        same bandwidth-versus-year basis, highlighting the higher bandwidth
+        enabled by lateral scaling. Clearly separate the vertical and lateral
+        families, annotate the \SI{103}{\giga\hertz} vertical benchmark and
+        the Ge-fin results above \SI{200}{\giga\hertz}, and make the physical
+        reason for the upward trend visually explicit.
+    }
+    \caption{State-of-the-art trend summary for waveguide-integrated Ge-on-Si
+    photodetectors. The chronology is most useful when read as a sequence of
+    interventions into $R_s$, $C_j$, and the transport path rather than as a
+    collection of isolated record values.}
 \label{fig:pd_literature_trends}
 \end{figure}
 
@@ -1303,41 +1276,41 @@ argument visually immediate.
 \caption{Waveguide-integrated Ge-on-Si vertical PIN photodetectors benchmarked
 against the metrics of \cref{sec:pd_concept}. ``NR'' denotes values not reported
 by the authors. Bandwidth values are electrical $S_{21}$ or equivalent-circuit
-measurements unless noted. ``V'' = vertical junction.}
+measurements unless noted.}
 \label{tab:pd_lit_vertical}
 \footnotesize
 \begin{adjustbox}{width=\textwidth}
-\begin{tabular}{c p{2.35cm} p{3.10cm} c c c}
+\begin{tabular}{c >{\RaggedRight\arraybackslash}p{2.35cm} >{\RaggedRight\arraybackslash}p{3.10cm} c c c}
 \toprule
-Year & Reference & Electrode / Coupling Strategy &
+Year & Reference & Key Design Lever &
 $\mathcal{R}$ [A/W] &
 $I_d$ [nA] &
 $f_{3\,\mathrm{dB}}$ [GHz] \\
 \midrule
 2008 & \cite{Ang2010}
-     & Evanescent, CMOS compat. & 0.92 & 570 & 11.3 \\
+     & Evanescent coupling, CMOS-compatible & 0.92 & 570 & 11.3 \\
 2009 & \cite{Vivien2009}
-     & Butt-coupled, straight contact & $\sim$1.0 & 18 & 42 \\
+     & Butt coupling, straight contact & $\sim$1.0 & 18 & 42 \\
 2010 & \cite{Ramaswamy2010}
-     & Evanescent, high-power & NR & $1.25\times10^5$ & 4.4 \\
-2013 & \cite{Novack2013} (no L)
+     & Evanescent coupling, high-power design & NR & $1.25\times10^5$ & 4.4 \\
+2013 & \cite{Novack2013}
      & Spiral waveguide, no peaking & 0.75 & 3000 & 30 \\
-2013 & \cite{Novack2013} (360 pH)
-     & Inductive gain peaking & 0.75 & 3000 & 60 \\
+2013 & \cite{Novack2013}
+     & Inductive gain peaking (\SI{360}{\pico\henry}) & 0.75 & 3000 & 60 \\
 2013 & \cite{Fang2013}
      & Wet-etched Si recess & 0.60 & 170 & 21.5 \\
-2016 & \cite{Chen2016Si} (parallel Ge)
-     & Parallel Ge, double-side illum. & 1.06 & 1820 & 35.8 \\
+2016 & \cite{Chen2016Si}
+     & Parallel Ge, double-side illumination & 1.06 & 1820 & 35.8 \\
 2017 & \cite{Byrd2017}
      & Mode-evolution coupler & 0.70 & 1.16 & 40 \\
 2018 & \cite{Zhou2018}
      & Photonic crystal size reduction & 0.75 & 160 & 17 \\
-2021 & \cite{Shi2021} (ref.)
-     & Conventional, no peaking & 1.00 & 4.5 & 27 \\
-2021 & \cite{Shi2021} (240 pH)
-     & Parasitic param. eng., inductor & 0.89 & 6.4 & 80 \\
+2021 & \cite{Shi2021}
+     & Reference layout, no peaking & 1.00 & 4.5 & 27 \\
+2021 & \cite{Shi2021}
+     & Parasitic engineering, \SI{240}{\pico\henry} inductor & 0.89 & 6.4 & 80 \\
 \textbf{2024} & \textbf{\cite{Shi2024}}
-     & \textbf{U-shaped anode, 220 pH} & \textbf{0.95} & \textbf{1.3} & \textbf{103} \\
+     & \textbf{U-shaped anode, \SI{220}{\pico\henry} peaking} & \textbf{0.95} & \textbf{1.3} & \textbf{103} \\
 \bottomrule
 \end{tabular}
 \end{adjustbox}
@@ -1345,60 +1318,64 @@ $f_{3\,\mathrm{dB}}$ [GHz] \\
 
 \begin{table}[H]
 \centering
-\caption{Waveguide-integrated Ge-on-Si lateral PIN photodetectors. ``L'' = lateral
-junction. All devices are evanescently coupled unless noted. Dark currents are
-at the stated reverse bias; ``NR'' denotes values not reported.}
+\caption{Waveguide-integrated Ge-on-Si lateral PIN photodetectors benchmarked
+with the same notation as \cref{tab:pd_lit_vertical}. All devices are
+evanescently coupled unless noted. Dark currents are at the stated reverse
+bias; ``NR'' denotes values not reported.}
 \label{tab:pd_lit_lateral}
 \footnotesize
 \begin{adjustbox}{width=\textwidth}
-\begin{tabular}{c p{2.35cm} p{3.10cm} c c c}
+\begin{tabular}{c >{\RaggedRight\arraybackslash}p{2.35cm} >{\RaggedRight\arraybackslash}p{3.10cm} c c c}
 \toprule
-Year & Reference & Electrode / Key Feature &
+Year & Reference & Key Design Lever &
 $\mathcal{R}$ [A/W] &
 $I_d$ [nA] &
 $f_{3\,\mathrm{dB}}$ [GHz] \\
 \midrule
-2015 & \cite{Lischke2015} (conv.)
+2015 & \cite{Lischke2015}
      & Conventional lateral & 0.64 & NR & 30 \\
-2015 & \cite{Lischke2015} (new)
-     & Reduced Ge dim., lateral offset & 1.00 & 100 & $>$70 \\
+2015 & \cite{Lischke2015}
+     & Reduced Ge width, lateral offset & 1.00 & 100 & $>$70 \\
 2015 & \cite{Chen2015}
      & Si contacts, no Ge doping & 1.00 & 3.3 & 20 \\
 2016 & \cite{Chen2016Si}
      & Thin Ge for transit time & 0.74 & 2.5 & 67 \\
-2017 & \cite{Virot2017} ($W_{\mathrm{Ge}}=\SI{0.3}{\micro\metre}$)
-     & Si/Ge/Si heterojunction & NR & 5 & $>$50 \\
-2017 & \cite{Virot2017} ($W_{\mathrm{Ge}}=\SI{1}{\micro\metre}$)
-     & Si/Ge/Si heterojunction & 1.16 & 100 & 17.1 \\
+2017 & \cite{Virot2017}
+     & Si/Ge/Si heterojunction, $W_{\mathrm{Ge}}=\SI{0.3}{\micro\metre}$ & NR & 5 & $>$50 \\
+2017 & \cite{Virot2017}
+     & Si/Ge/Si heterojunction, $W_{\mathrm{Ge}}=\SI{1}{\micro\metre}$ & 1.16 & 100 & 17.1 \\
 2019 & \cite{Benedikovic2019}
      & Si/Ge/Si heterojunction, 25 Gbps & 1.19 & 100 & 32 \\
+2021 & \cite{Lischke2021}
+     & Ge fin, in-situ doped Si, \SI{150}{\nano\metre} width & 0.45 & 100--200 & 240 \\
+2021 & \cite{Lischke2021}
+     & Ge fin, \SI{100}{\nano\metre} minimum width & 0.30 & 100--200 & \textbf{265} \\
 2022 & \cite{Su2022}
      & Short transmission-line electrode & 0.74 & 1890 & 25.4 \\
 2023 & \cite{Fujikata2023}
-     & Franz-Keldysh + avalanche mult. & 0.83 & NR & 60 \\
+     & Franz-Keldysh plus avalanche multiplication & 0.83 & NR & 60 \\
 2024 & \cite{Cao2024}
-     & Side-coupling, parallel Ge & 0.80 & 24 & $>$40 \\
-2021 & \cite{Lischke2021} (150 nm Ge fin)
-     & Ge fin, in-situ doped Si & 0.45 & 100--200 & 240 \\
-2021 & \cite{Lischke2021} (100 nm Ge fin)
-     & Ge fin, minimum width & 0.30 & 100--200 & \textbf{265} \\
+     & Side coupling, parallel Ge & 0.80 & 24 & $>$40 \\
 \bottomrule
 \end{tabular}
 \end{adjustbox}
 \end{table}
 
-Two structural conclusions emerge from
-\cref{tab:pd_lit_vertical,tab:pd_lit_lateral}. Lateral junction designs
-consistently achieve higher bandwidth because the horizontal depletion width
-provides an additional geometric degree of freedom for $C_j$ minimisation that
-is decoupled from the optical absorption length, a freedom unavailable in the
-vertical architecture where $C_j$ in \cref{eq:cj} is directly tied to $W_i$,
-which is simultaneously constrained by \cref{eq:abs_fraction} and
-\cref{eq:bw_tt}. Vertical designs, however, are more foundry-compatible:
-their progression from \SI{42}{\giga\hertz} to \SI{103}{\giga\hertz} over
-fifteen years reflects iterative reduction of $R_sC_j$ exclusively through
-electrode geometry, without modifications to the absorber material, thickness,
-or doping profile. Broader reviews of the design space are provided by
+Taken together, \cref{tab:pd_lit_vertical,tab:pd_lit_lateral} reveal two
+distinct optimisation philosophies. Lateral junction designs achieve the
+highest bandwidth because the horizontal depletion width adds a geometric
+degree of freedom for $C_j$ minimisation that is largely independent of the
+optical absorption path. That freedom is absent in the vertical architecture,
+where $C_j$ in \cref{eq:cj} remains tied to $W_i$, which is itself constrained
+by \cref{eq:abs_fraction} and \cref{eq:bw_tt}. Vertical devices therefore
+advance more incrementally, but they do so with layouts that remain closer to
+mainstream SOI foundry practice: their progression from
+\SI{42}{\giga\hertz} to \SI{103}{\giga\hertz} reflects steady reduction of
+$R_sC_j$ through electrode engineering rather than changes to absorber
+material, thickness, or doping profile. The present work follows that second
+trajectory by retaining the vertical Ge-on-Si PIN stack and concentrating on
+geometry-driven parasitic reduction. Broader reviews of the design space are
+provided by
 Wang~\textit{et al.}~\cite{Wang2024} and Yan~\textit{et al.}~\cite{Yan2024};
 the multiphysics modelling context is treated in depth in~\cite{Alasio2024};
 computational methods are discussed in the pedagogical framework of
@@ -2139,7 +2116,7 @@ $A_j=\SI{1}{\micro\metre}\times\SI{6}{\micro\metre}$.}
 \label{tab:results}
 \footnotesize
 \begin{adjustbox}{max width=\linewidth}
-\begin{tabular}{lllllp{2.5cm}}
+\begin{tabular}{lllll>{\RaggedRight\arraybackslash}p{2.5cm}}
 \toprule
 Metric & Governing Eq. & Simulated & Benchmark & Unit & Notes \\
 \midrule
@@ -2348,7 +2325,7 @@ the device design variables.}
 \label{tab:ieee_specs}
 \footnotesize
 \begin{adjustbox}{max width=\linewidth}
-\begin{tabular}{p{3.0cm} p{2.2cm} p{2.2cm} p{2.2cm} p{2.5cm}}
+\begin{tabular}{>{\RaggedRight\arraybackslash}p{3.0cm} >{\RaggedRight\arraybackslash}p{2.2cm} >{\RaggedRight\arraybackslash}p{2.2cm} >{\RaggedRight\arraybackslash}p{2.2cm} >{\RaggedRight\arraybackslash}p{2.5cm}}
 \toprule
 Parameter & Symbol & Value & Unit & Governing Eq. \\
 \midrule

@@ -1,4 +1,3 @@
-﻿
 switchtolayout;
 newproject;
 
@@ -13,7 +12,7 @@ mat_Si   = "Si (Silicon) - Palik";
 mat_Ge   = "Ge (Germanium) - Palik";
 mat_SiO2 = "SiO2 (Glass) - Palik";
 
-wg_W    = 500e-9;
+rib_W   = 500e-9;
 wg_H    = 220e-9;
 slab_H  = 90e-9;
 Ge_W    = 5e-6;
@@ -23,6 +22,7 @@ Npp_H   = 50e-9;
 Ge_H    = iGe_H + Npp_H;
 taper_L = 40e-6;
 BOX_H   = 2e-6;
+Pp_ext  = 1e-6;
 
 z_BOX_bot  = -BOX_H;
 z_Si_bot   = 0;
@@ -49,22 +49,34 @@ set("override mesh order from material database",1); set("mesh order",3);
 
 addrect; set("name","Si_ridge"); set("material",mat_Si);
 set("x min",fdtd_x_min-1e-6); set("x max",0);
-set("y min",-wg_W/2);          set("y max",wg_W/2);
+set("y min",-rib_W/2);         set("y max",rib_W/2);
 set("z min",z_slab_top);       set("z max",z_rib_top);
 set("override mesh order from material database",1); set("mesh order",2);
 
 addpoly; set("name","Si_taper"); set("material",mat_Si);
-V = [-taper_L, -wg_W/2;
+V = [-taper_L, -rib_W/2;
       0,       -Ge_W/2;
       0,        Ge_W/2;
-     -taper_L,  wg_W/2];
+     -taper_L,  rib_W/2];
 set("vertices",V);
 set("z min",z_slab_top); set("z max",z_rib_top);
 set("override mesh order from material database",1); set("mesh order",2);
 
-addrect; set("name","Si_Ppp"); set("material",mat_Si);
+addrect; set("name","Si_under_Ge"); set("material",mat_Si);
 set("x min",0); set("x max",Ge_L);
 set("y min",-Ge_W/2); set("y max",Ge_W/2);
+set("z min",z_slab_top); set("z max",z_rib_top);
+set("override mesh order from material database",1); set("mesh order",2);
+
+addrect; set("name","Si_Pp_left"); set("material",mat_Si);
+set("x min",0); set("x max",Ge_L);
+set("y min",-(Ge_W/2+Pp_ext)); set("y max",-Ge_W/2);
+set("z min",z_slab_top); set("z max",z_rib_top);
+set("override mesh order from material database",1); set("mesh order",2);
+
+addrect; set("name","Si_Pp_right"); set("material",mat_Si);
+set("x min",0); set("x max",Ge_L);
+set("y min",Ge_W/2); set("y max",Ge_W/2+Pp_ext);
 set("z min",z_slab_top); set("z max",z_rib_top);
 set("override mesh order from material database",1); set("mesh order",2);
 
@@ -102,7 +114,7 @@ addpower; set("name","T_ref");
 set("monitor type",5);
 set("override global monitor settings",1); set("frequency points",100);
 set("x",src_x + 2e-6);
-set("y min",-(wg_W/2+1e-6)); set("y max",wg_W/2+1e-6);
+set("y min",-(rib_W/2+1e-6)); set("y max",rib_W/2+1e-6);
 set("z min",z_Si_bot-0.3e-6); set("z max",z_rib_top+0.3e-6);
 
 addpower; set("name","T_after_Ge");
@@ -120,12 +132,12 @@ set("wavelength center",lambda_c); set("wavelength span",20e-9);
 set("frequency points",1);
 set("x min",0); set("x max",Ge_L);
 set("y min",-Ge_W/2); set("y max",Ge_W/2);
-set("z min",z_iGe_bot); set("z max",z_Npp_top);
+set("z min",z_iGe_bot); set("z max",z_iGe_top);
 
 addmode; set("name","source");
 set("injection axis","x"); set("direction","forward");
 set("x",src_x);
-set("y min",-(wg_W/2+1e-6)); set("y max",wg_W/2+1e-6);
+set("y min",-(rib_W/2+1e-6)); set("y max",rib_W/2+1e-6);
 set("z min",z_Si_bot-0.3e-6); set("z max",z_rib_top+0.3e-6);
 set("wavelength start",lambda_min); set("wavelength stop",lambda_max);
 set("mode selection","fundamental TE mode");
@@ -137,7 +149,7 @@ save("ge_pd_oband_check.fsp");
 run;
 
 if (havedata("T_after_Ge","f") == 0) {
-    ?"ERROR: simulation produced no data â€” open ge_pd_oband_check.fsp and check geometry/mesh";
+    ?"ERROR: simulation produced no data - open ge_pd_oband_check.fsp and check geometry/mesh";
     break;
 }
 
@@ -159,14 +171,14 @@ E_field = E_data.E;
 
 E2   = abs(E_field(:,:,:,1,1))^2 + abs(E_field(:,:,:,1,2))^2 + abs(E_field(:,:,:,1,3))^2;
 sp   = sourcepower(f_c);
-G_3d = (eps0 * eps_i_Ge / (2*hbar)) * E2 * (P_opt / sp);
+G_3d = (eps0 * eps_i_Ge * omega(f_c) / (2*hbar)) * E2 * (P_opt / sp);
 ?"Peak G = "+num2str(max(G_3d),"%.3e")+" m^-3 s^-1";
 
 ?"--- Gen dataset bounds (must match Ge volume in CHARGE) ---";
 ?"  x : "+num2str(min(x_g)*1e6,"%.3f")+" to "+num2str(max(x_g)*1e6,"%.3f")+" um  (expect 0 to "+num2str(Ge_L*1e6,"%.1f")+")";
 ?"  y : "+num2str(min(y_g)*1e6,"%.3f")+" to "+num2str(max(y_g)*1e6,"%.3f")+" um  (expect "+num2str(-Ge_W/2*1e6,"%.2f")+" to "+num2str(Ge_W/2*1e6,"%.2f")+")";
-?"  z : "+num2str(min(z_g)*1e6,"%.3f")+" to "+num2str(max(z_g)*1e6,"%.3f")+" um  (expect "+num2str(z_iGe_bot*1e6,"%.3f")+" to "+num2str(z_Npp_top*1e6,"%.3f")+")";
-?"  Peak G = "+num2str(max(G_3d),"%.3e")+" m^-3 s^-1  (expect ~1e27â€“1e28)";
+?"  z : "+num2str(min(z_g)*1e6,"%.3f")+" to "+num2str(max(z_g)*1e6,"%.3f")+" um  (expect "+num2str(z_iGe_bot*1e6,"%.3f")+" to "+num2str(z_iGe_top*1e6,"%.3f")+")";
+?"  Peak G = "+num2str(max(G_3d),"%.3e")+" m^-3 s^-1  (expect ~1e27-1e28)";
 ?"-----------------------------------------------------------";
 
 G_ds = rectilineardataset("G", x_g, y_g, z_g);
@@ -175,4 +187,4 @@ matlabsave("ge_gen_oband.mat", G_ds);
 
 matlabsave("ge_fdtd_results_oband.mat", A_TE, lambda_c, P_opt, Ge_L, Ge_W);
 ?"Saved ge_gen_oband.mat and ge_fdtd_results_oband.mat";
-?"=== FDTD done â€” run ge_pd_device_oband.lsf next ===";
+?"=== FDTD done - run ge_pd_device_oband.lsf next ===";

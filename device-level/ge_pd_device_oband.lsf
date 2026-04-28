@@ -1,18 +1,10 @@
-﻿
 switchtolayout;
 deleteall;
 
 q_e   = 1.602e-19;
 P_opt = 100e-6;
 
-addmodelmaterial; set("name","silicon");   addmaterialproperties("CT","Si (Silicon)");
-addmodelmaterial; set("name","germanium"); addmaterialproperties("CT","Ge (Germanium)");
-addmodelmaterial; set("name","sio2");      addmaterialproperties("CT","SiO2 (Glass) - Sze");
-mat_Si   = "silicon";
-mat_Ge   = "germanium";
-mat_SiO2 = "sio2";
-
-wg_W   = 500e-9;
+rib_W  = 500e-9;
 wg_H   = 220e-9;
 slab_H = 90e-9;
 Ge_L   = 8e-6;
@@ -34,7 +26,45 @@ z_iGe_top  = z_rib_top + iGe_H;
 z_Npp_top  = z_rib_top + Ge_H;
 z_sim_top  = z_Npp_top;
 y_left     = -(Ge_W/2 + Pp_ext);
-y_right    =   Ge_W/2 + Pp_ext;
+y_right    =  Ge_W/2 + Pp_ext;
+x_2d       = Ge_L / 2;
+
+addmodelmaterial;
+set("name","silicon");
+set("color",[0.6;0.6;0.9;1]);
+addmaterialproperties("EM","Si (Silicon) - Palik");
+select("materials::silicon");
+addmaterialproperties("CT","Si (Silicon)");
+select("::model::materials::silicon::Si (Silicon)");
+set("recombination.trap assisted.taun.constant",1e-6);
+set("recombination.trap assisted.taup.constant",1e-6);
+select("materials::silicon");
+addmaterialproperties("HT","Si (Silicon)");
+
+addmodelmaterial;
+set("name","germanium");
+set("color",[0.4;0.8;0.4;1]);
+addmaterialproperties("EM","Ge (Germanium) - Palik");
+select("materials::germanium");
+addmaterialproperties("CT","Ge (Germanium)");
+select("::model::materials::germanium::Ge (Germanium)");
+set("recombination.trap assisted.taun.constant",1e-9);
+set("recombination.trap assisted.taup.constant",1e-9);
+select("materials::germanium");
+addmaterialproperties("HT","Ge (Germanium)");
+
+addmodelmaterial;
+set("name","sio2");
+set("color",[0.8;0.9;1.0;1]);
+addmaterialproperties("EM","SiO2 (Glass) - Palik");
+select("materials::sio2");
+addmaterialproperties("CT","SiO2 (Glass) - Sze");
+select("materials::sio2");
+addmaterialproperties("HT","SiO2 (Glass) - Sze");
+
+mat_Si   = "silicon";
+mat_Ge   = "germanium";
+mat_SiO2 = "sio2";
 
 addrect; set("name","Si_substrate"); set("material",mat_Si);
 set("x min",0); set("x max",Ge_L);
@@ -53,22 +83,17 @@ set("z min",z_Si_bot); set("z max",z_slab_top);
 
 addrect; set("name","Si_rib"); set("material",mat_Si);
 set("x min",0); set("x max",Ge_L);
-set("y min",-Ge_W/2); set("y max",Ge_W/2);
+set("y min",-rib_W/2); set("y max",rib_W/2);
 set("z min",z_slab_top); set("z max",z_rib_top);
 
 addrect; set("name","Si_Pp_left"); set("material",mat_Si);
 set("x min",0); set("x max",Ge_L);
-set("y min",y_left); set("y max",-Ge_W/2);
+set("y min",y_left); set("y max",-rib_W/2);
 set("z min",z_slab_top); set("z max",z_rib_top);
 
 addrect; set("name","Si_Pp_right"); set("material",mat_Si);
 set("x min",0); set("x max",Ge_L);
-set("y min",Ge_W/2); set("y max",y_right);
-set("z min",z_slab_top); set("z max",z_rib_top);
-
-addrect; set("name","Si_Pp_back"); set("material",mat_Si);
-set("x min",Ge_L-200e-9); set("x max",Ge_L);
-set("y min",-Ge_W/2); set("y max",Ge_W/2);
+set("y min",rib_W/2); set("y max",y_right);
 set("z min",z_slab_top); set("z max",z_rib_top);
 
 addrect; set("name","i_Ge"); set("material",mat_Ge);
@@ -92,102 +117,103 @@ set("y min",Ge_W/2); set("y max",y_right);
 set("z min",z_rib_top); set("z max",z_sim_top);
 
 select("simulation region");
-set("dimension",4);
-set("x",Ge_L/2);  set("x span",Ge_L);
-set("y",0);       set("y span",Ge_W + 2*Pp_ext);
-set("z min",z_Si_bot);
-set("z max",z_sim_top);
+set("dimension","2D X-Normal");
+set("x", x_2d);
+set("y", 0);
+set("y span", Ge_W + 2*Pp_ext);
+set("z min", z_Si_bot);
+set("z max", z_sim_top);
 
 addchargesolver;
 set("name","CHARGE");
 set("solver mode","steady state");
-set("simulation temperature",300);
-set("global iteration limit",500);
+set("simulation temperature", 300);
+set("norm length", Ge_L);
+set("global iteration limit", 500);
 
 adddope;
 set("name","dope_Npp_Ge");
 set("dopant type","n");
-set("concentration",1e20);
-set("x min",0);        set("x max",Ge_L);
-set("y min",-Ge_W/2);  set("y max",Ge_W/2);
-set("z min",z_iGe_top); set("z max",z_Npp_top);
+set("concentration", 1e20);
+set("x min",0);          set("x max", Ge_L);
+set("y min",-Ge_W/2);    set("y max", Ge_W/2);
+set("z min", z_iGe_top); set("z max", z_Npp_top);
 
 adddope;
-set("name","dope_Ppp_Si");
+set("name","dope_Ppp_Si_left");
 set("dopant type","p");
-set("concentration",1e20);
-set("x min",0);      set("x max",Ge_L);
-set("y min",y_left); set("y max",y_right);
-set("z min",z_Si_bot); set("z max",z_rib_top);
+set("concentration", 1e20);
+set("x min",0);         set("x max", Ge_L);
+set("y min", y_left);   set("y max", -rib_W/2);
+set("z min", z_Si_bot); set("z max", z_rib_top);
+
+adddope;
+set("name","dope_Ppp_Si_right");
+set("dopant type","p");
+set("concentration", 1e20);
+set("x min",0);         set("x max", Ge_L);
+set("y min", rib_W/2);  set("y max", y_right);
+set("z min", z_Si_bot); set("z max", z_rib_top);
 
 addchargemesh;
 set("name","mesh_SCR");
-set("x",Ge_L/2); set("x span",Ge_L);
-set("y",0);      set("y span",Ge_W);
-set("z",(z_iGe_bot+z_Npp_top)/2);
-set("z span",Ge_H + 50e-9);
-set("max edge length",20e-9);
+set("x", x_2d);
+set("y", 0);      set("y span", Ge_W);
+set("z", (z_iGe_bot + z_Npp_top)/2);
+set("z span", Ge_H + 50e-9);
+set("max edge length", 20e-9);
 
 addchargemesh;
 set("name","mesh_junction");
-set("x",Ge_L/2); set("x span",Ge_L);
-set("y",0);      set("y span",Ge_W);
-set("z",z_iGe_top);
-set("z span",Npp_H + 60e-9);
-set("max edge length",5e-9);
+set("x", x_2d);
+set("y", 0);      set("y span", Ge_W);
+set("z", z_iGe_top);
+set("z span", Npp_H + 60e-9);
+set("max edge length", 10e-9);
 
 addchargemesh;
 set("name","mesh_optical");
-set("x",Ge_L/2); set("x span",Ge_L);
-set("y",0);      set("y span",Ge_W);
-set("z",z_iGe_bot + 100e-9);
-set("z span",200e-9);
-set("max edge length",20e-9);
+set("x", x_2d);
+set("y", 0);      set("y span", Ge_W);
+set("z", z_iGe_bot + 100e-9);
+set("z span", 200e-9);
+set("max edge length", 20e-9);
 
 addelectricalcontact; set("name","cathode");
 set("bc mode","steady state");
 set("sweep type","range");
 set("range start",-4); set("range stop",0); set("range num points",9);
-set("force ohmic",1);
+set("force ohmic", 1);
 set("surface type","solid:simulation region");
 set("solid","Npp_Ge");
-set("x min",0); set("x max",0);
-set("y min",0); set("y max",0);
-set("z min",0); set("z max",1);
+set("z max",1);
 
 addelectricalcontact; set("name","anode_side1");
 set("bc mode","steady state");
 set("sweep type","single"); set("voltage",0);
-set("force ohmic",1);
+set("force ohmic", 1);
 set("surface type","solid:simulation region");
 set("solid","Si_Pp_left");
-set("x min",0); set("x max",0);
-set("y min",1); set("y max",0);
-set("z min",0); set("z max",0);
+set("y min",1);
 
 addelectricalcontact; set("name","anode_side2");
 set("bc mode","steady state");
 set("sweep type","single"); set("voltage",0);
-set("force ohmic",1);
+set("force ohmic", 1);
 set("surface type","solid:simulation region");
 set("solid","Si_Pp_right");
-set("x min",0); set("x max",0);
-set("y min",0); set("y max",1);
-set("z min",0); set("z max",0);
+set("y max",1);
 
-addelectricalcontact; set("name","anode_back");
+addelectricalcontact; set("name","anode_bot");
 set("bc mode","steady state");
 set("sweep type","single"); set("voltage",0);
-set("force ohmic",1);
+set("force ohmic", 1);
 set("surface type","solid:simulation region");
-set("solid","Si_Pp_back");
-set("x min",0); set("x max",1);
-set("y min",0); set("y max",0);
-set("z min",0); set("z max",0);
+set("solid","Si_slab");
+set("z min",1);
 
 mat_file = "ge_gen_oband.mat";
 
-?"=== CHARGE dark current | T=300 K ===";
 run;
 
 res_dk = getresult("CHARGE","cathode");
@@ -211,6 +237,7 @@ if (fileexists(mat_file)) {
     select("CHARGE::optical_gen");
     importdataset(mat_file);
     set("enabled",1);
+    set("scale factor", 1);
 
     run;
 
@@ -241,35 +268,34 @@ if (fileexists(mat_file)) {
     res_dope  = getresult("CHARGE","doping");
     res_mob   = getresult("CHARGE","mobility");
 
-    z_phys  = res_band.z;  x_phys  = res_band.x;
-    z_carr  = res_carr.z;  x_carr  = res_carr.x;
-    z_recmb = res_recmb.z; x_Ropt  = res_recmb.x; z_Ropt = res_recmb.z;
-    z_field = res_field.z; x_field = res_field.x;
-    z_dope  = res_dope.z;  x_dope  = res_dope.x;
-    z_mob   = res_mob.z;   x_mob   = res_mob.x;
+    z_phys  = res_band.z;  y_phys  = res_band.y;
+    z_carr  = res_carr.z;  y_carr  = res_carr.y;
+    z_recmb = res_recmb.z; y_Ropt  = res_recmb.y; z_Ropt = res_recmb.z;
+    z_field = res_field.z; y_field = res_field.y;
+    z_dope  = res_dope.z;  y_dope  = res_dope.y;
+    z_mob   = res_mob.z;   y_mob   = res_mob.y;
 
-    Ec_bulk  = res_band.Ec;   Ev_bulk  = res_band.Ev;
-    Efn_bulk = res_band.Efn;  Efp_bulk = res_band.Efp; Ei_bulk = res_band.Ei;
-    n_bulk   = res_carr.n;    p_bulk   = res_carr.p;
-    Jn_bulk  = res_carr.Jn;   Jp_bulk  = res_carr.Jp;
+    Ec_bulk   = res_band.Ec;    Ev_bulk   = res_band.Ev;
+    Efn_bulk  = res_band.Efn;   Efp_bulk  = res_band.Efp;  Ei_bulk = res_band.Ei;
+    n_bulk    = res_carr.n;     p_bulk    = res_carr.p;
+    Jn_bulk   = res_carr.Jn;    Jp_bulk   = res_carr.Jp;
     Ropt_bulk = res_recmb.Ropt; Rsrh_bulk = res_recmb.Rsrh;
-    E_bulk   = res_field.E;   Vpot_bulk = res_field.V;
-    NA_bulk  = res_dope.NA;   ND_bulk   = res_dope.ND;
-    mun_bulk = res_mob.mun;   mup_bulk  = res_mob.mup;
+    E_bulk    = res_field.E;    Vpot_bulk = res_field.V;
+    NA_bulk   = res_dope.NA;    ND_bulk   = res_dope.ND;
+    mun_bulk  = res_mob.mun;    mup_bulk  = res_mob.mup;
 
     matlabsave("ge_charge_results_oband.mat",
                V_dk,  I_dk,  In_dk,  Ip_dk,
                V_ill, I_ill, In_ill, Ip_ill,
                Id_1V, I_ph, R_AW, A_eff, P_opt, Ge_L, Ge_W, idx1V,
-               z_phys,  x_phys, z_carr,  x_carr,
-               z_recmb, x_Ropt, z_Ropt, z_field, x_field,
-               z_dope,  x_dope, z_mob,   x_mob,
+               z_phys,  y_phys, z_carr,  y_carr,
+               z_recmb, y_Ropt, z_Ropt, z_field, y_field,
+               z_dope,  y_dope, z_mob,   y_mob,
                Ec_bulk,  Ev_bulk,  Efn_bulk, Efp_bulk, Ei_bulk,
                n_bulk,   p_bulk,   Jn_bulk,  Jp_bulk,
                Ropt_bulk, Rsrh_bulk, E_bulk,   Vpot_bulk,
                NA_bulk,  ND_bulk,  mun_bulk, mup_bulk);
 
 } else {
-    ?"WARNING: "+mat_file+" not found â€” run ge_pd_fdtd_oband.lsf first.";
+    ?"WARNING: "+mat_file+" not found - run ge_pd_fdtd_oband.lsf first.";
 }
-?"=== CHARGE done â€” run ge_pd_oband_postprocess.m in MATLAB next ===";

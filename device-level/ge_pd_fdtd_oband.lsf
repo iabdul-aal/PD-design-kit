@@ -171,8 +171,8 @@ E_field = E_data.E;
 
 E2   = abs(E_field(:,:,:,1,1))^2 + abs(E_field(:,:,:,1,2))^2 + abs(E_field(:,:,:,1,3))^2;
 sp   = sourcepower(f_c);
-G_3d = (eps0 * eps_i_Ge * omega(f_c) / (2*hbar)) * E2 * (P_opt / sp);
-?"Peak G = "+num2str(max(G_3d),"%.3e")+" m^-3 s^-1";
+omega_c = 2 * pi * f_c;
+G_3d = (eps0 * eps_i_Ge * omega_c / (2*hbar)) * E2 * (P_opt / sp);?"Peak G = "+num2str(max(G_3d),"%.3e")+" m^-3 s^-1";
 
 ?"--- Gen dataset bounds (must match Ge volume in CHARGE) ---";
 ?"  x : "+num2str(min(x_g)*1e6,"%.3f")+" to "+num2str(max(x_g)*1e6,"%.3f")+" um  (expect 0 to "+num2str(Ge_L*1e6,"%.1f")+")";

@@ -1,6 +1,5 @@
-﻿
-\chapter{Germanium-on-Silicon PIN Photodetector: Electromagnetic Foundations,
-         Device Physics, Multi-Physics Simulation, and System-Level Projection}
+
+\chapter{Germanium-on-Silicon PIN Photodetector}
 \label{ch:photodetector}
 
 The detection of optical signals at \SI{1310}{\nano\metre} constitutes the
@@ -20,24 +19,22 @@ transport, recombination, and the full self-consistent drift-diffusion system ar
 then formalised in both their transient and steady-state forms, and all performance
 metrics are defined with sufficient precision to serve as unambiguous comparison
 axes.
-Section~\ref{sec:pd_literature} applies those metrics to a critical survey of the
-experimental literature, identifying the physical mechanisms that have driven the
-successive bandwidth improvements in Ge-on-Si photodetectors over the past fifteen
-years, and positions the present work within that design space.
-Section~\ref{sec:pd_design} presents the device architecture and the coupled
-optical-electrical simulation methodology, including the Physics-Informed Neural
-Network (PINN) cross-validation framework.
-Section~\ref{sec:pd_results} presents and validates the simulation results.
-Section~\ref{sec:pd_discussion} provides a causal, equation-grounded
-interpretation of each result and identifies active design trade-offs and residual
-limiting mechanisms including high-power field screening, lateral scaling limits,
-and nano-optical absorption enhancement.
+Section~\ref{sec:pd_literature} begins with a staged device-evolution argument,
+then applies those metrics to a critical review of waveguide-integrated
+photodetectors, and closes with a comparative summary that positions the
+present O-band Ge-on-Si PIN within the state of the art.
+Section~\ref{sec:pd_design} presents the device architecture, the benchmark
+anchoring strategy, and the coupled optical-electrical simulation methodology
+used to connect the FDTD, CHARGE, and reduced analytical models.
+Section~\ref{sec:pd_results} reports the main simulation results and interprets
+the dominant trade-offs that emerge from them.
 Section~\ref{sec:pd_system} derives, strictly from the extracted device metrics,
 the implications for receiver sensitivity and modulation-format compatibility,
 culminating in the extraction of device-level specifications from the requirements
-of the IEEE~802.3 400GBASE-DR4 standard. Section~\ref{sec:pd_conclusion}
-distils the principal physical insights and identifies open questions that future
-experimental work must address.
+of the IEEE~802.3 400GBASE-DR4 standard. Section~\ref{sec:pd_pinn} then uses a
+validated PINN surrogate to extend the single-U benchmark toward the double-U
+design space. Section~\ref{sec:pd_conclusion} distils the principal physical
+insights and identifies open questions that future experimental work must address.
 
 \section{Physical Foundations and Metric Formalisation}
 \label{sec:pd_concept}
@@ -142,7 +139,7 @@ This reduces identically to \cref{eq:gen_rate} under the plane-wave
 approximation, but is the operationally correct definition when the
 three-dimensional field contains interference terms arising from modal coupling,
 metal reflections, or end-facet diffraction---all of which are present in the
-adiabatic taper region of the device studied here~\cite{Alasio2024}.
+adiabatic taper region of the device studied here.
 The FDTD solver employed in \cref{subsec:pd_fdtd} evaluates
 $G_{\mathrm{opt}}$ from \cref{eq:gopt_poynting_local}; the scalar Beer-Lambert
 law of \cref{eq:beer_lambert} serves only as the analytical validation baseline.
@@ -183,7 +180,7 @@ carrier-to-signal power ratio $\mathrm{CSPR}\equiv c^2/\langle|\tilde{u}|^2\rang
 so that SSBI is negligible relative to the cross-beat term. For CW illumination
 at $P_{\mathrm{opt}}=\SI{100}{\micro\watt}$ this condition is satisfied by
 construction; departures from linearity at high modulation depth are treated
-in \cref{sec:pd_discussion}~\cite{Pilori2019}.
+in \cref{sec:pd_discussion}.
 
 \subsection{Band Structure of Germanium and the Direct-Gap Absorption Mechanism}
 \label{subsec:pd_bandstructure}
@@ -211,7 +208,7 @@ treatment because it directly conditions the boundary conditions of the
 drift-diffusion problem. Owing to the lattice mismatch ($\Delta a/a\approx4.2\%$)
 and the difference in band alignment, the Ge/Si heterojunction sustains a
 valence-band discontinuity of $\Delta E_v\approx\SI{0.54}{\electronvolt}$ and a
-conduction-band offset $\Delta E_c\approx\SI{-0.14}{\electronvolt}$~\cite{Alasio2024,Basu2003}. For a $p^{++}$-Si anode contacting the intrinsic Ge
+conduction-band offset $\Delta E_c\approx\SI{-0.14}{\electronvolt}$~\cite{Basu2003}. For a $p^{++}$-Si anode contacting the intrinsic Ge
 absorber, the large $\Delta E_v$ acts as a potential barrier suppressing hole
 injection from silicon into germanium, thereby reducing the minority-carrier
 diffusion contribution to dark current quantified by \cref{eq:jdark_diff}.
@@ -219,7 +216,7 @@ A thin compositionally graded transition layer of thickness
 $\delta_{\mathrm{grad}}\approx\SI{5}{\nano\metre}$ at the heterojunction
 removes the valence-band singularity that would otherwise prevent convergence
 of the self-consistent drift-diffusion solver without perceptibly modifying
-the electrostatic potential profile in the intrinsic germanium bulk~\cite{Alasio2024}.
+the electrostatic potential profile in the intrinsic germanium bulk.
 
 \paragraph{Biaxial strain and the direct-gap red-shift.}
 A further consequence of the Ge band structure is the sensitivity of
@@ -234,7 +231,7 @@ the linear deformation-potential relation:
 \end{equation}
 where $a_v$ and $a_c$ are the valence- and conduction-band hydrostatic
 deformation potentials and $c_{11}$, $c_{12}$ are the elastic stiffness
-constants~\cite{Yan2024}. The biaxial tensile strain of approximately
+constants. The biaxial tensile strain of approximately
 $0.2$--$0.3\%$ that develops in Ge epitaxial layers during post-growth
 cooldown---owing to the thermal expansion coefficient mismatch between Ge and
 Si---reduces $E_{g,\mathrm{dir}}$ by approximately \SI{25}{\milli\electronvolt}
@@ -249,6 +246,55 @@ Integrating \cref{eq:abs_density} through an absorber of length $L$ gives:
     \mathcal{A}(L) = 1 - \exp\!\bigl[-\alpha(\lambda)\,L\bigr].
     \label{eq:abs_fraction}
 \end{equation}
+
+\begin{table}[H]
+\centering
+\caption{Material properties of candidate photodetector absorbers at
+\SI{300}{\kelvin}. The comparison isolates the material argument behind the
+choice of Ge for O-band silicon photonics. $\alpha$ values are referenced to
+\SI{1310}{\nano\metre}; ``N/A-CMOS'' denotes incompatibility with a standard
+silicon-photonics process flow.}
+\label{tab:material_compare}
+\footnotesize
+\begin{adjustbox}{width=\textwidth}
+\begin{tabular}{lcccccc}
+\toprule
+Material & $E_g$ [eV] & $\alpha_{1310}$ [\si{\per\centi\metre}] &
+$v_{\mathrm{sat},h}$ [\si{\centi\metre\per\second}] &
+$\mu_p$ [\si{\centi\metre\squared\per\volt\per\second}] &
+$\Delta a/a_{\mathrm{Si}}$ [\%] & CMOS compat. \\
+\midrule
+Ge & 0.66 (ind.), 0.80 (dir.) & $\sim2100$ & \SI{4e6}{} & 1900 & 4.2 & \checkmark \\
+Si & 1.12 (ind.) & $\sim10$ & \SI{2.5e6}{} & 480 & 0 & N/A (transparent) \\
+InGaAs (lattice-matched to InP) & 0.75 & $\sim1\times10^4$ & \SI{5e6}{} & 4500 & $>5$ & N/A-CMOS \\
+Ge$_{0.92}$Sn$_{0.08}$ & $\sim0.55$ (dir.) & $>5000$ & $\sim$\SI{4e6}{} & $\sim$1500 & 4.8 & Research \\
+\bottomrule
+\end{tabular}
+\end{adjustbox}
+\end{table}
+
+\begin{figure}[H]
+    \centering
+    \missingfigure[figwidth=0.88\linewidth]{
+        Two-panel concept figure. Left panel: absorption coefficient
+        $\alpha(\lambda)$ versus wavelength for Ge, Si, InGaAs, and
+        GeSn, with markers at \SI{1310}{\nano\metre} and
+        \SI{1550}{\nano\metre}. Right panel: schematic comparison of the Ge
+        and Si band structures showing the O-band photon energy relative to
+        the Ge direct gap and the much larger Si direct-transition energy.}
+    \caption{Material selection argument for O-band detection on a silicon
+    photonics platform. Germanium combines appreciable absorption at
+    \SI{1310}{\nano\metre}, near-direct-gap behaviour, high hole saturation
+    velocity, and foundry-compatible heterogeneous integration, which is why
+    it remains the practical absorber of choice in \cref{subsec:pd_bandstructure}.}
+    \label{fig:ge_vs_si_material}
+\end{figure}
+
+A compact material comparison is therefore sufficient to close the absorber
+selection argument: Ge is not chosen because it is universally superior to all
+alternatives, but because it is the only material in \cref{tab:material_compare}
+that simultaneously satisfies the optical, transport, and integration
+constraints of the present O-band receiver.
 
 \subsection{Carrier Generation and Recombination}
 \label{subsec:pd_generation}
@@ -291,9 +337,25 @@ where $np\approx n_i^2$, the radiative rate vanishes identically and
 \cref{eq:srh_dep} constitutes the sole generation mechanism. Simulated
 generation and recombination rates confirm that SRH exceeds Auger by more than
 two orders of magnitude and radiative recombination by more than five orders of
-magnitude across $0\leq|V_{\mathrm{bias}}|\leq\SI{3}{\volt}$~\cite{Alasio2024}.
+magnitude across $0\leq|V_{\mathrm{bias}}|\leq\SI{3}{\volt}$.
 This justifies the single-parameter calibration strategy of
 \cref{subsec:pd_charge}, in which only $\tau_0$ is adjusted to reproduce $I_d$.
+
+\begin{figure}[H]
+    \centering
+    \missingfigure[figwidth=0.84\linewidth]{
+        Three-panel concept figure. Panel (a): photon absorption in Ge
+        creating an electron-hole pair. Panel (b): competing SRH, Auger, and
+        radiative recombination pathways with their relative strengths in the
+        depleted intrinsic region. Panel (c): qualitative reverse-bias trend
+        showing SRH generation dominating the dark-current contribution in the
+        operating range of the present device.}
+    \caption{Carrier generation and recombination picture used throughout the
+    electrical model. In the fully depleted intrinsic Ge layer, SRH generation
+    remains the dominant dark-current mechanism, which justifies calibrating
+    the device primarily through the lifetime parameter $\tau_0$.}
+    \label{fig:generation_recombination}
+\end{figure}
 
 \subsection{Drift-Diffusion Transport: Transient and Steady-State Formulations}
 \label{subsec:pd_transport}
@@ -336,14 +398,14 @@ Under \emph{steady-state} CW illumination, $\partial/\partial t\equiv0$:
 \end{align}
 The complete self-consistent system---\cref{eq:poisson} through
 \cref{eq:cont_p}---is the foundational PDE set solved numerically in both the
-commercial finite-element solver and the PINN framework of
-\cref{sec:pd_design}.
+commercial finite-element solver and the PINN framework introduced later in
+\cref{sec:pd_pinn}.
 
 \paragraph{Analytical photocurrent transfer function.}
 In the frequency domain, neglecting diffusion and assuming a uniform electric
 field at saturation value throughout $z\in[0,W_i]$, the Fourier amplitude of
 the terminal current density admits a closed-form
-expression~\cite{Alasio2024}:
+expression:
 \begin{align}
     J_t(\omega)
     &= \frac{q G_0}{\alpha W_i}\frac{hc}{q\lambda}
@@ -370,11 +432,12 @@ sinc-function roll-off yielding the bandwidth formula of \cref{eq:bw_tt}.
 
 \begin{figure}[H]
     \centering
-    \fbox{
-    \parbox{0.92\linewidth}{
-    \textbf{[Figure X: Equivalent circuit and transfer-function derivation of the vertical PIN photodetector]}
-
-    \textbf{Prompt:} Create a rigorous two-part figure. Left part: cross-section of the vertical PIN showing a carrier pair generated at depth $z$, electron transit time to the $n^{++}$ Ge contact, hole transit time to the $p^{++}$ Si contact, and Ramo current pulses induced during motion. Right part: equivalent circuit with photocurrent source, junction capacitance $C_j$, series resistance $R_s$, package inductance $L_p$, parasitic capacitance $C_p$, and load resistance $R_L$. Beneath the circuit, show the derivation flow $h_z(t)\rightarrow H_{\mathrm{tt}}(\omega)\rightarrow H_{\mathrm{RC}}(\omega)\rightarrow H_{\mathrm{PD}}(\omega)$. Annotate the meaning of each pole or roll-off term.}}
+    \missingfigure[figwidth=0.86\linewidth]{
+        Two-part transport figure. Left: a carrier pair generated inside the
+        intrinsic layer with electron and hole transit paths to the contacts.
+        Right: equivalent-circuit derivation flow
+        $h_z(t)\rightarrow H_{\mathrm{tt}}(\omega)\rightarrow
+        H_{\mathrm{RC}}(\omega)\rightarrow H_{\mathrm{PD}}(\omega)$.}
     \caption{Microscopic-to-circuit derivation path for the small-signal transfer function. The transit-time response originates from the finite carrier flight time inside the intrinsic Ge region, while the RC response originates from the external electrical loading seen by the junction.}
     \label{fig:transfer_derivation}
 \end{figure}
@@ -444,7 +507,7 @@ The finite-element discretisation of \cref{eq:Jn,eq:Jp} on a non-uniform mesh
 faces a well-known numerical instability when the local P\'eclet number
 $\mathrm{Pe}=q|\mathbf{E}|\Delta x/(2kT)$ exceeds unity. The
 Scharfetter-Gummel scheme approximates the current between adjacent mesh nodes
-$i$ and $i+1$ as~\cite{Alasio2024}:
+$i$ and $i+1$ as:
 \begin{equation}
     J_{n,i+1/2}
     = \frac{qD_n}{\Delta x}\!\left[
@@ -457,7 +520,7 @@ where $B(u)=u/(e^u-1)$ is the Bernoulli function and $\Delta\phi=\phi_{i+1}-\phi
 This scheme recovers centred differences for $|u|\ll1$ (low-field) and
 upstream weighting for $|u|\gg1$ (high-field), providing second-order accuracy
 and unconditional positivity across the \SI{30}{\kilo\volt\per\centi\metre}
-field regime of the present device~\cite{Alasio2024}. The mesh refinement
+field regime of the present device. The mesh refinement
 criterion $\mathrm{Pe}<3$ everywhere in the germanium bulk is the operative
 test for mesh convergence.
 
@@ -494,7 +557,7 @@ In the fully depleted intrinsic region at saturation field, the drift transit
 time $\tau_{\mathrm{tr}}=W_i/v_{\mathrm{d,sat},h}$ is much shorter than the
 SRH lifetime $\tau_0$, giving a carrier collection efficiency
 $\xi\approx1-\tau_{\mathrm{tr}}/\tau_0\approx1$. The more general form of the
-EQE chain is~\cite{Yan2024}:
+EQE chain is:
 \begin{equation}
     \eta_{\mathrm{ext}}
     = (1 - R_{\mathrm{refl}})\,\xi\,\eta_c\,
@@ -505,7 +568,23 @@ where $R_{\mathrm{refl}}$ is the Si/Ge entry-facet reflectance and $\xi$
 degrades measurably from unity when the bias is reduced toward zero, making
 the factored form of \cref{eq:qe_full} the natural framework for evaluating
 low-bias operating points---motivated by the energy-per-bit metric $e_c\propto|V_{\mathrm{bias}}|\,\mathcal{R}$
-introduced in \cref{sec:pd_discussion}~\cite{Yan2024}.
+introduced in \cref{sec:pd_discussion}.
+
+\begin{figure}[H]
+    \centering
+    \missingfigure[figwidth=0.84\linewidth]{
+        Two-panel metrics figure. Left panel: photocurrent versus input
+        optical power, showing the linear responsivity slope in the low-power
+        regime and saturation at high power. Right panel: responsivity versus
+        wavelength, highlighting the short-wavelength reduction from excess
+        carrier energy and the long-wavelength roll-off near the absorption
+        edge.}
+    \caption{Responsivity viewed in both its power-domain and spectral forms.
+    The low-power slope of the $I$-$P$ curve defines $\mathcal{R}$, whereas
+    the wavelength dependence determines the useful operating window around the
+    O-band.}
+    \label{fig:responsivity_concept}
+\end{figure}
 
 \subsubsection{Dark Current}
 \label{subsubsec:pd_dark}
@@ -532,7 +611,7 @@ where $L_p=\sqrt{D_p\tau_p}$ and $L_n=\sqrt{D_n\tau_n}$.
     \label{eq:jdark_surf}
 \end{equation}
 The total dark current, including both bulk and surface (perimeter) contributions,
-is~\cite{Yan2024}:
+is:
 \begin{equation}
     I_d = A_j\!\left(J_{\mathrm{SRH}} + J_{\mathrm{diff}}\right)
     + P_j\,q\,n_i\,v_s/2,
@@ -545,13 +624,28 @@ increasing the fractional contribution of the surface term. For the present
 device, $A_j/P_j\approx\SI{0.43}{\micro\metre}$; a future device scaled to
 $A_j=\SI{2}{\micro\metre\squared}$ would reduce this ratio toward
 \SI{0.17}{\micro\metre}, at which point surface passivation through
-Ge$_x$O$_y$ or Al$_2$O$_3$ becomes a primary design lever~\cite{Yan2024}.
+Ge$_x$O$_y$ or Al$_2$O$_3$ becomes a primary design lever.
 Additionally, the minimum achievable dark current density in Ge-on-Si epitaxial
 material is set by the threading dislocation density (TDD): TDD
 $\approx\SI{5e7}{\per\centi\metre\squared}$ corresponds to a dark current
 density floor of order \SI{10}{\milli\ampere\per\centi\metre\squared} at
 \SI{-1}{\volt}, and the calibrated $\tau_0=\SI{5}{\nano\second}$ in
 \cref{subsec:pd_charge} implicitly reflects this value.
+
+\begin{figure}[H]
+    \centering
+    \missingfigure[figwidth=0.82\linewidth]{
+        Two-panel dark-current figure. Left panel: decomposition of total dark
+        current into SRH, diffusion, and surface terms versus reverse bias.
+        Right panel: area scaling versus perimeter scaling for large and small
+        junctions, showing why surface effects grow in importance as the mesa
+        footprint shrinks.}
+    \caption{Dark-current mechanisms of the reverse-biased Ge-on-Si PIN.
+    The present device remains bulk-SRH dominated at the chosen footprint, but
+    perimeter-driven surface generation becomes progressively more important as
+    the junction is aggressively miniaturised.}
+    \label{fig:dark_current_concept}
+\end{figure}
 
 \subsubsection{Electrical Bandwidth}
 \label{subsubsec:pd_bw}
@@ -579,7 +673,7 @@ of a rectangular current impulse response is:
 \end{equation}
 where the coefficient $0.45$ arises from the sinc-like spectral roll-off and
 reflects the asymmetric electron-hole velocity ratio
-$v_{\mathrm{d,sat},e}/v_{\mathrm{d,sat},h}\approx1.5$~\cite{Alasio2024}.
+$v_{\mathrm{d,sat},e}/v_{\mathrm{d,sat},h}\approx1.5$.
 For $W_i=\SI{350}{\nano\metre}$:
 $f_{\mathrm{tt}}\approx\SI{51}{\giga\hertz}$.
 
@@ -589,8 +683,8 @@ The full two-carrier response of \cref{eq:jt_analytical} is broader than the
 single-carrier lower bound because electrons and holes induce terminal current
 simultaneously, and the experimentally relevant RF response further benefits
 from the on-electrode inductance $L_p$ of the packaged structure. For the
-\SI{350}{\nano\metre} intrinsic region reproduced from
-Shi~\textit{et al.}~\cite{Shi2024}, the benchmark-calibrated transport ceiling
+\SI{350}{\nano\metre} intrinsic region used as the reference stack in later
+sections, the benchmark-calibrated transport ceiling
 is in the \SIrange{110}{120}{\giga\hertz} class, with a measured
 $f_{3\,\mathrm{dB}}=\SI{103}{\giga\hertz}$ at \SI{-1}{\volt} once the
 U-shaped electrode and matched inductive peaking are both present. The
@@ -632,7 +726,7 @@ $A_j=\SI{6}{\micro\metre\squared}$ gives
 $W_i^*\approx\SI{310}{\nano\metre}$, within \SI{11}{\percent} of the chosen
 $W_i=\SI{350}{\nano\metre}$---confirming the device is positioned near the
 bandwidth optimum consistent with the $R_{\mathrm{tot}}=\SI{50}{\ohm}$ standard
-load~\cite{Yan2024}. The expression \cref{eq:wi_optimal} also reveals a
+load. The expression \cref{eq:wi_optimal} also reveals a
 fundamental scaling law: since $W_i^*\propto\sqrt{A_j}$, shrinking the junction
 area by a factor of four allows $W_i^*$ to be halved, raising the balanced
 bandwidth at the new optimum by approximately the same factor. The small-signal
@@ -651,7 +745,7 @@ is $f_{\mathrm{Nyq}}=R_s/2\leq\beta\,f_{3\,\mathrm{dB}}$ where
 $\beta\approx0.7$. Violation requires a feed-forward equaliser (FFE) whose
 tap count scales approximately as $N_{\mathrm{tap}}\sim2f_{\mathrm{Nyq}}/f_{3\,\mathrm{dB}}$,
 so that every doubling of $f_{3\,\mathrm{dB}}$ relative to $f_{\mathrm{Nyq}}$
-halves the DSP complexity~\cite{Pilori2019}.
+halves the DSP complexity~\cite{ProakisSalehi2007}.
 
 Equation~\cref{eq:H_pd} is therefore a deliberately simplified, non-peaked
 baseline. For the benchmark-calibrated U-shaped device, the electrical
@@ -729,21 +823,36 @@ vertical architecture with $A_j=\SI{1}{\micro\metre}\times\SI{6}{\micro\metre}$,
 the parallel-plate estimate
 $C_1\approx\varepsilon_0\varepsilon_{\mathrm{Ge}}A_j/W_i\approx\SI{1.8}{\femto\farad}$
 is verified by the low-to-high-frequency plateau difference extracted
-numerically~\cite{Alasio2024}. Removing the first copper metal layer reduces
+numerically. Removing the first copper metal layer reduces
 $C_2$ by more than \SI{35}{\percent}, confirming that electrode layout
 optimisation must simultaneously minimise the lateral conduction path $\ell_a$
 and the overlap area between the first metal layer and the doped silicon platform.
+
+\begin{figure}[H]
+    \centering
+    \missingfigure[figwidth=0.82\linewidth]{
+        Two-panel RC figure. Left panel: simplified equivalent circuit showing
+        $C_j$, $R_s$, parasitic capacitance, and the \SI{50}{\ohm} load.
+        Right panel: qualitative capacitance and RC-limited bandwidth trends
+        versus junction area, illustrating the penalty paid when optical
+        absorption is pursued through a larger footprint.}
+    \caption{Capacitance-resistance interpretation of the vertical PIN
+    photodetector. The key RC penalty comes from simultaneously increasing the
+    depleted junction area and the lateral access resistance, which is why
+    layout and footprint must be optimised together.}
+    \label{fig:rc_concept}
+\end{figure}
 
 \subsubsection{Noise Spectral Densities and Noise-Equivalent Power}
 \label{subsubsec:pd_noise}
 
 \begin{figure}[H]
     \centering
-    \fbox{
-    \parbox{0.92\linewidth}{
-    \textbf{[Figure X: Microscopic origin of shot noise and comparison with thermal noise]}
-
-    \textbf{Prompt:} Generate a four-panel explanatory figure. Panel (a): discrete electron arrivals crossing the photodiode terminal over equal observation windows, with varying counts to illustrate Poisson statistics. Panel (b): histogram of carrier count $N$ over a fixed interval $T$ showing mean equal to variance for a Poisson process. Panel (c): time-domain current built from random arrival impulses together with a moving-average current, showing how discrete arrival fluctuations become continuum current noise. Panel (d): circuit-level comparison of current-noise PSDs, showing flat shot noise $2qI$, flat Johnson noise $4kT/R$, and an optional amplifier noise floor. Use annotations connecting counting statistics, time-domain fluctuations, and the continuum PSD expression.}}
+    \missingfigure[figwidth=0.86\linewidth]{
+        Four-panel noise concept figure. Discrete carrier arrivals, Poisson
+        counting statistics, time-domain current fluctuations, and flat shot
+        versus thermal noise spectral densities are shown on a common causal
+        path from charge discreteness to electrical noise PSD.}
     \caption{Figure-first explanation of noise origin. Shot noise is not an abstract fitting parameter but the continuum limit of the counting fluctuations of discrete carriers arriving at the terminal.}
     \label{fig:shot_noise_origin}
 \end{figure}
@@ -802,7 +911,7 @@ Integrating over the detection bandwidth gives the total noise variance:
     \label{eq:sigma_n}
 \end{equation}
 a compact expression that consolidates all noise contributions into a single
-measurable scalar~\cite{Pilori2019}. For the simulated
+measurable scalar. For the simulated
 $I_d=\SI{1.3}{\nano\ampere}$, the dark-current shot noise evaluates to
 $i_n\approx\SI{0.645}{\pico\ampere\per\sqrt\hertz}$, while practical TIA
 stages in \SI{90}{\nano\metre} CMOS achieve
@@ -869,30 +978,180 @@ be budgeted separately.
     \label{fig:noise_decomposition}
 \end{figure}
 
-\begin{figure}[H]
-    \centering
-    \missingfigure[figwidth=0.75\linewidth]{
-        Three-dimensional annotated cross-section of the vertical n-i-p
-        Ge-on-Si photodiode showing layers top-to-bottom: $n^{++}$-Ge cathode
-        (\SI{50}{\nano\metre}), $i$-Ge absorber (\SI{350}{\nano\metre}),
-        $p^{++}$-Si anode platform (\SI{220}{\nano\metre}), SiO$_2$ BOX
-        (\SI{2}{\micro\metre}), Si handle substrate. U-shaped anode metal
-        contacts wrap the mesa sidewalls. The \SI{40}{\micro\metre} adiabatic
-        Si taper is visible on the left. Annotate $W_i$, $L$, $A_j$,
-        $\Delta E_v$, cathode metal, and propagation direction $\hat{z}$.}
-    \caption{Annotated device cross-section of the vertical n-i-p Ge-on-Si
-    photodiode. Layer thicknesses and doping levels correspond to
-    \cref{tab:layer_stack}. The U-shaped anode electrode reduces the lateral
-    conduction path length $\ell_a$ in \cref{eq:rs_anode} and the Ge/Si
-    valence-band offset $\Delta E_v$ suppresses hole injection from
-    $p^{++}$-Si into the intrinsic Ge absorber.}
-    \label{fig:device_schematic}
-\end{figure}
-
 \section{Literature Review and State-of-the-Art Positioning}
 \label{sec:pd_literature}
 
-\subsection{Evolution of Waveguide-Integrated Ge-on-Si Photodetectors}
+\subsection{Device Evolution: From Photoconductor to Waveguide-Integrated PIN}
+\label{subsec:pd_evolution_bridge}
+
+Before reviewing the experimental record, the device choice itself must be
+justified. The waveguide-integrated Ge-on-Si PIN is not merely a historical
+endpoint; it is the architecture that remains after simpler and apparently more
+aggressive alternatives are eliminated by the metric framework of
+\cref{sec:pd_concept}. The logic is progressive: each stage fixes a specific
+deficiency of the previous one, and each transition can be traced directly to
+the governing equations already established in Section~\ref{sec:pd_concept}.
+
+\paragraph{Stage I --- The photoconductor: gain at the cost of speed.}
+The photoconductor is the simplest optical transducer because it requires no
+junction and no depletion engineering. Its apparent advantage is internal gain:
+\begin{equation}
+    G_{\mathrm{PC}} = \frac{\tau_r}{\tau_{\mathrm{tr}}},
+    \qquad
+    \tau_{\mathrm{tr}} = \frac{L^2}{\mu_n V_b},
+    \label{eq:pc_gain}
+\end{equation}
+where $\tau_r$ is the recombination lifetime and $\tau_{\mathrm{tr}}$ is the
+carrier transit time between the ohmic contacts. The problem is that the same
+lifetime that enables gain also fixes the bandwidth:
+\begin{equation}
+    f_{3\,\mathrm{dB,PC}} = \frac{1}{2\pi\tau_r}.
+    \label{eq:pc_bw}
+\end{equation}
+For germanium, a lifetime in the microsecond class implies a bandwidth in the
+kilohertz-to-megahertz regime, which is many orders of magnitude below the
+\SI{100}{\giga\baud}-class target considered here. The photoconductor is
+therefore rejected by the gain-bandwidth product before any detailed geometry
+optimisation is attempted.
+
+\paragraph{Stage II --- The PN photodiode: introducing the depletion field.}
+The PN junction fixes the most serious weakness of the photoconductor by
+creating an internal electric field that sweeps carriers rather than waiting for
+them to diffuse across a biased resistor. Yet the PN device still retains a
+slow component because photocarriers generated in the quasi-neutral regions must
+diffuse back to the depletion edge. The resulting response can be written as
+\begin{equation}
+    H_{\mathrm{PN}}(f) =
+    H_{\mathrm{drift}}(f)\,
+    \frac{1}{1+j2\pi f\tau_D},
+    \label{eq:hpn}
+\end{equation}
+where $\tau_D$ is the diffusion-tail time constant. At moderate symbol rates
+this penalty is manageable; at the \SI{50}{}--\SI{100}{\giga\hertz} electrical
+bandwidth class it is not. The PN device therefore solves the photoconductor's
+speed mechanism only partially.
+
+\paragraph{Stage III --- The PIN photodiode: eliminating the diffusion tail.}
+The PIN structure removes that residual limitation by inserting an intrinsic
+layer and forcing the useful optical generation to occur inside a fully
+depleted region. Once the full intrinsic thickness is depleted, the electric
+field is approximately uniform:
+\begin{equation}
+    E(x) \approx \frac{|V_{\mathrm{bias}}|+V_{\mathrm{bi}}}{W_i},
+    \qquad x\in[0,W_i].
+    \label{eq:pin_efield_uniform}
+\end{equation}
+The diffusion tail of \cref{eq:hpn} is then suppressed and the bandwidth is
+reduced to the competition already formalised through
+\cref{eq:bw_tt,eq:bw_rc}: transit time improves when $W_i$ shrinks, whereas RC
+penalty worsens when the junction footprint grows. That is the key structural
+reason the PIN, rather than the photoconductor or the simple PN diode, remains
+the default high-speed receiver device.
+
+\paragraph{Why PIN rather than APD?}
+An avalanche photodiode appears attractive because it multiplies the
+responsivity:
+\begin{equation}
+    \mathcal{R}_{\mathrm{APD}} = M\,\mathcal{R}_{\mathrm{PIN}},
+    \label{eq:r_apd}
+\end{equation}
+but that gain is not free. The avalanche build-up time lowers the usable
+bandwidth as $M$ increases, while the excess noise factor in Ge rises rapidly
+because the hole and electron ionisation coefficients are too similar for a
+low-noise multiplication process. At the present operating point, the receiver
+needs the bandwidth headroom more urgently than it needs internal gain, which
+is why the low-bias PIN remains preferable to the higher-voltage APD.
+
+\paragraph{Stage IV --- Why germanium on silicon?}
+The choice of absorber is constrained by the O-band photon energy. The material
+requirement can be written compactly as
+$E_{g,\mathrm{dir}}^{\mathrm{Ge}} < hc/\lambda_{1310}
+\ll E_{g,\mathrm{dir}}^{\mathrm{Si}}$, which is simply another way of saying
+that germanium absorbs strongly where silicon is effectively transparent.
+Through \cref{eq:abs_fraction}, this gives a practical absorber length in the
+few-micrometre range instead of the prohibitively long interaction length that
+silicon would require. Section~\ref{subsec:pd_bandstructure} and
+\cref{tab:material_compare} then complete the remaining argument: Ge preserves
+CMOS compatibility while still offering the absorption coefficient and carrier
+transport needed for a compact O-band device.
+
+\paragraph{Stage V --- Why waveguide coupling rather than surface illumination?}
+Once the PIN and the Ge absorber are fixed, the final architectural decision is
+the illumination geometry. In a surface-normal detector, the thickness that
+sets absorption is the same thickness that sets transit time. The constraints
+therefore conflict directly: the Beer-Lambert requirement
+$1-\exp(-\alpha W_i)\gtrsim0.9$ pushes $W_i$ toward the multi-micrometre range,
+whereas the transit-time requirement from \cref{eq:bw_tt} pushes $W_i$ toward
+the sub-micrometre range. At \SI{1310}{\nano\metre}, this incompatibility is
+severe enough that the same dimension cannot satisfy both constraints.
+Waveguide coupling resolves the conflict by making the absorption dimension
+$L$ longitudinal and the transport dimension $W_i$ vertical:
+\begin{equation}
+    \mathcal{A}(L) = 1-\exp(-\alpha L),
+    \qquad
+    f_{\mathrm{tt}} \propto \frac{1}{W_i}.
+    \label{eq:wg_orthogonality}
+\end{equation}
+That orthogonality is the decisive refinement: absorber length and depletion
+thickness become independently tunable, which is precisely what enables the
+present vertical PIN architecture.
+
+\begin{figure}[H]
+\centering
+\fbox{\begin{minipage}{0.9\linewidth}
+\textbf{Figure Placeholder --- Device Evolution from Photoconductor to Waveguide-Integrated PIN}\\[4pt]
+\textbf{Prompt:}
+\textit{Five-stage narrative figure laid out left-to-right or top-to-bottom.
+Stage 1: photoconductor with two ohmic contacts, surface illumination, long
+carrier lifetime, and a gain-bandwidth annotation using
+$G_{\mathrm{PC}}=\tau_r/\tau_{\mathrm{tr}}$ and
+$f_{3\,\mathrm{dB,PC}}=1/(2\pi\tau_r)$. Stage 2: PN photodiode cross-section
+showing depletion region, built-in field, and a slow diffusion tail in the
+impulse response. Stage 3: PIN photodiode cross-section with fully depleted
+intrinsic region, uniform field across $W_i$, and a clean drift-limited pulse.
+Add a side note comparing PIN and APD, making clear that APD improves
+responsivity through multiplication $M$ but loses bandwidth and adds excess
+noise. Stage 4: material-choice panel contrasting Ge and Si at
+\SI{1310}{\nano\metre}, with the O-band photon energy above the Ge direct-gap
+threshold and below the Si direct-transition threshold. Stage 5: geometry panel
+contrasting surface-normal illumination against waveguide coupling, explicitly
+showing that waveguide coupling decouples absorber length $L$ from depletion
+thickness $W_i$. Use arrows and short equations so that the reader can follow
+the causal chain without reading the surrounding text first.}
+\end{minipage}}
+\caption{Progressive elimination of alternative detector architectures. Each
+stage fixes a specific physical limitation of the previous one, leaving the
+waveguide-integrated Ge-on-Si PIN as the architecture compatible with the
+O-band, low-voltage, high-bandwidth target of this chapter.}
+\label{fig:pd_evolution_ladder}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\fbox{\begin{minipage}{0.9\linewidth}
+\textbf{Figure Placeholder --- Surface-Normal Illumination versus Waveguide Coupling}\\[4pt]
+\textbf{Prompt:}
+\textit{Four-panel figure. Panel (a): surface-normal PIN cross-section with
+light propagation and carrier collection both vertical, annotated to show the
+conflict between absorption thickness and transit-time thickness. Panel (b):
+waveguide-coupled PIN side view showing optical propagation along the waveguide
+axis and carrier collection along the growth axis, with $L$ and $W_i$ marked as
+independent dimensions. Panel (c): mode-transfer sketch comparing abrupt
+butt-coupling to taper-assisted evanescent coupling, including qualitative
+reflection and insertion-loss annotations. Panel (d): design-space plot or
+schematic map highlighting the feasible region enabled by waveguide coupling,
+with absorption improving with $L$ and bandwidth improving as $W_i$ shrinks.
+The key message must be that waveguide coupling restores independent control of
+the optical and electrical dimensions.}
+\end{minipage}}
+\caption{Waveguide coupling is the decisive architectural refinement because it
+decouples the absorption dimension from the transit-time dimension. That single
+geometric change turns an overconstrained surface-normal problem into a
+two-parameter design space.}
+\label{fig:wg_vs_sni}
+\end{figure}
+
+\subsection{Review of Waveguide-Integrated Ge-on-Si Photodetectors}
 \label{subsec:pd_history}
 
 The Ge-on-Si waveguide photodetector field has evolved over approximately two
@@ -1007,6 +1266,31 @@ approximately \SI{50}{\percent} higher than the hole-limited value of
 $P_{\mathrm{screening}}$ of \cref{eq:p_screening} by eliminating the slower
 hole contribution to carrier density buildup~\cite{Yan2024}.
 
+\begin{figure}[H]
+\centering
+\fbox{\begin{minipage}{0.9\linewidth}
+\textbf{Figure Placeholder --- Literature Trends for Waveguide Photodetectors}\\[4pt]
+\textbf{Prompt:}
+\textit{Two-panel trend figure. Left panel: vertical Ge-on-Si
+waveguide-integrated photodetectors plotted as bandwidth versus publication
+year, with markers labelled or colour-coded by the main design lever
+(straight contact, inductive peaking, parasitic-capacitance reduction,
+U-shaped anode, and so on). Right panel: lateral Ge-on-Si waveguide
+photodetectors plotted on the same bandwidth-versus-year basis, highlighting
+the higher absolute bandwidth enabled by lateral scaling. Distinguish vertical
+and lateral device families clearly, and annotate the present benchmark
+(\SI{103}{\giga\hertz} single-U vertical PIN) as well as the Ge-fin results
+above \SI{200}{\giga\hertz}. The visual should communicate not only the upward
+trend, but the physical reason for that trend: parasitic reduction in vertical
+devices and geometry decoupling in lateral devices.}
+\end{minipage}}
+\caption{State-of-the-art trend summary for waveguide-integrated Ge-on-Si
+photodetectors. The chronology is best read as a sequence of physical
+interventions into $R_s$, $C_j$, and the transport path, rather than as a
+collection of disconnected record values.}
+\label{fig:pd_literature_trends}
+\end{figure}
+
 \subsection{Comparative Summary}
 \label{subsec:pd_compare}
 
@@ -1022,37 +1306,37 @@ by the authors. Bandwidth values are electrical $S_{21}$ or equivalent-circuit
 measurements unless noted. ``V'' = vertical junction.}
 \label{tab:pd_lit_vertical}
 \footnotesize
-\begin{adjustbox}{max width=\linewidth}
-\begin{tabular}{p{0.55cm} p{2.6cm} p{2.5cm} p{1.45cm} p{1.45cm} p{1.85cm}}
+\begin{adjustbox}{width=\textwidth}
+\begin{tabular}{c p{2.35cm} p{3.10cm} c c c}
 \toprule
 Year & Reference & Electrode / Coupling Strategy &
 $\mathcal{R}$ [A/W] &
 $I_d$ [nA] &
 $f_{3\,\mathrm{dB}}$ [GHz] \\
 \midrule
-2008 & Ang \textit{et al.}~\cite{Ang2010}
+2008 & \cite{Ang2010}
      & Evanescent, CMOS compat. & 0.92 & 570 & 11.3 \\
-2009 & Vivien \textit{et al.}~\cite{Vivien2009}
+2009 & \cite{Vivien2009}
      & Butt-coupled, straight contact & $\sim$1.0 & 18 & 42 \\
-2010 & Ramaswamy \textit{et al.}~\cite{Ramaswamy2010}
+2010 & \cite{Ramaswamy2010}
      & Evanescent, high-power & NR & $1.25\times10^5$ & 4.4 \\
-2013 & Novack \textit{et al.}~\cite{Novack2013} (no L)
+2013 & \cite{Novack2013} (no L)
      & Spiral waveguide, no peaking & 0.75 & 3000 & 30 \\
-2013 & Novack \textit{et al.}~\cite{Novack2013} (360 pH)
+2013 & \cite{Novack2013} (360 pH)
      & Inductive gain peaking & 0.75 & 3000 & 60 \\
-2013 & Fang \textit{et al.}~\cite{Fang2013}
+2013 & \cite{Fang2013}
      & Wet-etched Si recess & 0.60 & 170 & 21.5 \\
-2016 & Chen \textit{et al.}~\cite{Chen2016Si} (parallel Ge)
+2016 & \cite{Chen2016Si} (parallel Ge)
      & Parallel Ge, double-side illum. & 1.06 & 1820 & 35.8 \\
-2017 & Byrd \textit{et al.}~\cite{Byrd2017}
+2017 & \cite{Byrd2017}
      & Mode-evolution coupler & 0.70 & 1.16 & 40 \\
-2018 & Zhou \& Sun~\cite{Zhou2018}
+2018 & \cite{Zhou2018}
      & Photonic crystal size reduction & 0.75 & 160 & 17 \\
-2021 & Shi \textit{et al.}~\cite{Shi2021} (ref.)
+2021 & \cite{Shi2021} (ref.)
      & Conventional, no peaking & 1.00 & 4.5 & 27 \\
-2021 & Shi \textit{et al.}~\cite{Shi2021} (240 pH)
+2021 & \cite{Shi2021} (240 pH)
      & Parasitic param. eng., inductor & 0.89 & 6.4 & 80 \\
-\textbf{2024} & \textbf{Shi \textit{et al.}}~\cite{Shi2024}
+\textbf{2024} & \textbf{\cite{Shi2024}}
      & \textbf{U-shaped anode, 220 pH} & \textbf{0.95} & \textbf{1.3} & \textbf{103} \\
 \bottomrule
 \end{tabular}
@@ -1066,37 +1350,37 @@ junction. All devices are evanescently coupled unless noted. Dark currents are
 at the stated reverse bias; ``NR'' denotes values not reported.}
 \label{tab:pd_lit_lateral}
 \footnotesize
-\begin{adjustbox}{max width=\linewidth}
-\begin{tabular}{p{0.55cm} p{2.6cm} p{2.5cm} p{1.45cm} p{1.45cm} p{1.85cm}}
+\begin{adjustbox}{width=\textwidth}
+\begin{tabular}{c p{2.35cm} p{3.10cm} c c c}
 \toprule
 Year & Reference & Electrode / Key Feature &
 $\mathcal{R}$ [A/W] &
 $I_d$ [nA] &
 $f_{3\,\mathrm{dB}}$ [GHz] \\
 \midrule
-2015 & Lischke \textit{et al.}~\cite{Lischke2015} (conv.)
+2015 & \cite{Lischke2015} (conv.)
      & Conventional lateral & 0.64 & NR & 30 \\
-2015 & Lischke \textit{et al.}~\cite{Lischke2015} (new)
+2015 & \cite{Lischke2015} (new)
      & Reduced Ge dim., lateral offset & 1.00 & 100 & $>$70 \\
-2015 & Chen \textit{et al.}~\cite{Chen2015}
+2015 & \cite{Chen2015}
      & Si contacts, no Ge doping & 1.00 & 3.3 & 20 \\
-2016 & Chen \textit{et al.}~\cite{Chen2016Si}
+2016 & \cite{Chen2016Si}
      & Thin Ge for transit time & 0.74 & 2.5 & 67 \\
-2017 & Virot \textit{et al.}~\cite{Virot2017} ($W_{\mathrm{Ge}}=\SI{0.3}{\micro\metre}$)
+2017 & \cite{Virot2017} ($W_{\mathrm{Ge}}=\SI{0.3}{\micro\metre}$)
      & Si/Ge/Si heterojunction & NR & 5 & $>$50 \\
-2017 & Virot \textit{et al.}~\cite{Virot2017} ($W_{\mathrm{Ge}}=\SI{1}{\micro\metre}$)
+2017 & \cite{Virot2017} ($W_{\mathrm{Ge}}=\SI{1}{\micro\metre}$)
      & Si/Ge/Si heterojunction & 1.16 & 100 & 17.1 \\
-2019 & Benedikovic \textit{et al.}~\cite{Benedikovic2019}
+2019 & \cite{Benedikovic2019}
      & Si/Ge/Si heterojunction, 25 Gbps & 1.19 & 100 & 32 \\
-2022 & Su \textit{et al.}~\cite{Su2022}
+2022 & \cite{Su2022}
      & Short transmission-line electrode & 0.74 & 1890 & 25.4 \\
-2023 & Fujikata \textit{et al.}~\cite{Fujikata2023}
+2023 & \cite{Fujikata2023}
      & Franz-Keldysh + avalanche mult. & 0.83 & NR & 60 \\
-2024 & Cao \textit{et al.}~\cite{Cao2024}
+2024 & \cite{Cao2024}
      & Side-coupling, parallel Ge & 0.80 & 24 & $>$40 \\
-2021 & Lischke \textit{et al.}~\cite{Lischke2021} (150 nm Ge fin)
+2021 & \cite{Lischke2021} (150 nm Ge fin)
      & Ge fin, in-situ doped Si & 0.45 & 100--200 & 240 \\
-2021 & Lischke \textit{et al.}~\cite{Lischke2021} (100 nm Ge fin)
+2021 & \cite{Lischke2021} (100 nm Ge fin)
      & Ge fin, minimum width & 0.30 & 100--200 & \textbf{265} \\
 \bottomrule
 \end{tabular}
@@ -1379,480 +1663,22 @@ integral output quantities.
 
 
 
-\section{Device Evolution: From Photoconductor to Waveguide-Integrated PIN}
-\label{sec:pd_evolution}
+\section{Results and Discussion}
+\label{sec:pd_results}
 
-Before surveying the experimental literature it is necessary to establish
-\emph{why} the waveguide-integrated vertical PIN photodiode is the correct
-architectural choice for a \SI{100}{\giga\baud} Ge-on-Si receiver operating at
-\SI{1310}{\nano\metre}. This section constructs that justification
-progressively---starting from the simplest device (a photoconductor) and
-introducing each structural refinement with the specific physical argument that
-motivates it. The approach serves two purposes: it places every design decision
-in a causal chain that is traceable through the equations of
-\cref{sec:pd_concept}, and it defines the vocabulary of figures and equivalent
-circuits that are used throughout \cref{sec:pd_design,sec:pd_results,sec:pd_discussion}.
-
-\subsection{Stage I --- The Photoconductor: Gain at the Cost of Speed}
-\label{subsec:pd_evo_pc}
-
-The photoconductor is the simplest optoelectronic transducer: a slab of
-semiconducting material illuminated on its top surface, contacted by two
-ohmic electrodes at opposite ends, and biased by a voltage $V_b$ that drives
-a current through the photogenerated free carriers. The device has no junction;
-conduction and valence bands are flat in equilibrium, and optical absorption
-simply raises the carrier concentrations uniformly from their dark values
-$n_0,p_0$ to $n_0+\Delta n$, $p_0+\Delta p$.
-
-The photogenerated current density in a photoconductor of width $W$, length $L$,
-and thickness $d$ under uniform illumination of intensity $I_0$ is derived by
-noting that each absorbed photon injects one electron-hole pair of generation
-rate $G_{\mathrm{opt}}=\alpha I_0/\hbar\omega$. In steady state the excess
-carrier density is $\Delta n=G_{\mathrm{opt}}\tau_r$, where $\tau_r$ is the
-minority-carrier recombination lifetime. The photoconductance is:
-\begin{equation}
-    \Delta G = \frac{q\,(\mu_n+\mu_p)\,\Delta n\,W\,d}{L},
-    \label{eq:photoconductance}
-\end{equation}
-and the photocurrent becomes $\Delta I_{\mathrm{ph}}=\Delta G\cdot V_b$.
-The \emph{photoconductive gain}---the number of electron charges collected per
-absorbed photon---is:
-\begin{equation}
-    G_{\mathrm{PC}} = \frac{\tau_r}{\tau_{\mathrm{tr}}},
-    \qquad
-    \tau_{\mathrm{tr}} = \frac{L^2}{\mu_n V_b},
-    \label{eq:pc_gain}
-\end{equation}
-where $\tau_{\mathrm{tr}}$ is the electron transit time across the electrode
-gap. Large gain ($\tau_r\gg\tau_{\mathrm{tr}}$) is available in high-$\tau_r$
-materials (semi-insulators, III-Vs with long lifetimes), but the 3\,dB bandwidth
-is:
-\begin{equation}
-    f_{3\,\mathrm{dB,PC}} = \frac{1}{2\pi\tau_r},
-    \label{eq:pc_bw}
-\end{equation}
-so gain and bandwidth are reciprocally related through $\tau_r$. For germanium
-at \SI{300}{\kelvin}, $\tau_r\sim\SI{1}{\micro\second}$ for minority carriers
-in lightly doped material, giving $f_{3\,\mathrm{dB,PC}}\approx\SI{160}{\kilo\hertz}$---
-five orders of magnitude below the target of \SI{103}{\giga\hertz}. The
-photoconductor is therefore disqualified from high-speed operation by the
-gain-bandwidth product constraint of \cref{eq:pc_gain,eq:pc_bw}.
-
-\begin{figure}[H]
-\centering
-\fbox{\begin{minipage}{0.9\linewidth}
-\textbf{Figure Placeholder --- Photoconductor Device and Band Diagram}\\[4pt]
-\textbf{Prompt (FigureLab / MATLAB):}
-\textit{Four-panel figure. Panel (a): 3-D perspective sketch of a semiconductor
-slab (length $L$, width $W$, depth $d$) with two top ohmic contacts, bias voltage
-$V_b$ applied laterally, and downward arrows representing surface-normal
-illumination $I_0$. Shade the absorption region. Panel (b): flat energy
-band diagram $E_c$, $E_v$, $E_F$ in equilibrium (dashed) and under illumination
-(solid), showing quasi-Fermi level splitting $\Delta E_F = E_{F,n}-E_{F,p}$
-proportional to $\Delta n$. Panel (c): carrier transport cartoon showing long
-recombination lifetime $\tau_r$ and shorter transit time $\tau_{\mathrm{tr}}$,
-with collection and recombination arrows illustrating why gain requires repeated
-carrier circulation before recombination. Panel (d): gain-bandwidth product curve
-$G_{\mathrm{PC}}\times f_{3\,\mathrm{dB,PC}} = 1/(2\pi\tau_{\mathrm{tr}})$
-plotted versus $\tau_r$ from \SI{1}{\nano\second} to \SI{10}{\micro\second},
-with the target $f_{3\,\mathrm{dB}}=\SI{103}{\giga\hertz}$ marked as a horizontal
-dashed line showing that no physically realisable $\tau_r$ achieves this bandwidth
-with unity or greater gain.}
-\end{minipage}}
-\caption{Photoconductor operating principle and gain-bandwidth constraint from
-\cref{eq:pc_gain,eq:pc_bw}. The gain-bandwidth product is fixed by the transit
-time $\tau_{\mathrm{tr}}$ and is independent of material choice, ruling out
-the photoconductor for any application requiring $f_{3\,\mathrm{dB}}\geq\SI{1}{\giga\hertz}$.}
-\label{fig:photoconductor_evo}
-\end{figure}
-
-\subsection{Stage II --- The PN Photodiode: Introducing the Depletion Region}
-\label{subsec:pd_evo_pn}
-
-The fundamental limitation of the photoconductor is the absence of any internal
-electric field to sweep carriers rapidly and selectively. The PN junction
-addresses this by creating, at the metallurgical junction between $p$- and
-$n$-doped regions, a space-charge region (depletion region) of width $W_d$ in
-which the built-in electric field:
-\begin{equation}
-    E_{\mathrm{bi}} = \frac{qN_A N_D (W_{dp}+W_{dn})}{\varepsilon_s(N_A+N_D)}
-    = \sqrt{\frac{2qV_{\mathrm{bi}}}{\varepsilon_s}
-      \frac{N_A N_D}{N_A+N_D}},
-    \label{eq:pn_efield}
-\end{equation}
-separates photogenerated electron-hole pairs before they can recombine. Carriers
-generated within $W_d$ are swept to the contacts at velocities limited by
-\cref{eq:mobility_sat}; carriers generated outside $W_d$ in the quasi-neutral
-regions must first diffuse to the depletion edge, a process governed by the
-minority-carrier diffusion length $L_{n,p}=\sqrt{D_{n,p}\tau_0}$.
-
-The 3\,dB bandwidth of a reverse-biased PN photodiode is still limited by transit
-time and RC, but the gain-bandwidth constraint of \cref{eq:pc_bw} no longer
-applies: carriers are swept by the field rather than recombining, so the
-responsivity is decoupled from the lifetime. However, two new limitations emerge.
-First, the diffusion tail from quasi-neutral regions introduces a slow
-low-frequency component in the impulse response:
-\begin{equation}
-    H_{\mathrm{PN}}(f) = H_{\mathrm{drift}}(f)\cdot\underbrace{\frac{1}{1+j2\pi f\tau_D}}_{\text{diffusion tail}},
-    \label{eq:hpn}
-\end{equation}
-where $\tau_D\sim L_p^2/D_p$ is the diffusion time across the quasi-neutral
-$n$-region. Second, for the high doping levels required to minimise series
-resistance, $W_d$ is narrow
-($W_d\propto[(N_A^{-1}+N_D^{-1})V_{\mathrm{bi}}]^{1/2}$), forcing the absorber
-to be thin and therefore reducing $\mathcal{A}$ of \cref{eq:abs_fraction}.
-Heavy doping also increases band-to-band tunnelling dark current at high reverse
-bias, raising the noise floor.
-
-\begin{figure}[H]
-\centering
-\fbox{\begin{minipage}{0.9\linewidth}
-\textbf{Figure Placeholder --- PN Photodiode Structure, Band Diagram, and Impulse Response}\\[4pt]
-\textbf{Prompt:}
-\textit{Four-panel figure. Panel (a): cross-section of surface-illuminated PN
-photodiode showing $p$-region, depletion region of width $W_d$, and $n$-region.
-Downward arrows indicate photon flux. Panel (b): energy band diagram $E_c(x)$,
-$E_v(x)$ under reverse bias $V_R$, showing band bending across $W_d$, the
-electric field arrow, and quasi-Fermi levels under illumination. Panel (c):
-normalised photocurrent impulse response $h(t)$: a fast rectangular drift pulse
-of duration $W_d/v_{\mathrm{sat}}$ followed by an exponential diffusion tail of
-decay constant $\tau_D\gg W_d/v_{\mathrm{sat}}$. Panel (d): corresponding frequency
-response $|H_{\mathrm{PN}}(f)|^2$ in dB showing the sinc-like transit-time
-roll-off (solid) and its further degradation by the diffusion pole (dashed) at
-$f_D=1/(2\pi\tau_D)$.}
-\end{minipage}}
-\caption{PN photodiode operating principle from \cref{eq:pn_efield,eq:hpn}. The
-diffusion tail from the quasi-neutral regions limits the effective bandwidth
-below the transit-time prediction and motivates the PIN architecture of
-\cref{subsec:pd_evo_pin}.}
-\label{fig:pn_evo}
-\end{figure}
-
-\subsection{Stage III --- The PIN Photodiode: Eliminating the Diffusion Tail}
-\label{subsec:pd_evo_pin}
-
-The PIN photodiode resolves the diffusion-tail problem of the PN junction by
-inserting a lightly doped (intrinsic) layer of thickness $W_i$ between the
-$p^{++}$ and $n^{++}$ contact layers. Under reverse bias
-$|V_{\mathrm{bias}}|\geq V_{\mathrm{BI}}$, the depletion region expands to
-fill the entire intrinsic layer, so $W_d\approx W_i$. The electric field profile
-across the depleted intrinsic region is approximately uniform:
-\begin{equation}
-    E(x) \approx \frac{|V_{\mathrm{bias}}|+V_{\mathrm{bi}}}{W_i}
-    \quad \forall\, x\in[0,W_i],
-    \label{eq:pin_efield_uniform}
-\end{equation}
-and all photogeneration occurs within this field region because the heavily
-doped $n^{++}$ and $p^{++}$ contact layers are too thin to absorb
-appreciably at \SI{1310}{\nano\metre} (only \SI{50}{\nano\metre} for the
-$n^{++}$-Ge cathode in the present device). The diffusion tail of \cref{eq:hpn}
-is therefore eliminated: the photocurrent impulse response is the purely
-rectangular drift pulse of \cref{eq:bw_tt}, and the bandwidth model of
-\cref{eq:bw_total} applies without the $\tau_D$ correction. The three-terminal
-equivalent circuit of the reverse-biased PIN diode is:
-
-\begin{equation}
-    Z_{\mathrm{PD}}(\omega)
-    = R_s + \frac{1}{j\omega C_j + 1/R_{\mathrm{shunt}}},
-    \label{eq:zpd}
-\end{equation}
-where $R_s$ is the series resistance of the contact layers and $R_{\mathrm{shunt}}\approx V_{\mathrm{bias}}/I_d$
-is the dynamic shunt resistance set by the dark current.
-
-\begin{figure}[H]
-\centering
-\fbox{\begin{minipage}{0.9\linewidth}
-\textbf{Figure Placeholder --- PIN Photodiode: Structure, Band Diagram, Equivalent Circuit, and Impulse Response}\\[4pt]
-\textbf{Prompt:}
-\textit{Four-panel figure. Panel (a): cross-section of PIN structure: $p^{++}$
-contact (\SI{50}{\nano\metre}), intrinsic layer $W_i$ (\SI{350}{\nano\metre}),
-$n^{++}$ contact (\SI{50}{\nano\metre}), metal electrodes top and bottom. Show
-uniform photon-flux arrow and spatially uniform generation rate within $W_i$.
-Panel (b): energy band diagram at equilibrium (dashed) and at \SI{-1}{\volt}
-reverse bias (solid), with flat quasi-Fermi levels in contact regions and full
-depletion of intrinsic layer. Annotate $V_{\mathrm{bi}}$, $W_i$, and the uniform
-electric field $E=(V_{\mathrm{bi}}+|V_R|)/W_i$. Panel (c): lumped small-signal
-equivalent circuit: current source $i_{\mathrm{ph}}=\mathcal{R}P_{\mathrm{opt}}$
-in parallel with $C_j$ and $R_{\mathrm{shunt}}$, in series with $R_s$ and load
-$R_L=\SI{50}{\ohm}$. Panel (d): normalised impulse response $h(t)$---pure
-rectangular pulse of duration $W_i/v_{\mathrm{d,sat,h}}$---and its Fourier
-magnitude $|\mathrm{sinc}(f/f_{\mathrm{tt}})|^2$ dB, with the $-3\,\mathrm{dB}$
-point at $f_{\mathrm{tt}}=0.45\,v_{\mathrm{d,sat,h}}/W_i$.}
-\end{minipage}}
-\caption{PIN photodiode device structure, band diagram, lumped equivalent circuit
-from \cref{eq:zpd}, and impulse-response frequency content from \cref{eq:bw_tt}.
-The PIN eliminates the diffusion tail of the PN device by constraining all
-photogeneration to the depleted intrinsic region, where $E>E_{\mathrm{sat}}$
-and carrier velocities are saturated throughout.}
-\label{fig:pin_evo}
-\end{figure}
-
-\paragraph{Why PIN over APD?}
-An avalanche photodiode (APD) introduces an internal gain mechanism via impact
-ionisation: for each photogenerated carrier pair entering the high-field
-multiplication region, an avalanche of secondary carriers is generated, giving
-a multiplication factor $M\gg1$ and an effective responsivity
-$\mathcal{R}_{\mathrm{APD}}=M\mathcal{R}_{\mathrm{PIN}}$. This appears
-advantageous for sensitivity, and indeed the APD achieves a minimum detectable
-power approximately $\sqrt{M}$ better than the shot-noise-limited PIN for
-optimised $M$~\cite{SalehTeich1991}. However, four physical and engineering
-constraints disqualify the APD for the \SI{103}{\giga\baud} application.
-
-\textbf{Bandwidth-gain trade-off.}
-The gain-bandwidth product of a Ge-on-Si APD is fixed by the avalanche build-up
-time $\tau_{\mathrm{av}}\sim M/(2\pi f_{\mathrm{T}})$, where $f_{\mathrm{T}}$
-is the ionisation-rate-limited transit frequency. For $M\gtrsim5$, the resulting
-bandwidth falls below \SI{50}{\giga\hertz} in all reported Ge-on-Si
-devices~\cite{Yan2024}.
-
-\textbf{Excess noise.}
-Impact ionisation is a stochastic process: the actual multiplication factor $m$
-fluctuates about $M$ with variance
-$\sigma_m^2=M^2(M-1)F(M)$, where $F(M)\geq1$ is the excess noise factor
-governed by the ionisation coefficient ratio $k=\alpha_h/\alpha_e$. For
-germanium, $k\approx0.9$ (nearly equal hole and electron ionisation coefficients),
-giving $F(M)\approx2M-1$, so the excess noise grows as $M^2$ and rapidly
-dominates shot noise for $M>3$.
-
-\textbf{Voltage requirements.}
-Ge-on-Si APDs require $>20$\,V reverse bias to sustain avalanche multiplication,
-which is incompatible with the \SI{1.8}{\volt} supply rails of advanced CMOS
-nodes that host the TIA.
-
-\textbf{Process complexity.}
-The multiplication region requires separate implantation of the charge layer to
-control the electric field profile, adding process steps incompatible with the
-foundry standard flow.
-
-At \SI{103}{\giga\baud}, the PIN at \SI{-1}{\volt} with $\mathcal{R}=\SI{0.95}{\ampere\per\watt}$
-achieves $P_{\mathrm{sens}}\approx\SI{-17.1}{\dBm}$ from \cref{eq:sens_full}.
-An APD with $M=3$ would improve this by
-$10\log_{10}(M)\approx\SI{4.8}{\dB}$
-but reduce $f_{3\,\mathrm{dB}}$ to below \SI{50}{\giga\hertz}, requiring the DSP
-to compensate an additional \SI{6}{\dB} of roll-off penalty---a net loss of more
-than \SI{1}{\dB}. The PIN is therefore the correct device for the specified
-operating point.
-
-\begin{figure}[H]
-\centering
-\fbox{\begin{minipage}{0.9\linewidth}
-\textbf{Figure Placeholder --- PIN vs APD: Sensitivity and Bandwidth Comparison}\\[4pt]
-\textbf{Prompt:}
-\textit{Two-panel figure. Left panel: receiver sensitivity $P_{\mathrm{sens}}$
-(dBm) versus symbol rate $R_s$ (Gbaud) from 10 to 200, comparing three curves:
-(i) PIN with $\mathcal{R}=0.95$\,A/W and $f_{3\,\mathrm{dB}}=103$\,GHz; (ii)
-APD with $M=3$, $F(M)=5$, and $f_{3\,\mathrm{dB}}=45$\,GHz; (iii) APD with
-$M=5$, $F(M)=9$, and $f_{3\,\mathrm{dB}}=25$\,GHz. Include the equalisation
-noise penalty for $f_{\mathrm{Nyq}}>f_{3\,\mathrm{dB}}$. Right panel:
-normalised frequency response $|H(f)|^2$ (dB) for the same three devices,
-with vertical dashed lines at $f_{\mathrm{Nyq}}=50$\,GHz (OOK 100G) and
-$f_{\mathrm{Nyq}}=100$\,GHz (PAM4 400G), showing the APD responses crossing
-the Nyquist frequency inside the roll-off.}
-\end{minipage}}
-\caption{Quantitative comparison of PIN and APD receiver performance at high
-symbol rates. The APD sensitivity advantage is eroded by bandwidth limitation
-and excess noise at $M>3$; the PIN dominates at $R_s\geq\SI{56}{\giga\baud}$
-and is the only viable choice at \SI{103}{\giga\baud} for the IEEE~802.3
-400GBASE-DR4 application of \cref{sec:pd_system}.}
-\label{fig:pin_vs_apd}
-\end{figure}
-
-\subsection{Stage IV --- Why Germanium? A Material-Physics Argument}
-\label{subsec:pd_evo_ge}
-
-The choice of germanium as the absorbing material for O-band detection on a
-silicon photonic platform is not arbitrary: it is the \emph{only} elemental
-or binary semiconductor that simultaneously satisfies five hard constraints.
-
-\paragraph{Constraint 1 --- Absorption at \SI{1310}{\nano\metre}.}
-Silicon is transparent at \SI{1310}{\nano\metre}: its indirect bandgap
-of \SI{1.12}{\electronvolt} corresponds to a photon wavelength of
-$\lambda_g=hc/E_g=\SI{1107}{\nano\metre}$, and its absorption coefficient
-drops to $\alpha_{\mathrm{Si}}\lesssim\SI{10}{\per\centi\metre}$ above this
-wavelength---three orders of magnitude below germanium's
-$\alpha_{\mathrm{Ge}}\approx\SI{2.1e3}{\per\centi\metre}$ at \SI{1310}{\nano\metre}.
-This single fact, derived through \cref{eq:alpha_kappa} from the imaginary parts
-of the respective complex refractive indices, makes germanium necessary.
-
-\paragraph{Constraint 2 --- Direct-gap proximity at the O-band photon energy.}
-As established in \cref{subsec:pd_bandstructure}, the O-band photon energy of
-\SI{0.946}{\electronvolt} exceeds germanium's direct gap
-$E_{g,\mathrm{dir}}=\SI{0.80}{\electronvolt}$ by \SI{0.15}{\electronvolt},
-enabling momentum-conserved direct transitions at the $\Gamma$-point with
-large oscillator strength. The resulting $\alpha\approx\SI{2.1e3}{\per\centi\metre}$
-gives an absorption length of $\alpha^{-1}\approx\SI{4.8}{\micro\metre}$---short
-enough to be integrated within a \SI{6}{\micro\metre} device without an excessive
-capacitance penalty.
-
-\paragraph{Constraint 3 --- CMOS compatibility.}
-Germanium can be grown heteroepitaxially on silicon by low-temperature chemical
-vapour deposition (LT-CVD) at substrate temperatures below \SI{400}{\celsius},
-compatible with the back-end-of-line (BEOL) thermal budget of a CMOS foundry.
-III-V alternatives (InGaAs, InP) achieve superior absorption coefficients
-($\alpha_{\mathrm{InGaAs}}\approx\SI{e4}{\per\centi\metre}$) but require III-V
-substrates incompatible with standard Si wafer processing, and their direct
-wafer bonding to SOI introduces interfacial states that increase dark current
-and reduce thermal conductivity.
-
-\paragraph{Constraint 4 --- High carrier saturation velocities.}
-The transit-time limit of \cref{eq:bw_tt} requires
-$v_{\mathrm{d,sat},h}$ to be as large as possible for a given $W_i$.
-Germanium's hole saturation velocity $v_{\mathrm{d,sat},h}=\SI{4e6}{\centi\metre\per\second}$
-is approximately \SI{60}{\percent} higher than that of silicon
-(\SI{2.5e6}{\centi\metre\per\second}), giving a proportionally higher
-$f_{\mathrm{tt}}$ for the same absorber thickness.
-
-\paragraph{Constraint 5 --- Low-field mobility for saturation at low bias.}
-The field required to saturate hole velocity is
-$E_{\mathrm{sat},h}\approx v_{\mathrm{d,sat},h}/\mu_p^{(0)}$. For germanium,
-$E_{\mathrm{sat},h}\approx4\times10^6/1900\approx\SI{21}{\kilo\volt\per\centi\metre}$;
-for silicon, $E_{\mathrm{sat,Si},h}\approx2.5\times10^6/480\approx\SI{52}{\kilo\volt\per\centi\metre}$.
-Germanium reaches saturation at a field approximately $2.5\times$ lower than
-silicon, allowing the desired $E>E_{\mathrm{sat}}$ throughout $W_i$ to be
-achieved at only \SI{-1}{\volt} reverse bias---compatible with single-supply
-CMOS integration.
-
-\begin{table}[H]
-\centering
-\caption{Material properties of candidate photodetector absorbers at
-\SI{300}{\kelvin}. Values for Ge and Si are well-established; InGaAs and
-Ge$_{1-x}$Sn$_x$ are included to bound the design space. ``N/A-CMOS'' denotes
-CMOS process incompatibility. $\alpha$ values are at \SI{1310}{\nano\metre}.}
-\label{tab:material_compare}
-\footnotesize
-\begin{adjustbox}{max width=\linewidth}
-\begin{tabular}{lcccccc}
-\toprule
-Material & $E_g$ [eV] & $\alpha_{1310}$ [\si{\per\centi\metre}] &
-$v_{\mathrm{sat},h}$ [\si{\centi\metre\per\second}] &
-$\mu_p$ [\si{\centi\metre\squared\per\volt\per\second}] &
-$\Delta a/a_{\mathrm{Si}}$ [\%] & CMOS compat. \\
-\midrule
-Ge          & 0.66 (ind.), 0.80 (dir.) & $\sim2100$ & \SI{4e6}{} & 1900 & 4.2 & \checkmark \\
-Si          & 1.12 (ind.)              & $\sim10$   & \SI{2.5e6}{}& 480  & 0   & N/A (transp.) \\
-InGaAs (lattice-matched to InP) & 0.75 & $\sim1\times10^4$ & \SI{5e6}{} & 4500 & $>5$ & N/A-CMOS \\
-Ge$_{0.92}$Sn$_{0.08}$ & $\sim0.55$ (dir.) & $>5000$ & $\sim$\SI{4e6}{} & $\sim$1500 & 4.8 & Research \\
-\bottomrule
-\end{tabular}
-\end{adjustbox}
-\end{table}
-
-\Cref{tab:material_compare} makes the material selection argument unambiguous:
-Ge is the only absorber that simultaneously offers appreciable $\alpha_{1310}$,
-high $v_{\mathrm{sat},h}$, low-bias saturation, and CMOS process compatibility.
-InGaAs would offer a factor of five in $\alpha$ and higher $\mu_p$, but its
-incompatibility with silicon wafer processing eliminates it from foundry
-integration. Ge$_{1-x}$Sn$_x$ with $x\geq0.06$ achieves a direct gap below
-the indirect gap (becoming a true direct-gap material~\cite{Yan2024}), offering
-$\alpha>2\times\alpha_{\mathrm{Ge}}$ at \SI{1310}{\nano\metre}, but the Sn
-segregation during growth limits maximum Sn content and TDD remains high at
-current research maturity.
-
-\begin{figure}[H]
-\centering
-\fbox{\begin{minipage}{0.9\linewidth}
-\textbf{Figure Placeholder --- Absorption Coefficient Comparison and Band Structure}\\[4pt]
-\textbf{Prompt:}
-\textit{Two-panel figure. Left panel: absorption coefficient $\alpha(\lambda)$
-[\si{\per\centi\metre}] on log scale versus wavelength from 900 to
-\SI{1600}{\nano\metre} for Ge (solid blue), Si (solid red), InGaAs (dashed green),
-and Ge$_{0.92}$Sn$_{0.08}$ (dotted purple). Mark vertical dashed lines at
-\SI{1310}{\nano\metre} (O-band) and \SI{1550}{\nano\metre} (C-band). Annotate
-$\alpha_{\mathrm{Ge}}(1310\,\mathrm{nm})\approx2100$\,cm$^{-1}$ and the Si
-transparency cutoff at \SI{1107}{\nano\metre}. Right panel: schematic Brillouin
-zone band structures of Ge and Si side by side, both showing conduction band
-minima at $L$-point (Ge) and $\Delta$-point (Si), valence band maxima at
-$\Gamma$, and the direct gaps $E_{g,\mathrm{dir}}^{\mathrm{Ge}}=\SI{0.80}{\electronvolt}$,
-$E_{g,\mathrm{dir}}^{\mathrm{Si}}=\SI{3.4}{\electronvolt}$. Draw the O-band
-photon energy $\hbar\omega=\SI{0.946}{\electronvolt}$ as a horizontal arrow,
-showing it exceeds $E_{g,\mathrm{dir}}^{\mathrm{Ge}}$ (enabling direct absorption)
-but is far below $E_{g,\mathrm{dir}}^{\mathrm{Si}}$ (transparent).}
-\end{minipage}}
-\caption{Absorption coefficient spectra (left) and band structure comparison (right)
-demonstrating the material selection argument of \cref{subsec:pd_evo_ge}.
-Germanium is the unique CMOS-compatible absorber satisfying all five design
-constraints: absorption at \SI{1310}{\nano\metre}, direct-gap proximity, CMOS
-epitaxy, high saturation velocity, and low-bias saturation.}
-\label{fig:ge_vs_si_material}
-\end{figure}
-
-\subsection{Stage V --- Surface Illumination versus Waveguide Coupling}
-\label{subsec:pd_evo_wg}
-
-Given that the PIN architecture and the germanium absorber are both justified,
-the final architectural decision is the illumination geometry: should the optical
-field be delivered through the top surface (surface-normal illumination, SNI) or
-through a co-planar silicon waveguide (waveguide coupling, WC)?
-
-In the SNI geometry, the optical field propagates vertically, collinear with the
-carrier collection direction. The absorber thickness $W_i$ must therefore satisfy
-both the absorption requirement $W_i\gg\alpha^{-1}$ and the bandwidth requirement
-$W_i\ll v_{\mathrm{d,sat},h}/f_{3\,\mathrm{dB}}$. These requirements are
-\emph{antagonistic}: with $\alpha^{-1}\approx\SI{4.8}{\micro\metre}$ at
-\SI{1310}{\nano\metre}, absorbing $>90\%$ of the incident power requires
-$W_i>\SI{11}{\micro\metre}$, while the transit-time bandwidth target
-$f_{\mathrm{tt}}\geq\SI{51}{\giga\hertz}$ from \cref{eq:bw_tt} constrains
-$W_i\leq v_{\mathrm{d,sat},h}/(0.45\times f_{\mathrm{tt}})\approx\SI{350}{\nano\metre}$.
-The ratio $11\,\mu\mathrm{m}/350\,\mathrm{nm}\approx31$ is the fundamental
-SNI incompatibility factor at the O-band: it is physically impossible to satisfy
-both constraints simultaneously in the surface-normal geometry.
-
-The waveguide-coupled geometry resolves this incompatibility by decoupling the
-two dimensions: optical propagation proceeds along $\hat{z}$ (the waveguide axis)
-while carrier collection occurs along $\hat{y}$ (the growth axis). The absorber
-length $L$ along $\hat{z}$ is optimised independently for absorption through
-$\mathcal{A}(L)=1-\exp(-\alpha L)$ of \cref{eq:abs_fraction}, and the absorber
-thickness $W_i$ along $\hat{y}$ is optimised independently for transit-time
-bandwidth through \cref{eq:bw_tt}. This orthogonality is the defining structural
-advantage of waveguide-coupled photodetectors over their surface-illuminated
-counterparts~\cite{Wang2024,Yan2024}.
-
-\begin{figure}[H]
-\centering
-\fbox{\begin{minipage}{0.9\linewidth}
-\textbf{Figure Placeholder --- SNI vs Waveguide Coupling: Orthogonality Principle}\\[4pt]
-\textbf{Prompt:}
-\textit{Four-panel figure. Panel (a): SNI geometry---top-illuminated PIN cross-section
-with arrows showing light propagation direction (down, $-\hat{y}$) collinear
-with carrier collection direction (up, $+\hat{y}$). Draw the conflicting
-constraints: vertical arrow labelled ``absorption requires $W_i>11\,\mu$m'' and
-opposing arrow labelled ``bandwidth requires $W_i<350\,\mathrm{nm}$''. Shade the
-absorber in red to indicate the infeasible regime. Panel (b): WG-coupled
-geometry---side view of silicon waveguide transitioning into Ge absorber via taper,
-with light propagating along $\hat{z}$ (horizontal blue arrow) and carriers
-collected along $\hat{y}$ (vertical green arrow). Label $L$ (absorption dimension)
-and $W_i$ (bandwidth dimension) as independent parameters. Panel (c): direct
-coupling versus taper-assisted coupling, showing mode-overlap sketches, facet
-reflection arrows, and a qualitative insertion-loss comparison that explains why
-the taper is selected instead of abrupt coupling. Panel (d): contour
-plot of achievable EQE $\eta_{\mathrm{ext}}$ (\%) as a function of $L$
-(\SI{0}{}--\SI{10}{\micro\metre}) and $W_i$
-(\SI{100}{}--\SI{800}{\nano\metre}), with iso-bandwidth contours of
-$f_{\mathrm{tt}}$ (GHz) overlaid as dashed lines, showing the
-two-dimensional feasible design region accessible only to WG coupling.}
-\end{minipage}}
-\caption{The orthogonality principle of waveguide-coupled photodetection. In
-the SNI geometry (left), absorption length and transit-time dimension are
-collinear and set conflicting constraints that cannot be simultaneously satisfied
-at the O-band. The WG geometry (centre) decouples them, enabling the two-dimensional
-design space shown at right, from which the optimal point
-($L=\SI{6}{\micro\metre}$, $W_i=\SI{350}{\nano\metre}$) marked by a star achieves
-$\eta_{\mathrm{ext}}\geq90\%$ and $f_{\mathrm{tt}}\geq\SI{51}{\giga\hertz}$.}
-\label{fig:wg_vs_sni}
-\end{figure}
-
-\section{Electrode Topology: From Straight to U-shaped Anode}
+\subsection{Electrode Topology: From Straight to U-shaped Anode}
+\label{subsec:pd_electrode}
 \label{sec:pd_electrode}
 
 Having established the physical justification for the waveguide-integrated
-vertical PIN architecture, this section addresses the remaining engineering
+vertical PIN architecture, this subsection addresses the remaining engineering
 degree of freedom: the electrode geometry. This is not a cosmetic choice---as
 the analysis below demonstrates, the anode electrode layout is the primary
 determinant of the RC bandwidth in the vertical architecture, and selecting the
 wrong topology incurs a penalty of approximately \SI{20}{\giga\hertz} in
 $f_{3\,\mathrm{dB}}$ relative to the present state of the art.
 
-\subsection{The Vertical n-i-p Equivalent Circuit}
+\subsubsection{The Vertical n-i-p Equivalent Circuit}
 \label{subsec:pd_eqckt}
 
 The complete small-signal equivalent circuit of the waveguide-coupled vertical
@@ -1889,25 +1715,12 @@ roll-off of \cref{eq:bw_tt} is the complete frequency response used in
 
 \begin{figure}[H]
 \centering
-\fbox{\begin{minipage}{0.9\linewidth}
-\textbf{Figure Placeholder --- Full Small-Signal Equivalent Circuit}\\[4pt]
-\textbf{Prompt:}
-\textit{Detailed circuit diagram with the following elements from left to right:
-photocurrent source $I_{\mathrm{ph}}(t)=\mathcal{R}P_{\mathrm{opt}}$ (arrow
-symbol); parallel combination of $C_j=\varepsilon_0\varepsilon_{\mathrm{Ge}}A_j/W_i$
-and $G_{\mathrm{sh}}=I_d/V_{\mathrm{bias}}$ (representing the junction admittance);
-in series with $R_{s,\mathrm{cat}}$ (cathode path through $n^{++}$-Ge and via)
-and $R_{s,\mathrm{an}}$ (anode path through $p^{++}$-Si platform to pad metal);
-then $C_{\mathrm{par}}$ (bondpad capacitance, connected from node between
-$R_{s,\mathrm{an}}$ and $R_L$ to ground); finally load $R_L=\SI{50}{\ohm}$ to
-ground with output voltage $V_{\mathrm{out}}$. Below the circuit: annotate the
-dominant contribution to $R_s$ for (i) parallel-electrode and (ii) U-shaped
-electrode topologies, with arrows pointing to $R_{s,\mathrm{an}}$ showing the
-\SI{36}{\percent} reduction from the U-shape. Include numerical values:
-$C_j\approx\SI{1.8}{\femto\farad}$, $C_{\mathrm{par}}\approx\SI{10}{\femto\farad}$,
-$R_{s,\mathrm{an}}^{\mathrm{parallel}}\approx\SI{8}{\ohm}$,
-$R_{s,\mathrm{an}}^{\mathrm{U}}\approx\SI{5}{\ohm}$.}
-\end{minipage}}
+\missingfigure[figwidth=0.84\linewidth]{
+    Complete small-signal equivalent circuit of the vertical n-i-p detector,
+    including the photocurrent source, junction capacitance, shunt
+    conductance, parasitic capacitance, \SI{50}{\ohm} load, and the dominant
+    anode resistance term whose value changes between the straight and
+    U-shaped layouts.}
 \caption{Complete small-signal equivalent circuit of the vertical n-i-p waveguide
 photodiode including all parasitic elements from \cref{eq:hrc_full}. The dominant
 bandwidth-limiting resistance is $R_{s,\mathrm{an}}$---the lateral conduction path
@@ -1916,7 +1729,7 @@ U-shaped electrode topology relative to the parallel-electrode design.}
 \label{fig:eq_circuit}
 \end{figure}
 
-\subsection{Parallel-Electrode versus U-shaped Anode: Quantitative Comparison}
+\subsubsection{Parallel-Electrode versus U-shaped Anode: Quantitative Comparison}
 \label{subsec:pd_electrode_compare}
 
 In the standard parallel-electrode (straight-anode) architecture, the metal
@@ -1985,29 +1798,12 @@ opens a favourable region of the coupled $(R_s,C_j,L_p)$ design space.
 
 \begin{figure}[H]
 \centering
-\fbox{\begin{minipage}{0.9\linewidth}
-\textbf{Figure Placeholder --- Parallel vs U-shaped Electrode: Geometry, Current Path, and Bandwidth}\\[4pt]
-\textbf{Prompt:}
-\textit{Four-panel figure. Panel (a): top-view plan of parallel-electrode geometry
-showing the Ge mesa (grey rectangle, $W_m=\SI{5}{\micro\metre}$, $L=\SI{6}{\micro\metre}$),
-$p^{++}$-Si platform (light blue), metal anode pad on one side only (yellow),
-and cathode pad on top of mesa. Superimpose current streamlines in the Si platform
-flowing from the far mesa sidewall to the anode pad, showing the long path
-$\ell_a^{\mathrm{par}}$. Panel (b): equivalent top-view of U-shaped electrode
-with anode metal wrapping three sides of the mesa (yellow U-shape), showing
-halved current path $\ell_a^{\mathrm{U}}$. Panel (c): reduced equivalent-circuit
-view mapping the changed current path onto the dominant anode resistance
-$R_{s,\mathrm{an}}$ and the RC bottleneck. Panel (d): $f_{3\,\mathrm{dB}}$
-(GHz) versus $R_s$ (\si{\ohm}) from 0 to \SI{20}{\ohm} computed from
-\cref{eq:bw_total} with $f_{\mathrm{tt}}=\SI{51}{\giga\hertz}$ and
-$C_j=\SI{1.8}{\femto\farad}$. Mark the parallel-electrode point
-($R_s\approx\SI{8}{\ohm}$, $f_{3\,\mathrm{dB}}\approx\SI{43}{\giga\hertz}$)
-and the U-shaped point ($R_s\approx\SI{5}{\ohm}$,
-$f_{3\,\mathrm{dB}}\approx\SI{47}{\giga\hertz}$) with filled circles.
-Overlay benchmark-calibrated peaked points at \SI{83}{\giga\hertz}
-(parallel) and \SI{103}{\giga\hertz} (single-U). Annotate the bandwidth gain
-and distinguish the lower-bound transit ceiling from the full peaked response.}
-\end{minipage}}
+\missingfigure[figwidth=0.86\linewidth]{
+    Four-panel topology figure. Straight and U-shaped electrode layouts are
+    compared in plan view, their current paths are mapped to the dominant
+    anode resistance, and the resulting bandwidth shift is shown relative to
+    the lower-bound transport ceiling and the benchmark-calibrated peaked
+    response.}
 \caption{Parallel-electrode versus U-shaped anode comparison. The current path
 in the $p^{++}$-Si platform is halved by the U-shape (left to centre panels),
 reducing $R_{s,\mathrm{an}}$ by \SI{36}{\percent} from \cref{eq:rs_ratio}.
@@ -2036,9 +1832,6 @@ quantified in \cref{subsec:pd_fdtd}: the coupled FDTD-CHARGE simulation
 requires \SI{11}{\hour} per design point, making a full double-U parameter
 sweep computationally prohibitive.
 
-\section{Results}
-\label{sec:pd_results}
-
 \subsection{Benchmark Reproduction and O-band Adaptation Path}
 \label{subsec:pd_benchmark_oband}
 
@@ -2064,11 +1857,11 @@ electrode concept.
 
 \begin{figure}[H]
     \centering
-    \fbox{
-    \parbox{0.92\linewidth}{
-    \textbf{[Figure X: From benchmark reproduction to O-band adaptation]}
-
-    \textbf{Prompt:} Generate a four-panel workflow figure. Panel (a): the reproduced single-U benchmark at C-band, showing the vertical Ge PIN cross-section, U-shaped anode, on-electrode inductance $L_p$, and the reported metrics $\mathcal{R}$, $I_d$, and $f_{3\,\mathrm{dB}}$. Panel (b): adaptation arrow from \SI{1550}{\nano\metre} to \SI{1310}{\nano\metre}, highlighting which parameters stay fixed (junction polarity, vertical stack, U-shaped topology, RF peaking concept) and which are re-optimised (absorber length $L$, taper coupling, junction footprint $A_j$, optical generation profile, screening threshold). Panel (c): dependency map linking $\alpha(\lambda)\rightarrow \mathcal{A}(L)\rightarrow \mathcal{R}$, $A_j\rightarrow C_j\rightarrow f_{\mathrm{RC}}$, and $(R_s,L_p,C_p)\rightarrow H_{\mathrm{PD,pk}}(\omega)$. Panel (d): simulation-cost map showing the FDTD, CHARGE, and validation workflow cost per design point, together with the combinatorial growth that motivates faster surrogate models for larger topology spaces. Use colour coding to separate optical, transport, RF, and workflow-cost variables.}}
+    \missingfigure[figwidth=0.88\linewidth]{
+        Four-panel workflow figure. Benchmark reproduction at C-band, O-band
+        adaptation from \SI{1550}{\nano\metre} to \SI{1310}{\nano\metre},
+        dependency map linking optical and electrical variables, and the
+        simulation-cost ladder motivating reduced-order and surrogate models.}
     \caption{Design flow adopted in this chapter. The literature benchmark fixes
     the high-speed electrical reference, while the O-band adaptation re-optimises
     the wavelength-dependent optical and geometrical variables needed for
@@ -2377,7 +2170,7 @@ $P_{\mathrm{sens}}$ (shot-noise limited)
 \end{adjustbox}
 \end{table}
 
-\section{Discussion}
+\subsection{Design Trade-offs and Limiting Mechanisms}
 \label{sec:pd_discussion}
 
 \paragraph{Absorption profile and the optical-to-electrical coupling chain.}
@@ -3015,17 +2808,15 @@ This chapter has developed a physically rigorous, simulation-driven
 characterisation of a vertical n-i-p Ge-on-Si waveguide photodiode for
 O-band reception at \SI{1310}{\nano\metre}, structured as a complete engineering
 guide in which every design decision is traceable to a specific equation or
-physical argument. The chapter began with a progressive device-physics primer
-(\cref{sec:pd_evolution}) that established the causal chain leading from the
-photoconductor, through the PN and PIN junctions, to the waveguide-integrated
-PIN: the photoconductor is disqualified by the gain-bandwidth product constraint
-of \cref{eq:pc_bw}; the PN photodiode by the diffusion tail of \cref{eq:hpn};
-surface-normal illumination by the 31-fold incompatibility factor between the
-absorption length $\alpha^{-1}\approx\SI{4.8}{\micro\metre}$ and the transit-time
-thickness limit $W_i\leq\SI{350}{\nano\metre}$; and the APD by the gain-bandwidth
-product and excess noise penalties at $f_{3\,\mathrm{dB}}\geq\SI{50}{\giga\hertz}$.
-Germanium is the unique absorber satisfying all five material constraints
-summarised in \cref{tab:material_compare}.
+physical argument. The chapter first established the electromagnetic, material,
+transport, and metric framework required to judge the device rigorously. It
+then used a staged device-evolution argument together with the literature
+review to show why the waveguide-integrated Ge-on-Si PIN remains the correct
+architecture for the present target: germanium supplies the required O-band
+absorption while preserving silicon-photonics process compatibility, the PIN
+structure suppresses the diffusion tail associated with simpler junctions, and
+waveguide coupling decouples absorption length from depletion thickness in a
+way that surface-normal illumination cannot.
 
 The analytical framework of \cref{sec:pd_concept} derived all performance
 metrics from first principles: the Beer-Lambert absorption coefficient from
@@ -3033,7 +2824,7 @@ metrics from first principles: the Beer-Lambert absorption coefficient from
 \cref{eq:cont_n_transient,eq:cont_p_transient}, the analytical photocurrent
 transfer function from \cref{eq:jt_analytical}, and the optimal intrinsic-layer
 thickness from \cref{eq:wi_optimal}. The electrode topology comparison of
-\cref{sec:pd_electrode} proved quantitatively that the single-U anode reduces
+\cref{subsec:pd_electrode} proved quantitatively that the single-U anode reduces
 $R_{s,\mathrm{an}}$ by \SI{36}{\percent} relative to the parallel-electrode
 design (\cref{eq:rs_ratio}) and, more importantly, moves the device into a
 far more favourable electro-optical operating point once the peaking network of
@@ -3107,7 +2898,5 @@ potentially enabling a single device architecture to satisfy both the
 architectural changes. The physical intuitions, analytical inequalities, and
 simulation methodology developed in this chapter constitute the engineering
 framework for navigating these directions.
-
-
 
 

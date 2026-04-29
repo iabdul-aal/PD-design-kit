@@ -685,7 +685,7 @@ $f_{3\,\mathrm{dB}}=\SI{103}{\giga\hertz}$ at \SI{-1}{\volt} once the
 U-shaped electrode and matched inductive peaking are both present. The
 lower-bound form of \cref{eq:bw_tt} is nevertheless retained throughout this
 chapter for rapid geometry sweeps because it makes the penalty of
-$W_i\uparrow$ explicit before RF peaking is invoked.
+increasing $W_i$ explicit before RF peaking is invoked.
 
 \paragraph{RC limit.}
 The junction capacitance of the fully depleted intrinsic region is:
@@ -1237,65 +1237,74 @@ hole contribution to carrier density buildup~\cite{Yan2024}.
 \subsection{Comparative Summary}
 \label{subsec:pd_compare}
 
-\Cref{tab:pd_lit_vertical,tab:pd_lit_lateral} collate the most relevant
-experimental results, separated by junction geometry to make the design-evolution
-argument visually immediate.
+\Cref{tab:pd_lit_benchmarks} consolidates the landmark experimental results
+most relevant to the present design argument. The table is intentionally
+restricted to the vertical trajectory adopted in this chapter and the lateral
+trajectory that defines the broader bandwidth ceiling.
 
 \begin{table}[H]
 \centering
-\caption{Waveguide-integrated Ge-on-Si PIN photodetectors with vertical
-junction architectures (V), benchmarked against the metrics of
-\cref{sec:pd_concept}. ``NR'' denotes values not reported by the authors.
-Bandwidth values are electrical $S_{21}$ or equivalent-circuit measurements
-unless noted.}
-\label{tab:pd_lit_vertical}
+\caption{Selected benchmark waveguide-integrated Ge-on-Si photodetectors used
+to position the present design. ``V'' and ``L'' denote vertical and lateral
+junction geometries, respectively; ``NR'' denotes values not reported by the
+authors.}
+\label{tab:pd_lit_benchmarks}
 \footnotesize
 \begin{adjustbox}{max width=\linewidth}
-\begin{tabular}{c >{\RaggedRight\arraybackslash}p{2.35cm} >{\RaggedRight\arraybackslash}p{3.10cm} c c c}
+\begin{tabular}{c c >{\RaggedRight\arraybackslash}p{2.05cm} >{\RaggedRight\arraybackslash}p{3.65cm} c c c}
 \toprule
-Year & Reference & Key Design Lever &
+Year & Type & Reference & Key Design Lever &
 $\mathcal{R}$ [A/W] &
 $I_d$ [nA] &
 $f_{3\,\mathrm{dB}}$ [GHz] \\
 \midrule
-2008 & \cite{Ang2010}
-     & Evanescent coupling, CMOS-compatible & 0.92 & 570 & 11.3 \\
-2009 & \cite{Vivien2009}
+2008 & V & \cite{Ang2010}
+     & Evanescent coupling, CMOS-compatible process & 0.92 & 570 & 11.3 \\
+2009 & V & \cite{Vivien2009}
      & Butt coupling, straight contact & $\sim$1.0 & 18 & 42 \\
-2010 & \cite{Ramaswamy2010}
-     & Evanescent coupling, high-power design & NR & $1.25\times10^5$ & 4.4 \\
-2013 & \cite{Novack2013}
-     & Spiral waveguide, no peaking & 0.75 & 3000 & 30 \\
-2013 & \cite{Novack2013}
-     & Inductive gain peaking (\SI{360}{\pico\henry}) & 0.75 & 3000 & 60 \\
-2013 & \cite{Fang2013}
-     & Wet-etched Si recess & 0.60 & 170 & 21.5 \\
-2016 & \cite{Chen2016Pol}
-     & Parallel Ge, double-side illumination & 1.06 & 1820 & 35.8 \\
-2017 & \cite{Byrd2017}
-     & Mode-evolution coupler & 0.70 & 1.16 & 40 \\
-2018 & \cite{Zhou2018}
-     & Photonic crystal size reduction & 0.75 & 160 & 17 \\
-2021 & \cite{Shi2021}
-     & Reference layout, no peaking & 1.00 & 4.5 & 27 \\
-2021 & \cite{Shi2021}
-     & Parasitic engineering, \SI{240}{\pico\henry} inductor & 0.89 & 6.4 & 80 \\
-\textbf{2024} & \textbf{\cite{Shi2024}}
-     & \textbf{U-shaped anode, \SI{220}{\pico\henry} peaking} & \textbf{0.95} & \textbf{1.3} & \textbf{103} \\
+2021 & V & \cite{Shi2021}
+     & Parasitic engineering with inductive peaking & 0.89 & 6.4 & 80 \\
+\textbf{2024} & \textbf{V} & \textbf{\cite{Shi2024}}
+     & \textbf{U-shaped anode with inductive peaking} & \textbf{0.95} & \textbf{1.3} & \textbf{103} \\
+2015 & L & \cite{Lischke2015}
+     & Reduced Ge width with lateral offset junction & 1.00 & 100 & $>70$ \\
+2017 & L & \cite{Virot2017}
+     & Si/Ge/Si heterojunction with sub-micrometre Ge width & NR & 5 & $>50$ \\
+2021 & L & \cite{Lischke2021}
+     & Ge-fin junction with \SI{100}{\nano\metre} minimum width & 0.30 & 100 to 200 & \textbf{265} \\
+2024 & L & \cite{Cao2024}
+     & Side-coupled parallel Ge geometry & 0.80 & 24 & $>40$ \\
 \bottomrule
 \end{tabular}
 \end{adjustbox}
 \end{table}
 
 
-Taken together, \cref{tab:pd_lit_vertical} reveals the optimisation philosophy for vertical junction designs. Vertical junction designs advance incrementally with layouts that remain closer to mainstream SOI foundry practice: their progression from \SI{42}{\giga\hertz} to \SI{103}{\giga\hertz} reflects steady reduction of $R_sC_j$ through electrode engineering rather than changes to absorber material, thickness, or doping profile. The present work follows that trajectory by retaining the vertical Ge-on-Si PIN stack and concentrating on geometry-driven parasitic reduction. Broader reviews of the design space are
-provided by
-Wang~\textit{et al.}~\cite{Wang2024} and Yan~\textit{et al.}~\cite{Yan2024};
-the multiphysics modelling context is treated in depth in~\cite{Alasio2024};
-computational methods are discussed in the pedagogical framework of
-Wartak~\cite{Wartak2013}.
+Taken together, \cref{tab:pd_lit_benchmarks} reveal two distinct optimisation
+directions. Vertical devices improve by suppressing parasitic resistance and
+capacitance within a foundry-compatible Ge-on-Si stack, culminating in the
+single-U benchmark of Shi~\textit{et al.}~\cite{Shi2024}. Lateral devices
+achieve much higher bandwidth by decoupling the depletion width from the
+optical absorption path, but they do so through more aggressive geometric
+scaling and a different fabrication balance. The present work therefore adopts
+the vertical trajectory, not because it maximises absolute bandwidth, but
+because it offers the most coherent route to an O-band detector that combines
+high responsivity, low dark current, and process-compatible geometry. Broader
+reviews of the design space are provided by Wang~\textit{et al.}~\cite{Wang2024}
+and Yan~\textit{et al.}~\cite{Yan2024}; the multiphysics modelling context is
+treated in depth in~\cite{Alasio2024}; computational methods are discussed in
+the pedagogical framework of Wartak~\cite{Wartak2013}.
 
-The selected vertical Ge-on-Si PIN architecture is validated against the IEEE 802.3 400GBASE-DR4 standard, which specifies per-lane data rates of 100 Gb/s using PAM-4 modulation at 106.25 GBd, requiring receiver bandwidth of at least 50 GHz. The design achieves this through the combination of high-speed electrical parasitics reduction and optical absorption optimization.
+This literature-based selection is also consistent with the intended
+application. IEEE~802.3 400GBASE-DR4 specifies four O-band lanes at
+\SI{106.25}{\giga\bit\per\second} using PAM-4 signalling, corresponding to a
+symbol rate of \SI{53.125}{\giga\baud} per lane and a minimum receiver
+bandwidth of \SI{39.8}{\giga\hertz} under the conventional $0.75f_s$
+criterion~\cite{IEEE80232022}. The \SI{103}{\giga\hertz}-class single-U
+benchmark therefore exceeds the required electrical bandwidth with substantial
+margin. The standard is used here only as a detector-level relevance check for
+the selected topology; the chapter itself remains organised around the device
+physics and the subsequent O-band re-optimisation.
 
 
 \section[Architecture and Methodology]{Device Architecture and Simulation Methodology}
@@ -1352,9 +1361,9 @@ region; this design choice simultaneously suppresses the diffusion tail in the
 impulse response that would otherwise reduce the effective $f_{3\,\mathrm{dB}}$
 below the prediction of \cref{eq:bw_tt}~\cite{Yan2024}. Optical coupling from
 the input silicon waveguide is provided by a \SI{40}{\micro\metre} adiabatic
-taper designed to achieve coupling efficiency $\eta_c\to1$.
+taper designed for near-unity coupling efficiency.
 
-\paragraph{Mask layout implementation in KLayout.}
+\paragraph{Mask-level representation in KLayout.}
 The simulated device is tied to an explicit lithographic layout through the
 KLayout script \texttt{device-level/ge\_pd\_layout.rb}, which writes the cell
 \texttt{GE\_PD\_OBAND} to \texttt{ge\_pd\_layout\_oband.gds}. The layout uses
@@ -1365,128 +1374,68 @@ footprint preserves the geometry used throughout the simulation chain, namely
 the \SI{40}{\micro\metre} adiabatic taper, the Ge mesa of dimensions
 \SI{8}{\micro\metre} by \SI{5}{\micro\metre}, the U-shaped
 $p^{++}$-side contact realised in M1, and the \SI{195}{\micro\metre}-long M2
-electrical runner. This layout abstraction does not replace the
-three-dimensional optical and electrical solvers; rather, it establishes that
-the structure analysed in this chapter is associated with a concrete mask-level
-realisation whose lateral dimensions and contact topology are consistent with
-the simulated device. Design dimensions are shown in \cref{fig:design_dimensions}, and a top-view rendering derived from the same scripted
-geometry is shown in \cref{fig:klayout_layout}.
-
-\begin{figure}[H]
-\centering
-\caption{Design dimensions and specifications for the Ge-on-Si PIN photodetector device.}
-\label{fig:design_dimensions}
-\begin{tabular}{l l}
-\toprule
-Parameter & Value \\
-\midrule
-Ge thickness & \SI{350}{\nano\metre} \\
-Ge width & \SI{5}{\micro\metre} \\
-Ge length & \SI{8}{\micro\metre} \\
-Intrinsic region width & \SI{3}{\micro\metre} \\
-Taper length & \SI{40}{\micro\metre} \\
-U-shaped contact width & \SI{1}{\micro\metre} \\
-$n^{++}$ contact width & \SI{0.5}{\micro\metre} \\
-Via pitch & \SI{0.5}{\micro\metre} \\
-M1 thickness & \SI{0.5}{\micro\metre} \\
-M2 thickness & \SI{2}{\micro\metre} \\
-BOX thickness & \SI{2}{\micro\metre} \\
-\bottomrule
-\end{tabular}
-\end{figure}
+electrical runner. In this chapter, the layout serves as the mask-level
+representation of the simulated device rather than as a substitute for the
+three-dimensional optical and electrical solvers. The selected device geometry
+is illustrated in \cref{fig:design_dimensions}, its principal geometrical and
+stack parameters are summarised in \cref{tab:design_specifications}, and the
+corresponding mask-level layout is indicated in \cref{fig:klayout_layout}.
 
 \begin{figure}[H]
     \centering
-    \begin{tikzpicture}[x=0.035cm,y=0.35cm,line join=round,line cap=round]
-        \fill[gray!12] (-12,-6.5) rectangle (52,6.5);
-        \fill[cyan!14] (-11,-5.5) rectangle (51,5.5);
-        \fill[black!18] (-165,-1.0) rectangle (40,1.0);
-        \fill[blue!35] (-10,-0.25) rectangle (0,0.25);
-        \fill[blue!20] (0,-0.25) -- (0,0.25) -- (40,2.5) -- (40,-2.5) -- cycle;
-        \fill[green!28] (40,-2.5) rectangle (48,2.5);
-        \fill[red!28] (40,-3.5) rectangle (48,-2.5);
-        \fill[red!28] (40,2.5) rectangle (48,3.5);
-        \fill[red!28] (47.95,-2.5) rectangle (48,2.5);
-        \fill[orange!35] (40.3,-2.2) rectangle (47.7,2.2);
-        \fill[yellow!50!white] (40.3,-0.4) rectangle (47.7,0.4);
-        \fill[yellow!50!white] (38.4,-3.5) rectangle (49.6,-2.7);
-        \fill[yellow!50!white] (38.4,2.7) rectangle (49.6,3.5);
-        \fill[yellow!50!white] (48.8,-3.5) rectangle (49.6,3.5);
+    \missingfigure[figwidth=0.86\linewidth]{
+        Two-panel schematic of the selected Ge-on-Si PIN photodetector.
+        Left panel: device cross-section used in the electrical model, showing
+        the \SI{220}{\nano\metre} Si platform, the \SI{350}{\nano\metre}
+        intrinsic Ge absorber, the doped contact regions, and the BOX.
+        Right panel: top-view FDTD geometry showing the \SI{40}{\micro\metre}
+        taper, the \SI{8}{\micro\metre}-long Ge absorber, the
+        \SI{5}{\micro\metre} mesa width, and the U-shaped anode clearance.
+    }
+    \caption{Selected device geometry for the Ge-on-Si PIN photodetector,
+    showing the principal dimensions used in the FDTD and CHARGE models.}
+    \label{fig:design_dimensions}
+\end{figure}
 
-        \foreach \x in {40.8,42.4,44.0,45.6,47.2} {
-            \fill[white] (\x,-0.3) rectangle ++(0.6,0.6);
-            \draw[black!40, line width=0.12pt] (\x,-0.3) rectangle ++(0.6,0.6);
-        }
-        \foreach \x/\y in {41.0/-3.2,44.0/-3.2,47.0/-3.2,41.0/2.6,44.0/2.6,47.0/2.6} {
-            \fill[white] (\x,\y) rectangle ++(0.6,0.6);
-            \draw[black!40, line width=0.12pt] (\x,\y) rectangle ++(0.6,0.6);
-        }
+\begin{table}[H]
+\centering
+\caption{Geometrical dimensions and simulation-relevant specifications of the
+selected Ge-on-Si PIN photodetector.}
+\label{tab:design_specifications}
+\footnotesize
+\begin{adjustbox}{max width=\linewidth}
+\begin{tabular}{>{\RaggedRight\arraybackslash}p{3.6cm} >{\RaggedRight\arraybackslash}p{2.4cm} >{\RaggedRight\arraybackslash}p{5.3cm}}
+\toprule
+Parameter & Value & Role in the model \\
+\midrule
+Operating wavelength & \SI{1310}{\nano\metre} & O-band design target used in the optical simulation and responsivity extraction \\
+Ge thickness & \SI{350}{\nano\metre} & Intrinsic absorption and transit-time thickness \\
+Ge width & \SI{5}{\micro\metre} & Mesa width governing junction area and lateral collection path \\
+Ge length & \SI{8}{\micro\metre} & Absorption length selected from the O-band sweep \\
+Intrinsic region width & \SI{3}{\micro\metre} & Depleted collection region in the vertical PIN stack \\
+Taper length & \SI{40}{\micro\metre} & Adiabatic optical coupling from the Si waveguide to the Ge absorber \\
+U-shaped contact width & \SI{1}{\micro\metre} & M1 anode wrap used to reduce lateral series resistance \\
+$n^{++}$ contact width & \SI{0.5}{\micro\metre} & Cathode contact definition above the Ge mesa \\
+Via pitch & \SI{0.5}{\micro\metre} & Electrical interconnect density between the metal levels \\
+M1 thickness & \SI{0.5}{\micro\metre} & Local contact metal in the layout abstraction \\
+M2 thickness & \SI{2}{\micro\metre} & Routing metal for the external electrical runner \\
+BOX thickness & \SI{2}{\micro\metre} & Optical isolation from the Si substrate \\
+\bottomrule
+\end{tabular}
+\end{adjustbox}
+\end{table}
 
-        \draw[black!55, line width=0.2pt] (-12,-6.5) rectangle (52,6.5);
-        \draw[black!55, line width=0.2pt] (-11,-5.5) rectangle (51,5.5);
-        \draw[black!55, line width=0.2pt] (-165,-1.0) rectangle (40,1.0);
-        \draw[black!55, line width=0.2pt] (-10,-0.25) rectangle (0,0.25);
-        \draw[black!55, line width=0.2pt] (0,-0.25) -- (0,0.25) -- (40,2.5) -- (40,-2.5) -- cycle;
-        \draw[black!55, line width=0.2pt] (40,-2.5) rectangle (48,2.5);
-        \draw[black!55, line width=0.2pt] (40,-3.5) rectangle (48,-2.5);
-        \draw[black!55, line width=0.2pt] (40,2.5) rectangle (48,3.5);
-        \draw[black!55, line width=0.2pt] (47.95,-2.5) rectangle (48,2.5);
-        \draw[black!55, line width=0.2pt] (40.3,-2.2) rectangle (47.7,2.2);
-        \draw[black!55, line width=0.2pt] (40.3,-0.4) rectangle (47.7,0.4);
-        \draw[black!55, line width=0.2pt] (38.4,-3.5) rectangle (49.6,-2.7);
-        \draw[black!55, line width=0.2pt] (38.4,2.7) rectangle (49.6,3.5);
-        \draw[black!55, line width=0.2pt] (48.8,-3.5) rectangle (49.6,3.5);
-
-        \node[font=\scriptsize, anchor=east] at (-167, 0) {M2 runner};
-        \draw[black!60, line width=0.2pt] (-165,0) -- (-170,0);
-        \node[font=\scriptsize, anchor=south] at (-5,0.35) {Si input waveguide};
-        \node[font=\scriptsize, anchor=south] at (20,2.9) {Adiabatic taper};
-        \node[font=\scriptsize, anchor=west] at (51,3.15) {U-shaped M1 contact};
-        \draw[black!60, line width=0.2pt] (49.2,3.1) -- (50.6,3.1);
-        \node[font=\scriptsize, anchor=west] at (50.2,0) {Ge mesa and $n^{++}$ region};
-        \draw[black!60, line width=0.2pt] (48,0) -- (49.8,0);
-        \node[font=\scriptsize, anchor=west] at (50.2,-3.0) {Via array};
-        \draw[black!60, line width=0.2pt] (47.3,-2.9) -- (49.8,-2.9);
-
-        \draw[<->, black!70, line width=0.18pt] (0,-4.6) -- (40,-4.6);
-        \node[font=\scriptsize, fill=white, inner sep=1pt] at (20,-4.6) {\SI{40}{\micro\metre}};
-        \draw[<->, black!70, line width=0.18pt] (40,-4.6) -- (48,-4.6);
-        \node[font=\scriptsize, fill=white, inner sep=1pt] at (44,-4.6) {\SI{8}{\micro\metre}};
-        \draw[<->, black!70, line width=0.18pt] (50.8,-2.5) -- (50.8,2.5);
-        \node[font=\scriptsize, fill=white, inner sep=1pt, rotate=90] at (50.8,0) {\SI{5}{\micro\metre}};
-
-        \node[font=\scriptsize, anchor=west] at (-11,-7.8) {BOX};
-        \fill[gray!12] (-18,-8.15) rectangle (-13.6,-7.45);
-        \draw[black!55, line width=0.18pt] (-18,-8.15) rectangle (-13.6,-7.45);
-        \node[font=\scriptsize, anchor=west] at (-0.5,-7.8) {Si slab};
-        \fill[cyan!14] (-7,-8.15) rectangle (-2.6,-7.45);
-        \draw[black!55, line width=0.18pt] (-7,-8.15) rectangle (-2.6,-7.45);
-        \node[font=\scriptsize, anchor=west] at (10,-7.8) {Si ridge and taper};
-        \fill[blue!35] (0.2,-8.15) rectangle (4.6,-7.45);
-        \draw[black!55, line width=0.18pt] (0.2,-8.15) rectangle (4.6,-7.45);
-        \node[font=\scriptsize, anchor=west] at (35,-7.8) {Ge};
-        \fill[green!28] (31.3,-8.15) rectangle (35.7,-7.45);
-        \draw[black!55, line width=0.18pt] (31.3,-8.15) rectangle (35.7,-7.45);
-        \node[font=\scriptsize, anchor=west] at (49,-7.8) {$p^{++}$};
-        \fill[red!28] (44.8,-8.15) rectangle (49.2,-7.45);
-        \draw[black!55, line width=0.18pt] (44.8,-8.15) rectangle (49.2,-7.45);
-        \node[font=\scriptsize, anchor=west] at (62,-7.8) {$n^{++}$};
-        \fill[orange!35] (57.6,-8.15) rectangle (62,-7.45);
-        \draw[black!55, line width=0.18pt] (57.6,-8.15) rectangle (62,-7.45);
-        \node[font=\scriptsize, anchor=west] at (76,-7.8) {Via};
-        \fill[white] (71.2,-8.15) rectangle (75.6,-7.45);
-        \draw[black!55, line width=0.18pt] (71.2,-8.15) rectangle (75.6,-7.45);
-        \node[font=\scriptsize, anchor=west] at (88,-7.8) {M1};
-        \fill[yellow!50!white] (84.4,-8.15) rectangle (88.8,-7.45);
-        \draw[black!55, line width=0.18pt] (84.4,-8.15) rectangle (88.8,-7.45);
-        \node[font=\scriptsize, anchor=west] at (100,-7.8) {M2};
-        \fill[black!18] (96.1,-8.15) rectangle (100.5,-7.45);
-        \draw[black!55, line width=0.18pt] (96.1,-8.15) rectangle (100.5,-7.45);
-    \end{tikzpicture}
-    \caption{KLayout realisation of the photodetector mask corresponding to the
-    simulated O-band device. The top-view layout preserves the taper-coupled
-    optical path, the U-shaped contact topology, and the electrical routing
-    geometry used to define the mask-level implementation.}
+\begin{figure}[H]
+    \centering
+    \missingfigure[figwidth=0.86\linewidth]{
+        Top-view KLayout rendering of the mask-level photodetector layout,
+        showing the Si taper, Ge mesa, U-shaped M1 anode, via array, and the
+        M2 runner derived from the scripted geometry in
+        \texttt{device-level/ge\_pd\_layout.rb}.
+    }
+    \caption{Mask-level layout of the simulated O-band photodetector derived
+    from the KLayout script. The layout preserves the optical path, contact
+    topology, and routing footprint used to define the device implementation.}
     \label{fig:klayout_layout}
 \end{figure}
 
@@ -2406,18 +2355,6 @@ $I_d=\SI{1.3}{\nano\ampere}$, and $B_e=\SI{103}{\giga\hertz}$ into
     \label{eq:sens_result}
 \end{equation}
 
-As a brief external consistency check, the extracted device metrics remain
-compatible with the receiver-side bandwidth target of IEEE~802.3
-400GBASE-DR4~\cite{IEEE80232022}, since the simulated response exceeds the
-\SI{39.8}{\giga\hertz} threshold by a comfortable margin. The more restrictive
-device-level constraint is instead the field-screening limit
-$P_{\mathrm{screening}}\approx\SI{340}{\micro\watt}$ from \cref{eq:p_screening},
-which indicates that optical power management would still be required at the
-upper end of the receive-power window. This observation is retained only as a
-final application check; it is not used as the organising framework of the
-chapter.
-
-
 \section[PINN Validation and Extension]{Physics-Informed Neural Network: Validation and Double U-shape Extension}
 \label{sec:pd_pinn}
 
@@ -2432,12 +2369,14 @@ shared-memory workstation with 32 cores. For the absorber length sweep of
 approximately $7\times\SI{3}{\hour}+7\times\SI{8}{\hour}=\SI{77}{\hour}$
 of FDTD-only and CHARGE-only compute, respectively. A full 2-D parameter sweep
 over both $L$ and $W_i$ simultaneously (say, $7\times7=49$ points) would require
-approximately \SI{539}{\hour} (about 22 days)---computationally prohibitive
+approximately \SI{539}{\hour} (about 22 days), which is computationally
+prohibitive
 within a thesis timeline.
 
-The exploration of an alternative electrode topology---the double U-shaped anode,
-which wraps metal contacts around \emph{both} long sidewalls of the germanium
-mesa, reducing the maximum lateral current path from $W_m/4$ to $W_m/8$---cannot
+The exploration of an alternative electrode topology, the double U-shaped
+anode, which wraps metal contacts around \emph{both} long sidewalls of the
+germanium mesa and reduces the maximum lateral current path from $W_m/4$ to
+$W_m/8$, cannot
 be addressed by the full FDTD-CHARGE chain within the available computational
 budget. The PINN surrogate model provides the means to explore the double-U
 design space at a fraction of the full-simulation cost, after first being
@@ -2455,7 +2394,7 @@ small enough for training on a single GPU (NVIDIA A100) in approximately 4 hours
 The weighting hyperparameters $\lambda_{\mathrm{PDE}},\lambda_{\mathrm{BC}},\lambda_{\mathrm{data}}$
 are tuned by a self-adaptive strategy that monitors the gradient magnitude of
 each loss component and rescales weights to prevent any single term from
-dominating early in training---a necessary precaution for the stiff PDE system
+dominating early in training, a necessary precaution for the stiff PDE system
 resulting from the $10^6$-fold variation in carrier density between the contact
 layers and the depleted intrinsic region.
 
@@ -2485,9 +2424,9 @@ within \SI{5}{\percent}.
 \begin{figure}[H]
     \centering
     \missingfigure[figwidth=0.85\linewidth]{
-        Four-panel PINN validation figure. Panel (a): band diagram comparison---
+        Four-panel PINN validation figure. Panel (a): band diagram comparison:
         CHARGE (solid lines) and PINN (dashed) for $E_c(z)$ and $E_v(z)$ at
-        $V=\SI{-1}{\volt}$. Panel (b): carrier density comparison---$n(z)$
+        $V=\SI{-1}{\volt}$. Panel (b): carrier density comparison: $n(z)$
         (blue) and $p(z)$ (red), CHARGE (solid) vs PINN (dashed), on a
         logarithmic vertical axis. Panel (c): electric field magnitude
         $|\mathbf{E}(z)|$ comparison, CHARGE (solid) vs PINN (dashed), with
@@ -2593,107 +2532,59 @@ state-of-the-art experimental benchmark, establishing its credibility as a
 design tool; (ii) the double-U simulation identifies the point of diminishing
 returns for further electrode reduction within the conservative
 vertical-geometry model, complementing the analytical prediction of
-\cref{eq:bw_tt}; and (iii) the computational cost comparison---\SI{4}{\hour}
-for PINN versus $>\SI{8}{\hour}$ per CHARGE run---quantifies the practical value
+\cref{eq:bw_tt}; and (iii) the computational cost comparison, \SI{4}{\hour}
+for PINN versus more than \SI{8}{\hour} per CHARGE run, quantifies the practical value
 of the surrogate approach for future design-space exploration, including
 alternative electrode topologies (triple-U, split-cathode, wrap-around cathode)
 that are precluded by the full-simulation cost budget.
 
-\section{Conclusion}
+\section{Conclusion and Outlook}
 \label{sec:pd_conclusion}
 
-This chapter has developed a physically rigorous, simulation-driven
-characterisation of a vertical n-i-p Ge-on-Si waveguide photodiode for
-O-band reception at \SI{1310}{\nano\metre}, structured as a complete engineering
-guide in which every design decision is traceable to a specific equation or
-physical argument. The chapter first established the electromagnetic, material,
-transport, and metric framework required to judge the device rigorously. It
-then used a physically grounded architectural justification together with the
-literature review to show why the waveguide-integrated Ge-on-Si PIN remains the correct
-architecture for the present target: germanium supplies the required O-band
-absorption while preserving silicon-photonics process compatibility, the PIN
-structure suppresses the diffusion tail associated with simpler junctions, and
-waveguide coupling decouples absorption length from depletion thickness in a
-way that surface-normal illumination cannot.
+This chapter established a physics-based framework for the design and
+validation of a vertical n-i-p Ge-on-Si waveguide photodetector targeted at
+O-band reception near \SI{1310}{\nano\metre}. The discussion progressed from
+electromagnetic absorption, band structure, drift-diffusion transport, and
+detector metrics to a literature-grounded selection of the
+waveguide-integrated Ge-on-Si PIN architecture. Within that landscape, the
+U-shaped-anode vertical topology emerged as the most suitable basis for the
+present study because it preserves a process-compatible geometry while
+addressing the dominant parasitic-resistance bottleneck.
 
-The analytical framework of \cref{sec:pd_concept} derived all performance
-metrics from first principles: the Beer-Lambert absorption coefficient from
-\cref{eq:alpha_kappa}, the drift-diffusion transport from
-\cref{eq:cont_n_transient,eq:cont_p_transient}, the analytical photocurrent
-transfer function from \cref{eq:jt_analytical}, and the optimal intrinsic-layer
-thickness from \cref{eq:wi_optimal}. The electrode topology comparison of
-\cref{subsec:pd_electrode} proved quantitatively that the single-U anode reduces
-$R_{s,\mathrm{an}}$ by \SI{36}{\percent} relative to the parallel-electrode
-design (\cref{eq:rs_ratio}) and, more importantly, moves the device into a
-far more favourable electro-optical operating point once the peaking network of
-\cref{eq:H_pd_pk} is co-optimised with the reduced series resistance.
-
-The three-dimensional FDTD and CHARGE simulation chain reproduced the static and
-optical benchmark metrics relevant to the O-band adaptation:
+The coupled FDTD and CHARGE simulations showed that the selected O-band device
+can retain the key strengths of the benchmark architecture after re-optimisation
+for \SI{1310}{\nano\metre}. The simulated device produced
 $\mathcal{R}\geq\SI{0.95}{\ampere\per\watt}$ and
-$I_d=\SI{1.3}{\nano\ampere}$ at \SI{-1}{\volt}. The high-speed response was then
-positioned using two complementary models: the conservative baseline
-\cref{eq:bw_total}, which yields $f_{3\,\mathrm{dB,base}}\approx\SI{44.5}{\giga\hertz}$
-for the compact O-band geometry, and the benchmark-calibrated peaked response
-\cref{eq:H_pd_pk}, which places the validated single-U device in the
-\SI{103}{\giga\hertz} class. The absorber length sweep of
-\cref{subsec:pd_optical_results} and the $W_i$ parameter sweep of
-\cref{tab:wi_sweep} quantified the trade-off surface of the vertical
-architecture at a rate of approximately \SI{2.8}{\giga\hertz} per
-\SI{1}{\percent} of responsivity sacrificed in the baseline screening model.
+$I_d=\SI{1.3}{\nano\ampere}$ at \SI{-1}{\volt}, while the thickness and length
+sweeps identified a compact design point that balances absorption,
+capacitance, and transit time. The conservative baseline model yielded
+$f_{3\,\mathrm{dB,base}}\approx\SI{44.5}{\giga\hertz}$, and the
+benchmark-calibrated single-U response remained in the
+\SI{103}{\giga\hertz} class. The detector-level sensitivity analysis further
+gave $P_{\mathrm{sens}}\approx\SI{-17.1}{\dBm}$, confirming that the selected
+topology remains compatible with the bandwidth target of IEEE~802.3
+400GBASE-DR4.
 
-The detector-level sensitivity analysis derived
-$P_{\mathrm{sens}}\approx\SI{-17.1}{\dBm}$ from \cref{eq:sens_full} and showed
-that the simulated bandwidth remains compatible with the receiver-side target
-of IEEE~802.3 400GBASE-DR4. The limiting constraint in that final application
-check is not bandwidth, but the electric-field-screening onset of
-\cref{eq:p_screening}, which remains below the highest receive-power condition.
+The chapter also clarified the principal physical limits of the vertical
+architecture. The selected device already operates close to the
+RC-versus-transport knee of the \SI{350}{\nano\metre} intrinsic-Ge stack, so
+further reduction of anode resistance alone yields diminishing bandwidth
+return. The more restrictive practical limitation is instead the screening
+threshold, which constrains the upper optical power range before responsivity
+or dark current become the dominant concern. The validated PINN surrogate
+reinforced this conclusion by showing that the double-U extension produces only
+a modest improvement within the same vertical geometry.
 
-The PINN surrogate of \cref{sec:pd_pinn}, validated to within \SI{5}{\percent}
-on dark current against the CHARGE reference, enabled the double U-shaped anode
-to be explored at a fraction of the full-simulation cost. The double-U result
-$f_{3\,\mathrm{dB}}^{\mathrm{2U}}\approx\SI{50}{\giga\hertz}$ confirms that in
-the conservative geometry-screening model, the vertical
-$W_i=\SI{350}{\nano\metre}$ architecture already sits close to its practical
-RC-versus-transport knee. In other words, once the single-U has removed the
-dominant parasitic bottleneck, further electrode engineering alone yields only
-marginal improvement unless the transport physics, the peaking network, or the
-junction geometry itself is also changed.
-
-Three specific open questions require future experimental address: (i) the direct
-measurement of $\tau_0$ in as-grown Ge-on-Si epitaxial layers through time-resolved
-photoluminescence, to validate or refine the calibrated SRH lifetime assumption;
-(ii) the extraction of the parasitic bondpad capacitance $C_{\mathrm{par}}$ from
-on-wafer S-parameter measurements, to separate it from $C_j$ in the bandwidth
-model and enable a quantitative prediction of $f_{\mathrm{RC}}$ without relying
-on the modelled $R_s$; and (iii) the experimental fabrication and S-parameter
-characterisation of the double U-shaped electrode device to validate the PINN
-prediction of the conservative baseline response and determine whether a
-retuned peaking network can convert that geometrical change into a meaningful
-measured RF improvement.
-
-\paragraph{Industry and research directions.}
-The present work positions itself at the intersection of three converging trends
-in high-speed silicon photonics. First, the industry drive toward
-\SI{800}{\giga\bit\per\second} and \SI{1.6}{\tera\bit\per\second} per-lane rates
-(IEEE~802.3 Clause~139 and beyond) requires per-lane symbol rates of
-\SI{200}{}--\SI{400}{\giga\baud}, which are fundamentally inaccessible to the
-vertical PIN architecture at $W_i=\SI{350}{\nano\metre}$ and will require either
-lateral Ge-fin geometries with $W_{\mathrm{Ge}}\leq\SI{100}{\nano\metre}$
-(where the Monte Carlo overshoot effect of \cref{sec:pd_discussion} becomes
-advantageous) or III-V-on-Si heterogeneous integration for UTC designs.
-Second, the emergence of foundry-validated PINN-based device simulation tools
-suggests that the computational bottleneck identified in \cref{subsec:pd_pinn_motivation}
-will be progressively removed, enabling systematic multi-parameter co-optimisation
-of electrode geometry, absorber dimensions, and doping profile within a single
-automated pipeline. Third, the integration of nano-optical absorption enhancement
-structures (GMR gratings, photonic crystals as in \cref{sec:pd_discussion})
-with the waveguide-coupled PIN geometry offers a path to simultaneously improving
-$\mathcal{A}$, reducing $A_j$, and raising the $P_{\mathrm{screening}}$ limit---
-potentially enabling a single device architecture to satisfy both the
-400GBASE-DR4 and the emerging 800GBASE and 1.6TBASE standards without
-architectural changes. The physical intuitions, analytical inequalities, and
-simulation methodology developed in this chapter constitute the engineering
-framework for navigating these directions.
+The outlook is therefore experimental as well as architectural. Direct
+extraction of the SRH lifetime and pad-related parasitics is needed to tighten
+the model calibration, while fabrication and RF characterisation of the
+double-U geometry are required to determine whether the predicted resistance
+reduction survives in measurement. Beyond the present vertical PIN platform,
+future bandwidth scaling toward higher per-lane symbol rates will likely
+require architectures that change the transport constraint itself, such as more
+aggressively scaled lateral Ge-fin detectors or electron-dominated
+carrier-collection schemes. At the same time, the validated PINN workflow
+developed here provides a practical route for exploring such geometries without
+abandoning physics-based verification.
 
 

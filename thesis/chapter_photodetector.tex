@@ -1295,16 +1295,11 @@ and Yan~\textit{et al.}~\cite{Yan2024}; the multiphysics modelling context is
 treated in depth in~\cite{Alasio2024}; computational methods are discussed in
 the pedagogical framework of Wartak~\cite{Wartak2013}.
 
-This literature-based selection is also consistent with the intended
-application. IEEE~802.3 400GBASE-DR4 specifies four O-band lanes at
-\SI{106.25}{\giga\bit\per\second} using PAM-4 signalling, corresponding to a
-symbol rate of \SI{53.125}{\giga\baud} per lane and a minimum receiver
-bandwidth of \SI{39.8}{\giga\hertz} under the conventional $0.75f_s$
-criterion~\cite{IEEE80232022}. The \SI{103}{\giga\hertz}-class single-U
-benchmark therefore exceeds the required electrical bandwidth with substantial
-margin. The standard is used here only as a detector-level relevance check for
-the selected topology; the chapter itself remains organised around the device
-physics and the subsequent O-band re-optimisation.
+The receiver-level implications of this literature-based selection are examined
+later against IEEE~802.3 400GBASE-DR4 in \cref{sec:pd_system}. At the present
+stage, the key point is that the selected vertical U-shaped topology offers the
+most coherent route to an O-band detector that combines high responsivity, low
+dark current, and process-compatible geometry.
 
 
 \section[Architecture and Methodology]{Device Architecture and Simulation Methodology}
@@ -1377,9 +1372,8 @@ $p^{++}$-side contact realised in M1, and the \SI{195}{\micro\metre}-long M2
 electrical runner. In this chapter, the layout serves as the mask-level
 representation of the simulated device rather than as a substitute for the
 three-dimensional optical and electrical solvers. The selected device geometry
-is illustrated in \cref{fig:design_dimensions}, its principal geometrical and
-stack parameters are summarised in \cref{tab:design_specifications}, and the
-corresponding mask-level layout is indicated in \cref{fig:klayout_layout}.
+is illustrated in \cref{fig:design_dimensions}, and the corresponding
+mask-level layout is indicated in \cref{fig:klayout_layout}.
 
 \begin{figure}[H]
     \centering
@@ -1390,40 +1384,15 @@ corresponding mask-level layout is indicated in \cref{fig:klayout_layout}.
         intrinsic Ge absorber, the doped contact regions, and the BOX.
         Right panel: top-view FDTD geometry showing the \SI{40}{\micro\metre}
         taper, the \SI{8}{\micro\metre}-long Ge absorber, the
-        \SI{5}{\micro\metre} mesa width, and the U-shaped anode clearance.
+        \SI{5}{\micro\metre} mesa width, the \SI{3}{\micro\metre} intrinsic
+        region width, the U-shaped anode clearance, and the key stack
+        specifications used in the optical and electrical models.
     }
     \caption{Selected device geometry for the Ge-on-Si PIN photodetector,
-    showing the principal dimensions used in the FDTD and CHARGE models.}
+    showing the principal dimensions and model specifications used in the FDTD
+    and CHARGE simulations.}
     \label{fig:design_dimensions}
 \end{figure}
-
-\begin{table}[H]
-\centering
-\caption{Geometrical dimensions and simulation-relevant specifications of the
-selected Ge-on-Si PIN photodetector.}
-\label{tab:design_specifications}
-\footnotesize
-\begin{adjustbox}{max width=\linewidth}
-\begin{tabular}{>{\RaggedRight\arraybackslash}p{3.6cm} >{\RaggedRight\arraybackslash}p{2.4cm} >{\RaggedRight\arraybackslash}p{5.3cm}}
-\toprule
-Parameter & Value & Role in the model \\
-\midrule
-Operating wavelength & \SI{1310}{\nano\metre} & O-band design target used in the optical simulation and responsivity extraction \\
-Ge thickness & \SI{350}{\nano\metre} & Intrinsic absorption and transit-time thickness \\
-Ge width & \SI{5}{\micro\metre} & Mesa width governing junction area and lateral collection path \\
-Ge length & \SI{8}{\micro\metre} & Absorption length selected from the O-band sweep \\
-Intrinsic region width & \SI{3}{\micro\metre} & Depleted collection region in the vertical PIN stack \\
-Taper length & \SI{40}{\micro\metre} & Adiabatic optical coupling from the Si waveguide to the Ge absorber \\
-U-shaped contact width & \SI{1}{\micro\metre} & M1 anode wrap used to reduce lateral series resistance \\
-$n^{++}$ contact width & \SI{0.5}{\micro\metre} & Cathode contact definition above the Ge mesa \\
-Via pitch & \SI{0.5}{\micro\metre} & Electrical interconnect density between the metal levels \\
-M1 thickness & \SI{0.5}{\micro\metre} & Local contact metal in the layout abstraction \\
-M2 thickness & \SI{2}{\micro\metre} & Routing metal for the external electrical runner \\
-BOX thickness & \SI{2}{\micro\metre} & Optical isolation from the Si substrate \\
-\bottomrule
-\end{tabular}
-\end{adjustbox}
-\end{table}
 
 \begin{figure}[H]
     \centering
@@ -2301,6 +2270,36 @@ exceeding the drift-diffusion ceiling.
     \label{fig:design_space_2d}
 \end{figure}
 
+\section{IEEE 802.3 400GBASE-DR4 Assessment}
+\label{sec:pd_system}
+
+\subsection{Receiver-Level Interpretation of the Simulated Results}
+\label{subsec:pd_ieee_context}
+
+The simulated detector can now be interpreted against the intended link
+standard. IEEE~802.3 400GBASE-DR4 specifies four parallel O-band lanes at
+\SI{106.25}{\giga\bit\per\second} using PAM-4 signalling, corresponding to a
+symbol rate of \SI{53.125}{\giga\baud} per lane. Under the conventional
+$0.75f_s$ receiver criterion, this implies a minimum electrical bandwidth of
+\SI{39.8}{\giga\hertz}~\cite{IEEE80232022}. The conservative lower-bound result
+of the present device, $f_{3\,\mathrm{dB,base}}\approx\SI{44.5}{\giga\hertz}$,
+already exceeds that requirement, while the benchmark-calibrated single-U
+response remains in the \SI{103}{\giga\hertz} class. In bandwidth terms, the
+selected vertical topology is therefore fully compatible with the DR4 lane
+rate.
+
+The more informative comparison concerns the usable optical power window rather
+than the speed limit alone. The maximum DR4 receive power of
+\SI{+3.4}{\dBm} (\SI{2.19}{\milli\watt}) substantially exceeds the screening
+threshold later extracted for the simulated junction,
+$P_{\mathrm{screening}}\approx\SI{340}{\micro\watt}$, whereas the minimum OMA
+of \SI{-6.0}{\dBm} (\SI{251}{\micro\watt}) lies much closer to that limit. The
+principal practical constraint of the present detector is therefore not the
+required modulation speed, but the fact that the DR4 receive-power range
+extends into the regime where space-charge screening can compress the
+photocurrent response. At detector level, the design is speed-compatible with
+DR4, but its upper-power margin is set by linearity rather than bandwidth.
+
 \subsection[Detector Sensitivity]{Detector-Level Sensitivity and Doping Polarity}
 \label{subsec:pd_polarity}
 
@@ -2354,6 +2353,9 @@ $I_d=\SI{1.3}{\nano\ampere}$, and $B_e=\SI{103}{\giga\hertz}$ into
     P_{\mathrm{sens}} \approx \SI{-17.1}{\dBm}.
     \label{eq:sens_result}
 \end{equation}
+This detector-level sensitivity estimate is consistent with the lower end of
+the DR4 receive-power window, while the screening analysis above identifies the
+upper-power constraint that remains to be managed in practical deployment.
 
 \section[PINN Validation and Extension]{Physics-Informed Neural Network: Validation and Double U-shape Extension}
 \label{sec:pd_pinn}

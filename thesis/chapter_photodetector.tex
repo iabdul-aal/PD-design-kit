@@ -11,35 +11,29 @@ Understanding this step at the level of first principles is therefore not merely
 a theoretical exercise but a practical necessity for the coherent design of the
 full transceiver system developed in the companion chapters of this thesis.
 
-This chapter develops that understanding from the ground up.
-Section~\ref{sec:pd_concept} constructs the analytical framework rigorously,
-beginning with Maxwell's equations in a dispersive absorbing medium, from which
-the absorption coefficient of germanium emerges as a derived quantity; carrier
-transport, recombination, and the full self-consistent drift-diffusion system are
-then formalised in both their transient and steady-state forms, and all performance
-metrics are defined with sufficient precision to serve as unambiguous comparison
-axes.
-Section~\ref{sec:pd_literature} begins with a staged device-evolution argument,
-then applies those metrics to a critical review of waveguide-integrated
-photodetectors, and closes with a comparative summary that positions the
-present O-band Ge-on-Si PIN within the state of the art.
-Section~\ref{sec:pd_design} presents the device architecture, the benchmark
-anchoring strategy, and the coupled optical-electrical simulation methodology
-used to connect the FDTD, CHARGE, and reduced analytical models.
-Section~\ref{sec:pd_results} reports the main simulation results and interprets
-the dominant trade-offs that emerge from them.
-Section~\ref{sec:pd_system} derives, strictly from the extracted device metrics,
-the implications for receiver sensitivity and modulation-format compatibility,
-culminating in the extraction of device-level specifications from the requirements
-of the IEEE~802.3 400GBASE-DR4 standard. Section~\ref{sec:pd_pinn} then uses a
-validated PINN surrogate to extend the single-U benchmark toward the double-U
-design space. Section~\ref{sec:pd_conclusion} distils the principal physical
-insights and identifies open questions that future experimental work must address.
+This chapter develops that understanding in a continuous progression from
+physical principles to device-level implications. Section~\ref{sec:pd_concept}
+establishes the analytical framework, beginning with Maxwell's equations in a
+dispersive absorbing medium and proceeding through carrier transport,
+recombination, the full self-consistent drift-diffusion system, and the
+performance metrics used throughout the chapter. Section~\ref{sec:pd_literature}
+then uses those criteria to justify the waveguide-integrated Ge-on-Si PIN
+architecture, review the relevant experimental literature, and position the
+present O-band design within the state of the art. Section~\ref{sec:pd_design}
+presents the device architecture, the benchmark-anchoring strategy, and the
+coupled optical-electrical simulation methodology that links the FDTD, CHARGE,
+and reduced analytical models. Section~\ref{sec:pd_results} reports the main
+simulation results, interprets the dominant trade-offs they reveal, and
+develops the detector-level sensitivity discussion together with the validated
+PINN-based extension toward the double-U design space.
+Section~\ref{sec:pd_conclusion} closes the chapter by consolidating
+the principal physical insights and identifying the experimental questions that
+remain open.
 
-\section{Physical Foundations and Metric Formalisation}
+\section[Physical Foundations]{Physical Foundations and Metric Formalisation}
 \label{sec:pd_concept}
 
-\subsection{Electromagnetic Propagation in an Absorbing Dispersive Medium}
+\subsection[Electromagnetic Propagation]{Electromagnetic Propagation in an Absorbing Dispersive Medium}
 \label{subsec:pd_maxwell}
 
 The starting point for all optical analysis in this chapter is the macroscopic
@@ -138,7 +132,7 @@ so that the local volumetric generation rate is the Poynting-flux sink:
 This reduces identically to \cref{eq:gen_rate} under the plane-wave
 approximation, but is the operationally correct definition when the
 three-dimensional field contains interference terms arising from modal coupling,
-metal reflections, or end-facet diffraction---all of which are present in the
+metal reflections, or end-facet diffraction, all of which are present in the
 adiabatic taper region of the device studied here.
 The FDTD solver employed in \cref{subsec:pd_fdtd} evaluates
 $G_{\mathrm{opt}}$ from \cref{eq:gopt_poynting_local}; the scalar Beer-Lambert
@@ -182,7 +176,7 @@ at $P_{\mathrm{opt}}=\SI{100}{\micro\watt}$ this condition is satisfied by
 construction; departures from linearity at high modulation depth are treated
 in \cref{sec:pd_discussion}.
 
-\subsection{Band Structure of Germanium and the Direct-Gap Absorption Mechanism}
+\subsection[Germanium Band Structure]{Band Structure of Germanium and the Direct-Gap Absorption Mechanism}
 \label{subsec:pd_bandstructure}
 
 Germanium is an indirect-gap semiconductor whose lowest conduction-band minimum
@@ -232,9 +226,10 @@ the linear deformation-potential relation:
 where $a_v$ and $a_c$ are the valence- and conduction-band hydrostatic
 deformation potentials and $c_{11}$, $c_{12}$ are the elastic stiffness
 constants. The biaxial tensile strain of approximately
-$0.2$--$0.3\%$ that develops in Ge epitaxial layers during post-growth
-cooldown---owing to the thermal expansion coefficient mismatch between Ge and
-Si---reduces $E_{g,\mathrm{dir}}$ by approximately \SI{25}{\milli\electronvolt}
+\SIrange{0.2}{0.3}{\percent} that develops in Ge epitaxial layers during
+post-growth cooldown, owing to the thermal expansion coefficient mismatch
+between Ge and Si, reduces $E_{g,\mathrm{dir}}$ by approximately
+\SI{25}{\milli\electronvolt}
 relative to the unstrained bulk value, red-shifting the onset of direct-gap
 absorption by roughly \SI{50}{\nano\metre} and enhancing $\kappa(\lambda)$ at
 C-band wavelengths. For the O-band operating point of the present device this
@@ -252,22 +247,22 @@ Integrating \cref{eq:abs_density} through an absorber of length $L$ gives:
 \caption{Material properties of candidate photodetector absorbers at
 \SI{300}{\kelvin}. The comparison isolates the material argument behind the
 choice of Ge for O-band silicon photonics. $\alpha$ values are referenced to
-\SI{1310}{\nano\metre}; ``N/A-CMOS'' denotes incompatibility with a standard
-silicon-photonics process flow.}
+\SI{1310}{\nano\metre}. The final column summarises compatibility with a
+standard silicon-photonics process flow.}
 \label{tab:material_compare}
 \footnotesize
-\begin{adjustbox}{width=\textwidth}
+\begin{adjustbox}{max width=\linewidth}
 \begin{tabular}{lcccccc}
 \toprule
 Material & $E_g$ [eV] & $\alpha_{1310}$ [\si{\per\centi\metre}] &
 $v_{\mathrm{sat},h}$ [\si{\centi\metre\per\second}] &
 $\mu_p$ [\si{\centi\metre\squared\per\volt\per\second}] &
-$\Delta a/a_{\mathrm{Si}}$ [\%] & CMOS compat. \\
+$\Delta a/a_{\mathrm{Si}}$ [\%] & CMOS compatibility \\
 \midrule
-Ge & 0.66 (ind.), 0.80 (dir.) & $\sim2100$ & \SI{4e6}{} & 1900 & 4.2 & \checkmark \\
-Si & 1.12 (ind.) & $\sim10$ & \SI{2.5e6}{} & 480 & 0 & N/A (transparent) \\
-InGaAs (lattice-matched to InP) & 0.75 & $\sim1\times10^4$ & \SI{5e6}{} & 4500 & $>5$ & N/A-CMOS \\
-Ge$_{0.92}$Sn$_{0.08}$ & $\sim0.55$ (dir.) & $>5000$ & $\sim$\SI{4e6}{} & $\sim$1500 & 4.8 & Research \\
+Ge & 0.66 (ind.), 0.80 (dir.) & $\sim2100$ & \SI{4e6}{} & 1900 & 4.2 & Compatible \\
+Si & 1.12 (ind.) & $\sim10$ & \SI{2.5e6}{} & 480 & 0 & Compatible \\
+InGaAs (lattice-matched to InP) & 0.75 & $\sim1\times10^4$ & \SI{5e6}{} & 4500 & $>5$ & Not compatible \\
+Ge$_{0.92}$Sn$_{0.08}$ & $\sim0.55$ (dir.) & $>5000$ & $\sim$\SI{4e6}{} & $\sim$1500 & 4.8 & Research-stage \\
 \bottomrule
 \end{tabular}
 \end{adjustbox}
@@ -331,7 +326,7 @@ recombination is modelled as:
     \label{eq:uradiative}
 \end{equation}
 where $r_{\mathrm{opt}}^{\mathrm{Ge}}\approx\SI{6.4e-14}{\centi\metre\cubed\per\second}$
-at \SI{300}{\kelvin}---approximately four orders of magnitude smaller than for a
+at \SI{300}{\kelvin}, approximately four orders of magnitude smaller than for a
 direct-gap III-V of comparable bandgap. In the fully depleted intrinsic region,
 where $np\approx n_i^2$, the radiative rate vanishes identically and
 \cref{eq:srh_dep} constitutes the sole generation mechanism. Simulated
@@ -357,7 +352,7 @@ This justifies the single-parameter calibration strategy of
     \label{fig:generation_recombination}
 \end{figure}
 
-\subsection{Drift-Diffusion Transport: Transient and Steady-State Formulations}
+\subsection[Drift-Diffusion Transport]{Drift-Diffusion Transport: Transient and Steady-State Formulations}
 \label{subsec:pd_transport}
 
 The self-consistent carrier distribution and electrostatic field are governed
@@ -396,8 +391,8 @@ Under \emph{steady-state} CW illumination, $\partial/\partial t\equiv0$:
     \frac{1}{q}\nabla\cdot\mathbf{J}_p &= -(U_{\mathrm{net}} - G_{\mathrm{opt}}).
         \label{eq:cont_p}
 \end{align}
-The complete self-consistent system---\cref{eq:poisson} through
-\cref{eq:cont_p}---is the foundational PDE set solved numerically in both the
+The complete self-consistent system, from \cref{eq:poisson} through
+\cref{eq:cont_p}, is the foundational PDE set solved numerically in both the
 commercial finite-element solver and the PINN framework introduced later in
 \cref{sec:pd_pinn}.
 
@@ -524,7 +519,7 @@ field regime of the present device. The mesh refinement
 criterion $\mathrm{Pe}<3$ everywhere in the germanium bulk is the operative
 test for mesh convergence.
 
-\subsection{Performance Metrics: Rigorous Definitions and Physical Interpretation}
+\subsection[Performance Metrics]{Performance Metrics: Rigorous Definitions and Physical Interpretation}
 \label{subsec:pd_metrics}
 
 \subsubsection{Responsivity and Quantum Efficiency}
@@ -567,7 +562,7 @@ EQE chain is:
 where $R_{\mathrm{refl}}$ is the Si/Ge entry-facet reflectance and $\xi$
 degrades measurably from unity when the bias is reduced toward zero, making
 the factored form of \cref{eq:qe_full} the natural framework for evaluating
-low-bias operating points---motivated by the energy-per-bit metric $e_c\propto|V_{\mathrm{bias}}|\,\mathcal{R}$
+low-bias operating points, motivated by the energy-per-bit metric $e_c\propto|V_{\mathrm{bias}}|\,\mathcal{R}$
 introduced in \cref{sec:pd_discussion}.
 
 \begin{figure}[H]
@@ -724,7 +719,7 @@ Substituting $R_{\mathrm{tot}}=\SI{60}{\ohm}$, $\varepsilon_{\mathrm{Ge}}=16.2$,
 $v_{\mathrm{d,sat},h}=\SI{4e6}{\centi\metre\per\second}$, and
 $A_j=\SI{6}{\micro\metre\squared}$ gives
 $W_i^*\approx\SI{310}{\nano\metre}$, within \SI{11}{\percent} of the chosen
-$W_i=\SI{350}{\nano\metre}$---confirming the device is positioned near the
+$W_i=\SI{350}{\nano\metre}$, confirming that the device is positioned near the
 bandwidth optimum consistent with the $R_{\mathrm{tot}}=\SI{50}{\ohm}$ standard
 load. The expression \cref{eq:wi_optimal} also reveals a
 fundamental scaling law: since $W_i^*\propto\sqrt{A_j}$, shrinking the junction
@@ -893,32 +888,28 @@ carriers:
     \quad [\si{\ampere\squared\per\hertz}].
     \label{eq:thermal}
 \end{equation}
-In practice the photodetector is followed by a transimpedance amplifier (TIA),
-and the combined noise of the assembly is characterised through the one-sided
-input-referred noise current PSD:
+For device-level evaluation, the intrinsic photodetector noise is represented
+through the one-sided current-noise PSD:
 \begin{equation}
-    i_n^2 = S_{\mathrm{shot}} + S_{\mathrm{thermal}} + S_{\mathrm{TIA}}
+    i_n^2 = S_{\mathrm{shot}}
     \quad [\si{\ampere\squared\per\hertz}],
     \label{eq:in_total}
 \end{equation}
-where $S_{\mathrm{TIA}}=4kT/R_F+(2\pi f)^2C_{\mathrm{in}}^2S_{v,\mathrm{amp}}$
-for a resistive-feedback transimpedance stage with feedback resistance $R_F$
-and total input capacitance $C_{\mathrm{in}}=C_j+C_{\mathrm{par}}+C_{\mathrm{gate}}$.
-Integrating over the detection bandwidth gives the total noise variance:
+The thermal contribution of a specified electrical load is then added
+separately through \cref{eq:thermal} when a load-dependent comparison is
+required. Integrating over the detection bandwidth gives the total
+photodetector noise variance:
 \begin{equation}
     \sigma_n^2 = i_n^2\,B_e
     \quad [\si{\ampere\squared}],
     \label{eq:sigma_n}
 \end{equation}
-a compact expression that consolidates all noise contributions into a single
-measurable scalar. For the simulated
-$I_d=\SI{1.3}{\nano\ampere}$, the dark-current shot noise evaluates to
-$i_n\approx\SI{0.645}{\pico\ampere\per\sqrt\hertz}$, while practical TIA
-stages in \SI{90}{\nano\metre} CMOS achieve
-$\SI{10}{}$--$\SI{20}{\pico\ampere\per\sqrt\hertz}$ over bandwidths exceeding
-\SI{100}{\giga\hertz}, so $S_{\mathrm{TIA}}$ dominates $S_{\mathrm{shot}}$ by
-approximately two orders of magnitude---implying that further reduction of $I_d$
-below \SI{1.3}{\nano\ampere} yields negligible improvement in $\sigma_n^2$.
+a compact expression that consolidates the intrinsic device noise into a single
+measurable scalar. For the simulated $I_d=\SI{1.3}{\nano\ampere}$, the
+dark-current shot noise evaluates to
+$i_n\approx\SI{0.645}{\pico\ampere\per\sqrt\hertz}$. The resulting value is
+small, which confirms that the calibrated dark current does not impose a
+meaningful intrinsic noise penalty at the device level.
 The \emph{noise-equivalent power} (NEP) and \emph{specific detectivity} $D^*$
 are:
 \begin{align}
@@ -954,47 +945,43 @@ quiet. By contrast, taper insertion loss, waveguide propagation loss,
 free-carrier absorption in the doped contact layer, Fresnel reflection, and
 incomplete carrier collection do not create a new electrical noise PSD by
 themselves; they reduce the signal term $I_{\mathrm{ph}}=\mathcal{R}P_{\mathrm{opt}}$,
-and thereby degrade SNR indirectly. This distinction is important later in
-\cref{sec:pd_system}, where photodetector noise and optical-link penalties must
-be budgeted separately.
+and thereby degrade SNR indirectly. This distinction remains important in the
+detector-level sensitivity discussion later in the chapter, where intrinsic
+noise and external optical penalties must be kept conceptually separate.
 
 \begin{figure}[H]
     \centering
     \missingfigure[figwidth=0.85\linewidth]{
-        Two-panel noise contribution plot. Left panel: noise current PSD
-        $i_n^2(f)$ [\si{\ampere\squared\per\hertz}] in dB versus frequency
-        from 0 to \SI{200}{\giga\hertz}, showing three stacked contributions:
-        $S_{\mathrm{shot}}=2qI_d$ (flat blue), $S_{\mathrm{thermal}}=4kT/R_L$
-        (flat green), and representative $S_{\mathrm{TIA}}$ with $f^2$ roll-up
-        (red). Right panel: total noise variance $\sigma_n^2=i_n^2 B_e$ as a
-        function of $B_e$ from 1 to \SI{200}{\giga\hertz}, with three curves:
-        PD-only noise (shot+thermal), full assembly noise (adding TIA), and
-        the shot-noise-only floor. Annotated at $B_e=f_{3\,\mathrm{dB}}=\SI{103}{\giga\hertz}$.}
-    \caption{Noise decomposition of the photodetector--TIA assembly from
-    \cref{eq:in_total,eq:sigma_n}. The dark-current shot noise of
-    $I_d=\SI{1.3}{\nano\ampere}$ contributes negligibly to the total
-    $\sigma_n^2$ at \SI{103}{\giga\hertz}, establishing TIA noise as the
-    dominant design lever for sensitivity optimisation.}
+        Two-panel photodetector-noise plot. Left panel: current-noise PSD
+        showing $S_{\mathrm{shot}}=2qI_d$ and the load-defined thermal term
+        $S_{\mathrm{thermal}}=4kT/R_L$ across frequency. Right panel: intrinsic
+        photodetector noise variance $\sigma_n^2=i_n^2 B_e$ versus bandwidth,
+        together with the corresponding dark-current shot-noise floor.}
+    \caption{Noise decomposition of the photodetector from
+    \cref{eq:shot,eq:thermal,eq:sigma_n}. For $I_d=\SI{1.3}{\nano\ampere}$,
+    the dark-current shot-noise contribution remains small at
+    \SI{103}{\giga\hertz}, confirming that the intrinsic detector noise floor
+    is low.}
     \label{fig:noise_decomposition}
 \end{figure}
 
-\section{Literature Review and State-of-the-Art Positioning}
+\section[Literature Review]{Literature Review and State-of-the-Art Positioning}
 \label{sec:pd_literature}
 
-\subsection{Device Evolution: From Photoconductor to Waveguide-Integrated PIN}
+\subsection[Architectural Justification]{Architectural Justification of the Waveguide-Integrated Ge-on-Si PIN}
 \label{subsec:pd_evolution_bridge}
 
 Before reviewing the experimental record, the device choice itself must be
-justified. The waveguide-integrated Ge-on-Si PIN is not merely a historical
-endpoint; it is the architecture that remains after simpler and apparently more
-aggressive alternatives are eliminated by the metric framework of
-\cref{sec:pd_concept}. The optical, material, and transport arguments have
-already been established there; this subsection uses them only as decision
-criteria. The logic is progressive: each stage fixes a specific deficiency of
-the previous one until the architecture of interest is the only one that
-simultaneously satisfies the O-band, bandwidth, and integration constraints.
+justified. The waveguide-integrated Ge-on-Si PIN is not adopted here as a
+historical endpoint, but as the architecture that remains after competing
+options are examined against the metric framework of \cref{sec:pd_concept}.
+The optical, material, and transport arguments have already been established
+there; this subsection uses them as selection criteria. The discussion proceeds
+from simpler detector concepts to the final architecture, removing one
+limitation at a time until the design space is reduced to a physically and
+technologically consistent solution.
 
-\paragraph{Stage I --- The photoconductor: gain at the cost of speed.}
+\paragraph{Photoconductive Detection.}
 The photoconductor is the simplest optical transducer because it requires no
 junction and no depletion engineering. Its apparent advantage is internal gain:
 \begin{equation}
@@ -1016,7 +1003,7 @@ kilohertz-to-megahertz regime, which is many orders of magnitude below the
 therefore rejected by the gain-bandwidth product before any detailed geometry
 optimisation is attempted.
 
-\paragraph{Stage II --- The PN photodiode: introducing the depletion field.}
+\paragraph{PN Junction Photodiodes.}
 The PN junction fixes the most serious weakness of the photoconductor by
 creating an internal electric field that sweeps carriers rather than waiting for
 them to diffuse across a biased resistor. Yet the PN device still retains a
@@ -1029,11 +1016,11 @@ diffuse back to the depletion edge. The resulting response can be written as
     \label{eq:hpn}
 \end{equation}
 where $\tau_D$ is the diffusion-tail time constant. At moderate symbol rates
-this penalty is manageable; at the \SI{50}{}--\SI{100}{\giga\hertz} electrical
+this penalty is manageable; at the \SIrange{50}{100}{\giga\hertz} electrical
 bandwidth class it is not. The PN device therefore solves the photoconductor's
 speed mechanism only partially.
 
-\paragraph{Stage III --- The PIN photodiode: eliminating the diffusion tail.}
+\paragraph{PIN Photodiodes.}
 The PIN structure removes that residual limitation by inserting an intrinsic
 layer and forcing the useful optical generation to occur inside a fully
 depleted region. Once the full intrinsic thickness is depleted, the electric
@@ -1050,7 +1037,7 @@ penalty worsens when the junction footprint grows. That is the key structural
 reason the PIN, rather than the photoconductor or the simple PN diode, remains
 the default high-speed receiver device.
 
-\paragraph{Why PIN rather than APD?}
+\paragraph{PIN and APD Comparison.}
 An avalanche photodiode appears attractive because it multiplies the
 responsivity:
 \begin{equation}
@@ -1064,15 +1051,15 @@ low-noise multiplication process. At the present operating point, the receiver
 needs the bandwidth headroom more urgently than it needs internal gain, which
 is why the low-bias PIN remains preferable to the higher-voltage APD.
 
-\paragraph{Stage IV --- Why germanium on silicon?}
-At this stage the material argument is no longer re-derived; it is inherited
+\paragraph{Material Selection: Germanium on Silicon.}
+At this point, the material argument is not re-derived; it is inherited
 directly from \cref{subsec:pd_bandstructure,tab:material_compare}.
 Section~\ref{sec:pd_concept} has already shown that germanium is the only absorber in the candidate set
 that combines strong O-band absorption with silicon-photonics compatibility.
-In the staged device story, this step simply removes Si-only and non-CMOS
-absorber options from the design space and fixes the discussion to Ge-on-Si.
+This criterion removes Si-only and non-CMOS absorber options from the design
+space and fixes the discussion to Ge-on-Si integration.
 
-\paragraph{Stage V --- Why waveguide coupling rather than surface illumination?}
+\paragraph{Coupling Geometry: Waveguide Integration.}
 Once the PIN and the Ge absorber are fixed, the final architectural decision is
 the illumination geometry. Section~\ref{sec:pd_concept} has already established
 the governing trade-off through \cref{eq:abs_fraction,eq:bw_tt}: in a surface-normal device,
@@ -1081,30 +1068,21 @@ so the problem is overconstrained at \SI{1310}{\nano\metre}. Waveguide coupling
 resolves that conflict by assigning absorption to the longitudinal length $L$
 and carrier collection to the vertical thickness $W_i$, thereby restoring
 independent control of responsivity and bandwidth. That orthogonality is the
-final elimination step that makes the present vertical PIN architecture viable.
-\Cref{fig:pd_evolution_ladder} condenses the full sequence, while
+final architectural refinement that makes the present vertical PIN geometry
+viable. \Cref{fig:pd_evolution_ladder} condenses this selection logic, while
 \cref{fig:wg_vs_sni} isolates the geometric argument behind the final choice.
 
 \begin{figure}[H]
     \centering
     \missingfigure[figwidth=0.88\linewidth]{
-        Generate a five-stage narrative figure showing the progression from
-        photoconductor to waveguide-integrated Ge-on-Si PIN. Stage 1:
-        photoconductor with two ohmic contacts, surface illumination, long
-        carrier lifetime, and annotations
-        $G_{\mathrm{PC}}=\tau_r/\tau_{\mathrm{tr}}$ and
-        $f_{3\,\mathrm{dB,PC}}=1/(2\pi\tau_r)$. Stage 2: PN photodiode with
-        depletion region, built-in field, and a slow diffusion tail. Stage 3:
-        PIN photodiode with fully depleted intrinsic region and drift-limited
-        collection. Stage 4: Ge versus Si at \SI{1310}{\nano\metre}, showing
-        why Ge absorbs efficiently in the O-band while Si does not. Stage 5:
-        surface-normal illumination versus waveguide coupling, explicitly
-        highlighting that waveguide coupling decouples absorber length $L$
-        from depletion thickness $W_i$. Use arrows and short equations so that
-        the causal design progression is readable on its own.
+        Comparative schematic linking the photoconductor, PN photodiode, PIN
+        photodiode, material selection, and coupling geometry to the governing
+        physical arguments that motivate the final waveguide-integrated Ge-on-Si
+        PIN architecture.
     }
-    \caption{Progressive elimination of alternative detector architectures.
-    Each stage resolves a specific limitation of the previous one, leaving the
+    \caption{Architectural justification of the waveguide-integrated
+    Ge-on-Si PIN photodetector. Each comparison resolves a specific limitation
+    of the preceding alternative, leaving the
     waveguide-integrated Ge-on-Si PIN as the architecture compatible with the
     O-band, low-voltage, high-bandwidth target of this chapter.}
 \label{fig:pd_evolution_ladder}
@@ -1113,19 +1091,10 @@ final elimination step that makes the present vertical PIN architecture viable.
 \begin{figure}[H]
     \centering
     \missingfigure[figwidth=0.88\linewidth]{
-        Generate a four-panel comparison of surface-normal illumination and
-        waveguide coupling. Panel (a): surface-normal PIN cross-section with
-        both optical propagation and carrier collection along the vertical
-        axis, annotated to show the conflict between absorption thickness and
-        transit-time thickness. Panel (b): waveguide-coupled PIN showing
-        optical propagation along the waveguide and carrier collection across
-        the vertical depletion region, with $L$ and $W_i$ marked as
-        independent dimensions. Panel (c): coupling sketch comparing abrupt
-        butt-coupling and taper-assisted evanescent coupling with qualitative
-        reflection and insertion-loss annotations. Panel (d): design-space map
-        showing absorption improving with $L$ and bandwidth improving as
-        $W_i$ shrinks. The central message is that waveguide coupling restores
-        independent control of the optical and electrical dimensions.
+        Comparative schematic of surface-normal illumination and waveguide
+        coupling, highlighting the distinction between optical propagation
+        length $L$ and depletion thickness $W_i$ and the design freedom gained
+        when these two dimensions are separated.
     }
     \caption{Waveguide coupling is the decisive architectural refinement
     because it decouples the absorption dimension from the transit-time
@@ -1134,7 +1103,7 @@ final elimination step that makes the present vertical PIN architecture viable.
 \label{fig:wg_vs_sni}
 \end{figure}
 
-\subsection{Review of Waveguide-Integrated Ge-on-Si Photodetectors}
+\subsection[Literature Survey]{Review of Waveguide-Integrated Ge-on-Si Photodetectors}
 \label{subsec:pd_history}
 
 The Ge-on-Si waveguide photodetector field has evolved over approximately two
@@ -1190,7 +1159,7 @@ $W_{\mathrm{Ge}}\approx\SI{100}{\nano\metre}$. The benchmark for the present
 work is the \SI{103}{\giga\hertz} vertical Ge-on-Si photodiode of
 Shi~\textit{et al.}~\cite{Shi2024}, which surpasses the \SI{100}{\giga\hertz}
 threshold in the vertical architecture through a U-shaped anode electrode that
-reduces $R_s$---and therefore $\tau_{\mathrm{RC}}=R_sC_j$ of \cref{eq:tau_rc}---by
+reduces $R_s$, and therefore $\tau_{\mathrm{RC}}=R_sC_j$ of \cref{eq:tau_rc}, by
 approximately \SI{36}{\percent} relative to a straight-electrode design, while
 simultaneously delivering $\mathcal{R}=\SI{0.95}{\ampere\per\watt}$ and
 $I_d=\SI{1.3}{\nano\ampere}$ at \SI{-1}{\volt}. Taken together, these results
@@ -1219,7 +1188,7 @@ advantage of waveguide integration over surface-normal reception.
 \paragraph{Resonant-cavity-enhanced and uni-travelling-carrier alternatives.}
 Two architectural alternatives provide additional context. The
 resonant-cavity-enhanced (RCE) vertical photodiode places the absorber within
-a Fabry--P\'erot resonator; at the resonance condition, the single-pass absorbed
+a Fabry\textendash P\'erot resonator; at the resonance condition, the single-pass absorbed
 fraction $\mathcal{A}$ of \cref{eq:abs_fraction} is replaced by:
 \begin{equation}
     \mathcal{A}_{\mathrm{RCE}}
@@ -1230,8 +1199,9 @@ fraction $\mathcal{A}$ of \cref{eq:abs_fraction} is replaced by:
 \end{equation}
 where $R_1$ and $R_2$ are the top and bottom mirror reflectances~\cite{Yan2024}.
 Near-unity quantum efficiency is achievable in absorbers as thin as
-\SI{200}{\nano\metre}, but the resonance bandwidth narrows to a few nanometres---
-incompatible with the temperature-insensitive broadband operation required of
+\SI{200}{\nano\metre}, but the resonance bandwidth narrows to a few
+nanometres, which is incompatible with the temperature-insensitive broadband
+operation required of
 data-centre receivers. The uni-travelling-carrier (UTC) structure replaces
 both drift species with electrons only, raising the transit-time limit to:
 \begin{equation}
@@ -1273,13 +1243,14 @@ argument visually immediate.
 
 \begin{table}[H]
 \centering
-\caption{Waveguide-integrated Ge-on-Si vertical PIN photodetectors benchmarked
-against the metrics of \cref{sec:pd_concept}. ``NR'' denotes values not reported
-by the authors. Bandwidth values are electrical $S_{21}$ or equivalent-circuit
-measurements unless noted.}
+\caption{Waveguide-integrated Ge-on-Si PIN photodetectors with vertical
+junction architectures (V), benchmarked against the metrics of
+\cref{sec:pd_concept}. ``NR'' denotes values not reported by the authors.
+Bandwidth values are electrical $S_{21}$ or equivalent-circuit measurements
+unless noted.}
 \label{tab:pd_lit_vertical}
 \footnotesize
-\begin{adjustbox}{width=\textwidth}
+\begin{adjustbox}{max width=\linewidth}
 \begin{tabular}{c >{\RaggedRight\arraybackslash}p{2.35cm} >{\RaggedRight\arraybackslash}p{3.10cm} c c c}
 \toprule
 Year & Reference & Key Design Lever &
@@ -1299,7 +1270,7 @@ $f_{3\,\mathrm{dB}}$ [GHz] \\
      & Inductive gain peaking (\SI{360}{\pico\henry}) & 0.75 & 3000 & 60 \\
 2013 & \cite{Fang2013}
      & Wet-etched Si recess & 0.60 & 170 & 21.5 \\
-2016 & \cite{Chen2016Si}
+2016 & \cite{Chen2016Pol}
      & Parallel Ge, double-side illumination & 1.06 & 1820 & 35.8 \\
 2017 & \cite{Byrd2017}
      & Mode-evolution coupler & 0.70 & 1.16 & 40 \\
@@ -1316,76 +1287,21 @@ $f_{3\,\mathrm{dB}}$ [GHz] \\
 \end{adjustbox}
 \end{table}
 
-\begin{table}[H]
-\centering
-\caption{Waveguide-integrated Ge-on-Si lateral PIN photodetectors benchmarked
-with the same notation as \cref{tab:pd_lit_vertical}. All devices are
-evanescently coupled unless noted. Dark currents are at the stated reverse
-bias; ``NR'' denotes values not reported.}
-\label{tab:pd_lit_lateral}
-\footnotesize
-\begin{adjustbox}{width=\textwidth}
-\begin{tabular}{c >{\RaggedRight\arraybackslash}p{2.35cm} >{\RaggedRight\arraybackslash}p{3.10cm} c c c}
-\toprule
-Year & Reference & Key Design Lever &
-$\mathcal{R}$ [A/W] &
-$I_d$ [nA] &
-$f_{3\,\mathrm{dB}}$ [GHz] \\
-\midrule
-2015 & \cite{Lischke2015}
-     & Conventional lateral & 0.64 & NR & 30 \\
-2015 & \cite{Lischke2015}
-     & Reduced Ge width, lateral offset & 1.00 & 100 & $>$70 \\
-2015 & \cite{Chen2015}
-     & Si contacts, no Ge doping & 1.00 & 3.3 & 20 \\
-2016 & \cite{Chen2016Si}
-     & Thin Ge for transit time & 0.74 & 2.5 & 67 \\
-2017 & \cite{Virot2017}
-     & Si/Ge/Si heterojunction, $W_{\mathrm{Ge}}=\SI{0.3}{\micro\metre}$ & NR & 5 & $>$50 \\
-2017 & \cite{Virot2017}
-     & Si/Ge/Si heterojunction, $W_{\mathrm{Ge}}=\SI{1}{\micro\metre}$ & 1.16 & 100 & 17.1 \\
-2019 & \cite{Benedikovic2019}
-     & Si/Ge/Si heterojunction, 25 Gbps & 1.19 & 100 & 32 \\
-2021 & \cite{Lischke2021}
-     & Ge fin, in-situ doped Si, \SI{150}{\nano\metre} width & 0.45 & 100--200 & 240 \\
-2021 & \cite{Lischke2021}
-     & Ge fin, \SI{100}{\nano\metre} minimum width & 0.30 & 100--200 & \textbf{265} \\
-2022 & \cite{Su2022}
-     & Short transmission-line electrode & 0.74 & 1890 & 25.4 \\
-2023 & \cite{Fujikata2023}
-     & Franz-Keldysh plus avalanche multiplication & 0.83 & NR & 60 \\
-2024 & \cite{Cao2024}
-     & Side coupling, parallel Ge & 0.80 & 24 & $>$40 \\
-\bottomrule
-\end{tabular}
-\end{adjustbox}
-\end{table}
 
-Taken together, \cref{tab:pd_lit_vertical,tab:pd_lit_lateral} reveal two
-distinct optimisation philosophies. Lateral junction designs achieve the
-highest bandwidth because the horizontal depletion width adds a geometric
-degree of freedom for $C_j$ minimisation that is largely independent of the
-optical absorption path. That freedom is absent in the vertical architecture,
-where $C_j$ in \cref{eq:cj} remains tied to $W_i$, which is itself constrained
-by \cref{eq:abs_fraction} and \cref{eq:bw_tt}. Vertical devices therefore
-advance more incrementally, but they do so with layouts that remain closer to
-mainstream SOI foundry practice: their progression from
-\SI{42}{\giga\hertz} to \SI{103}{\giga\hertz} reflects steady reduction of
-$R_sC_j$ through electrode engineering rather than changes to absorber
-material, thickness, or doping profile. The present work follows that second
-trajectory by retaining the vertical Ge-on-Si PIN stack and concentrating on
-geometry-driven parasitic reduction. Broader reviews of the design space are
+Taken together, \cref{tab:pd_lit_vertical} reveals the optimisation philosophy for vertical junction designs. Vertical junction designs advance incrementally with layouts that remain closer to mainstream SOI foundry practice: their progression from \SI{42}{\giga\hertz} to \SI{103}{\giga\hertz} reflects steady reduction of $R_sC_j$ through electrode engineering rather than changes to absorber material, thickness, or doping profile. The present work follows that trajectory by retaining the vertical Ge-on-Si PIN stack and concentrating on geometry-driven parasitic reduction. Broader reviews of the design space are
 provided by
 Wang~\textit{et al.}~\cite{Wang2024} and Yan~\textit{et al.}~\cite{Yan2024};
 the multiphysics modelling context is treated in depth in~\cite{Alasio2024};
 computational methods are discussed in the pedagogical framework of
 Wartak~\cite{Wartak2013}.
 
+The selected vertical Ge-on-Si PIN architecture is validated against the IEEE 802.3 400GBASE-DR4 standard, which specifies per-lane data rates of 100 Gb/s using PAM-4 modulation at 106.25 GBd, requiring receiver bandwidth of at least 50 GHz. The design achieves this through the combination of high-speed electrical parasitics reduction and optical absorption optimization.
 
-\section{Device Architecture and Simulation Methodology}
+
+\section[Architecture and Methodology]{Device Architecture and Simulation Methodology}
 \label{sec:pd_design}
 
-\subsection{Device Architecture and Design Rationale}
+\subsection[Device Architecture]{Device Architecture and Design Rationale}
 \label{subsec:pd_architecture}
 
 The photodiode is realised on a \SI{220}{\nano\metre} SOI platform. Each layer
@@ -1411,9 +1327,9 @@ Absorber & $i$-Ge      & \SI{350}{\nano\metre} & intrinsic & $\sim\SI{e13}{}$ &
     Optical absorption; depletion \\
 Platform & $p^{++}$-Si & \SI{220}{\nano\metre} & p & \SI{e20}{} &
     Anode contact; current spreading \\
-BOX      & \ce{SiO2}   & \SI{2}{\micro\metre}  & --- & --- &
+BOX      & \ce{SiO2}   & \SI{2}{\micro\metre}  & N/A & N/A &
     Optical isolation \\
-Handle   & Si          & $\sim\SI{700}{\micro\metre}$ & --- & --- &
+Handle   & Si          & $\sim\SI{700}{\micro\metre}$ & N/A & N/A &
     Mechanical support \\
 \bottomrule
 \end{tabular}
@@ -1438,6 +1354,142 @@ below the prediction of \cref{eq:bw_tt}~\cite{Yan2024}. Optical coupling from
 the input silicon waveguide is provided by a \SI{40}{\micro\metre} adiabatic
 taper designed to achieve coupling efficiency $\eta_c\to1$.
 
+\paragraph{Mask layout implementation in KLayout.}
+The simulated device is tied to an explicit lithographic layout through the
+KLayout script \texttt{device-level/ge\_pd\_layout.rb}, which writes the cell
+\texttt{GE\_PD\_OBAND} to \texttt{ge\_pd\_layout\_oband.gds}. The layout uses
+a database unit of \SI{1}{\nano\metre} and maps the principal process features
+onto ten logical layers corresponding to the Si slab, Si ridge, Si taper, Ge,
+$p^{++}$ region, $n^{++}$ region, via level, M1, M2, and BOX. The exported
+footprint preserves the geometry used throughout the simulation chain, namely
+the \SI{40}{\micro\metre} adiabatic taper, the Ge mesa of dimensions
+\SI{8}{\micro\metre} by \SI{5}{\micro\metre}, the U-shaped
+$p^{++}$-side contact realised in M1, and the \SI{195}{\micro\metre}-long M2
+electrical runner. This layout abstraction does not replace the
+three-dimensional optical and electrical solvers; rather, it establishes that
+the structure analysed in this chapter is associated with a concrete mask-level
+realisation whose lateral dimensions and contact topology are consistent with
+the simulated device. Design dimensions are shown in \cref{fig:design_dimensions}, and a top-view rendering derived from the same scripted
+geometry is shown in \cref{fig:klayout_layout}.
+
+\begin{figure}[H]
+\centering
+\caption{Design dimensions and specifications for the Ge-on-Si PIN photodetector device.}
+\label{fig:design_dimensions}
+\begin{tabular}{l l}
+\toprule
+Parameter & Value \\
+\midrule
+Ge thickness & \SI{350}{\nano\metre} \\
+Ge width & \SI{5}{\micro\metre} \\
+Ge length & \SI{8}{\micro\metre} \\
+Intrinsic region width & \SI{3}{\micro\metre} \\
+Taper length & \SI{40}{\micro\metre} \\
+U-shaped contact width & \SI{1}{\micro\metre} \\
+$n^{++}$ contact width & \SI{0.5}{\micro\metre} \\
+Via pitch & \SI{0.5}{\micro\metre} \\
+M1 thickness & \SI{0.5}{\micro\metre} \\
+M2 thickness & \SI{2}{\micro\metre} \\
+BOX thickness & \SI{2}{\micro\metre} \\
+\bottomrule
+\end{tabular}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \begin{tikzpicture}[x=0.035cm,y=0.35cm,line join=round,line cap=round]
+        \fill[gray!12] (-12,-6.5) rectangle (52,6.5);
+        \fill[cyan!14] (-11,-5.5) rectangle (51,5.5);
+        \fill[black!18] (-165,-1.0) rectangle (40,1.0);
+        \fill[blue!35] (-10,-0.25) rectangle (0,0.25);
+        \fill[blue!20] (0,-0.25) -- (0,0.25) -- (40,2.5) -- (40,-2.5) -- cycle;
+        \fill[green!28] (40,-2.5) rectangle (48,2.5);
+        \fill[red!28] (40,-3.5) rectangle (48,-2.5);
+        \fill[red!28] (40,2.5) rectangle (48,3.5);
+        \fill[red!28] (47.95,-2.5) rectangle (48,2.5);
+        \fill[orange!35] (40.3,-2.2) rectangle (47.7,2.2);
+        \fill[yellow!50!white] (40.3,-0.4) rectangle (47.7,0.4);
+        \fill[yellow!50!white] (38.4,-3.5) rectangle (49.6,-2.7);
+        \fill[yellow!50!white] (38.4,2.7) rectangle (49.6,3.5);
+        \fill[yellow!50!white] (48.8,-3.5) rectangle (49.6,3.5);
+
+        \foreach \x in {40.8,42.4,44.0,45.6,47.2} {
+            \fill[white] (\x,-0.3) rectangle ++(0.6,0.6);
+            \draw[black!40, line width=0.12pt] (\x,-0.3) rectangle ++(0.6,0.6);
+        }
+        \foreach \x/\y in {41.0/-3.2,44.0/-3.2,47.0/-3.2,41.0/2.6,44.0/2.6,47.0/2.6} {
+            \fill[white] (\x,\y) rectangle ++(0.6,0.6);
+            \draw[black!40, line width=0.12pt] (\x,\y) rectangle ++(0.6,0.6);
+        }
+
+        \draw[black!55, line width=0.2pt] (-12,-6.5) rectangle (52,6.5);
+        \draw[black!55, line width=0.2pt] (-11,-5.5) rectangle (51,5.5);
+        \draw[black!55, line width=0.2pt] (-165,-1.0) rectangle (40,1.0);
+        \draw[black!55, line width=0.2pt] (-10,-0.25) rectangle (0,0.25);
+        \draw[black!55, line width=0.2pt] (0,-0.25) -- (0,0.25) -- (40,2.5) -- (40,-2.5) -- cycle;
+        \draw[black!55, line width=0.2pt] (40,-2.5) rectangle (48,2.5);
+        \draw[black!55, line width=0.2pt] (40,-3.5) rectangle (48,-2.5);
+        \draw[black!55, line width=0.2pt] (40,2.5) rectangle (48,3.5);
+        \draw[black!55, line width=0.2pt] (47.95,-2.5) rectangle (48,2.5);
+        \draw[black!55, line width=0.2pt] (40.3,-2.2) rectangle (47.7,2.2);
+        \draw[black!55, line width=0.2pt] (40.3,-0.4) rectangle (47.7,0.4);
+        \draw[black!55, line width=0.2pt] (38.4,-3.5) rectangle (49.6,-2.7);
+        \draw[black!55, line width=0.2pt] (38.4,2.7) rectangle (49.6,3.5);
+        \draw[black!55, line width=0.2pt] (48.8,-3.5) rectangle (49.6,3.5);
+
+        \node[font=\scriptsize, anchor=east] at (-167, 0) {M2 runner};
+        \draw[black!60, line width=0.2pt] (-165,0) -- (-170,0);
+        \node[font=\scriptsize, anchor=south] at (-5,0.35) {Si input waveguide};
+        \node[font=\scriptsize, anchor=south] at (20,2.9) {Adiabatic taper};
+        \node[font=\scriptsize, anchor=west] at (51,3.15) {U-shaped M1 contact};
+        \draw[black!60, line width=0.2pt] (49.2,3.1) -- (50.6,3.1);
+        \node[font=\scriptsize, anchor=west] at (50.2,0) {Ge mesa and $n^{++}$ region};
+        \draw[black!60, line width=0.2pt] (48,0) -- (49.8,0);
+        \node[font=\scriptsize, anchor=west] at (50.2,-3.0) {Via array};
+        \draw[black!60, line width=0.2pt] (47.3,-2.9) -- (49.8,-2.9);
+
+        \draw[<->, black!70, line width=0.18pt] (0,-4.6) -- (40,-4.6);
+        \node[font=\scriptsize, fill=white, inner sep=1pt] at (20,-4.6) {\SI{40}{\micro\metre}};
+        \draw[<->, black!70, line width=0.18pt] (40,-4.6) -- (48,-4.6);
+        \node[font=\scriptsize, fill=white, inner sep=1pt] at (44,-4.6) {\SI{8}{\micro\metre}};
+        \draw[<->, black!70, line width=0.18pt] (50.8,-2.5) -- (50.8,2.5);
+        \node[font=\scriptsize, fill=white, inner sep=1pt, rotate=90] at (50.8,0) {\SI{5}{\micro\metre}};
+
+        \node[font=\scriptsize, anchor=west] at (-11,-7.8) {BOX};
+        \fill[gray!12] (-18,-8.15) rectangle (-13.6,-7.45);
+        \draw[black!55, line width=0.18pt] (-18,-8.15) rectangle (-13.6,-7.45);
+        \node[font=\scriptsize, anchor=west] at (-0.5,-7.8) {Si slab};
+        \fill[cyan!14] (-7,-8.15) rectangle (-2.6,-7.45);
+        \draw[black!55, line width=0.18pt] (-7,-8.15) rectangle (-2.6,-7.45);
+        \node[font=\scriptsize, anchor=west] at (10,-7.8) {Si ridge and taper};
+        \fill[blue!35] (0.2,-8.15) rectangle (4.6,-7.45);
+        \draw[black!55, line width=0.18pt] (0.2,-8.15) rectangle (4.6,-7.45);
+        \node[font=\scriptsize, anchor=west] at (35,-7.8) {Ge};
+        \fill[green!28] (31.3,-8.15) rectangle (35.7,-7.45);
+        \draw[black!55, line width=0.18pt] (31.3,-8.15) rectangle (35.7,-7.45);
+        \node[font=\scriptsize, anchor=west] at (49,-7.8) {$p^{++}$};
+        \fill[red!28] (44.8,-8.15) rectangle (49.2,-7.45);
+        \draw[black!55, line width=0.18pt] (44.8,-8.15) rectangle (49.2,-7.45);
+        \node[font=\scriptsize, anchor=west] at (62,-7.8) {$n^{++}$};
+        \fill[orange!35] (57.6,-8.15) rectangle (62,-7.45);
+        \draw[black!55, line width=0.18pt] (57.6,-8.15) rectangle (62,-7.45);
+        \node[font=\scriptsize, anchor=west] at (76,-7.8) {Via};
+        \fill[white] (71.2,-8.15) rectangle (75.6,-7.45);
+        \draw[black!55, line width=0.18pt] (71.2,-8.15) rectangle (75.6,-7.45);
+        \node[font=\scriptsize, anchor=west] at (88,-7.8) {M1};
+        \fill[yellow!50!white] (84.4,-8.15) rectangle (88.8,-7.45);
+        \draw[black!55, line width=0.18pt] (84.4,-8.15) rectangle (88.8,-7.45);
+        \node[font=\scriptsize, anchor=west] at (100,-7.8) {M2};
+        \fill[black!18] (96.1,-8.15) rectangle (100.5,-7.45);
+        \draw[black!55, line width=0.18pt] (96.1,-8.15) rectangle (100.5,-7.45);
+    \end{tikzpicture}
+    \caption{KLayout realisation of the photodetector mask corresponding to the
+    simulated O-band device. The top-view layout preserves the taper-coupled
+    optical path, the U-shaped contact topology, and the electrical routing
+    geometry used to define the mask-level implementation.}
+    \label{fig:klayout_layout}
+\end{figure}
+
 \paragraph{Doping polarity and its impact on dark current.}
 The $p^{++}$-Si/$i$-Ge/$n^{++}$-Ge polarity (Si platform $p$-doped) places the
 graded Ge/Si transition such that the valence-band discontinuity $\Delta E_v$
@@ -1453,7 +1505,7 @@ The present device adopts the $p^{++}$-Si platform polarity precisely to
 minimise the interface generation contribution while maintaining CMOS process
 compatibility.
 
-\subsection{Optical Simulation: Three-Dimensional FDTD}
+\subsection[Optical Simulation]{Optical Simulation: Three-Dimensional FDTD}
 \label{subsec:pd_fdtd}
 
 The optical simulation solves the time-domain Maxwell's equations of
@@ -1504,7 +1556,7 @@ A physically essential clarification connecting the FDTD solution to the
 photocurrent calculation concerns what the power monitors extract. The
 frequency-domain power recorded is the time-averaged Poynting vector
 $\mathbf{S}(\mathbf{r},\omega)=\tfrac{1}{2}\mathrm{Re}[\tilde{\mathbf{E}}\times\tilde{\mathbf{H}}^*]$,
-which is quadratic in the field amplitudes---consistent with the square-law
+which is quadratic in the field amplitudes, consistent with the square-law
 mechanism of \cref{eq:square_law}. The optical generation rate
 $G_{\mathrm{opt}}(\mathbf{r})=\mathcal{P}_{\mathrm{abs}}(\mathbf{r})/\hbar\omega$
 of \cref{eq:gen_rate} is thus already expressed in the power-quadratic form that
@@ -1549,7 +1601,7 @@ $10^{-\gamma_{\mathrm{wg}}\ell_{\mathrm{wg}}/10}$ to \cref{eq:responsivity}.
     \label{fig:sim_flowchart}
 \end{figure}
 
-\subsection{Electrical Simulation: Three-Dimensional Drift-Diffusion}
+\subsection[Electrical Simulation]{Electrical Simulation: Three-Dimensional Drift-Diffusion}
 \label{subsec:pd_charge}
 
 Carrier transport is simulated in Lumerical DEVICE CHARGE under three-dimensional
@@ -1595,7 +1647,7 @@ extracted directly from the CHARGE solution: $\mathcal{R}$ from
 $f_{3\,\mathrm{dB}}$ from \cref{eq:bw_total} using the extracted $C_j$ and
 modelled $R_s$ from \cref{eq:rs_anode}.
 
-\subsection{Physics-Informed Neural Networks as Complementary Verification}
+\subsection[PINN Verification]{Physics-Informed Neural Networks as Complementary Verification}
 \label{subsec:pd_pinns}
 
 A Physics-Informed Neural Network (PINN) is employed as an independent
@@ -1649,7 +1701,7 @@ integral output quantities.
 
 Having established the physical justification for the waveguide-integrated
 vertical PIN architecture, this subsection addresses the remaining engineering
-degree of freedom: the electrode geometry. This is not a cosmetic choice---as
+degree of freedom: the electrode geometry. This is not a cosmetic choice, as
 the analysis below demonstrates, the anode electrode layout is the primary
 determinant of the RC bandwidth in the vertical architecture, and selecting the
 wrong topology incurs a penalty of approximately \SI{20}{\giga\hertz} in
@@ -1682,8 +1734,8 @@ photocurrent source to load voltage is:
 \end{equation}
 which for $R_s\ll R_L$ reduces to the single-pole expression of \cref{eq:bw_rc}
 with $f_{\mathrm{RC}}=1/(2\pi R_L C_{\mathrm{tot}})$. When $R_s$ is not
-negligible relative to $R_L$---which is the case for suboptimal electrode
-geometries---the effective load becomes $R_L/(1+R_s/R_L)$ at low frequencies but
+negligible relative to $R_L$, which is the case for suboptimal electrode
+geometries, the effective load becomes $R_L/(1+R_s/R_L)$ at low frequencies but
 the high-frequency roll-off is controlled by $R_s C_{\mathrm{tot}}$ alone,
 giving a faster roll-off than the single-pole model predicts. The two-pole
 transfer function of \cref{eq:hrc_full} combined with the transit-time sinc
@@ -1700,8 +1752,8 @@ roll-off of \cref{eq:bw_tt} is the complete frequency response used in
     U-shaped layouts.}
 \caption{Complete small-signal equivalent circuit of the vertical n-i-p waveguide
 photodiode including all parasitic elements from \cref{eq:hrc_full}. The dominant
-bandwidth-limiting resistance is $R_{s,\mathrm{an}}$---the lateral conduction path
-through the $p^{++}$-Si platform---which is reduced by \SI{36}{\percent} in the
+bandwidth-limiting resistance is $R_{s,\mathrm{an}}$, the lateral conduction path
+through the $p^{++}$-Si platform, which is reduced by \SI{36}{\percent} in the
 U-shaped electrode topology relative to the parallel-electrode design.}
 \label{fig:eq_circuit}
 \end{figure}
@@ -1809,7 +1861,7 @@ quantified in \cref{subsec:pd_fdtd}: the coupled FDTD-CHARGE simulation
 requires \SI{11}{\hour} per design point, making a full double-U parameter
 sweep computationally prohibitive.
 
-\subsection{Benchmark Reproduction and O-band Adaptation Path}
+\subsection[Benchmark Reproduction]{Benchmark Reproduction and O-band Adaptation Path}
 \label{subsec:pd_benchmark_oband}
 
 This results section is intentionally organised as a two-stage design exercise.
@@ -1860,7 +1912,7 @@ target $\mathcal{A}_0$ can be achieved with a smaller optical footprint at
 trade excess absorption margin back into reduced area, lower capacitance, and a
 more comfortable RC budget without abandoning the validated single-U topology.
 
-\subsection{Optical Generation Profile and Absorber Length Sweep}
+\subsection[Optical Generation and Length Sweep]{Optical Generation Profile and Absorber Length Sweep}
 \label{subsec:pd_optical_results}
 
 The optical generation rate map $G_{\mathrm{opt}}(\mathbf{r})$ extracted from
@@ -1956,15 +2008,15 @@ $f_{3\,\mathrm{dB,base}}$ [GHz] & $\mathcal{R}$ [A/W] & $e_c$ [fJ/bit] \\
 \end{adjustbox}
 \end{table}
 
-\textit{Note on \cref{tab:wi_sweep}:} The $f_{3\,\mathrm{dB,base}}$ column
+\Cref{tab:wi_sweep} shows that the $f_{3\,\mathrm{dB,base}}$ column
 shows a monotonic decrease with increasing $W_i$ for the U-shaped design
-because $f_{\mathrm{RC}}\gg f_{\mathrm{tt}}$ throughout---the device is
+because $f_{\mathrm{RC}}\gg f_{\mathrm{tt}}$ throughout; the device is
 transit-time limited in the conservative lower-bound sense, not RC-limited, at
 the U-shaped $R_s$ value. The table is therefore best interpreted as a
 geometry-screening tool: it ranks the thickness choices before the
 benchmark-calibrated peaking network of \cref{eq:H_pd_pk} is superimposed. The
 trade-off rate is approximately \SI{2.8}{\giga\hertz} per
-\SI{1}{\percent} of responsivity sacrificed in this baseline model---a
+\SI{1}{\percent} of responsivity sacrificed in this baseline model, a
 device-specific constant of the vertical O-band architecture.
 
 \begin{figure}[H]
@@ -2033,7 +2085,7 @@ of \cref{eq:jdark_srh}.
     \label{fig:band_carrier_field}
 \end{figure}
 
-\subsection{Current-Voltage Characteristics and Responsivity}
+\subsection[Current-Voltage Characteristics]{Current-Voltage Characteristics and Responsivity}
 \label{subsec:pd_iv_results}
 
 The simulated dark current $I_d=\SI{1.3}{\nano\ampere}$ at \SI{-1}{\volt}
@@ -2102,7 +2154,7 @@ the later high-speed system projection.
     left panel should distinguish the conservative baseline from the
     benchmark-calibrated peaked response: the former is used for thickness
     screening, whereas the latter supports the \SI{103}{\giga\hertz}-class
-    projection employed in \cref{sec:pd_system}.}
+    sensitivity estimate discussed later in the chapter.}
     \label{fig:freq_response}
 \end{figure}
 
@@ -2125,29 +2177,29 @@ Dark current $I_d$
 Responsivity $\mathcal{R}$
     & \eqref{eq:responsivity} & $\geq0.95$ & 0.95 & A\,W$^{-1}$ & At \SI{-1}{\volt} \\
 EQE $\eta_{\mathrm{ext}}$
-    & \eqref{eq:qe_full} & $\geq90.8$ & --- & \% & Via $\eta_c\cdot\mathcal{A}$ \\
+    & \eqref{eq:qe_full} & $\geq90.8$ & N/A & \% & Via $\eta_c\cdot\mathcal{A}$ \\
 IQE $\eta_{\mathrm{int}}$
-    & \eqref{eq:iqe} & $\geq99$ & --- & \% & Negligible recomb. loss \\
+    & \eqref{eq:iqe} & $\geq99$ & N/A & \% & Negligible recomb. loss \\
 Baseline bandwidth $f_{3\,\mathrm{dB,base}}$
-    & \eqref{eq:bw_total} & 44.5 & --- & GHz & No peaking; lower-bound screen \\
+    & \eqref{eq:bw_total} & 44.5 & N/A & GHz & No peaking; lower-bound screen \\
 Projected peaked bandwidth $f_{3\,\mathrm{dB,pk}}$
     & \eqref{eq:H_pd_pk} & $\geq103$ & 103 & GHz & Benchmark-calibrated single-U \\
 $C_j$ (at \SI{-1}{\volt})
-    & \eqref{eq:cj} & $\sim1.8$ & --- & fF & Small-signal AC \\
+    & \eqref{eq:cj} & $\sim1.8$ & N/A & fF & Small-signal AC \\
 $R_{s,\mathrm{an}}$ (U-shape)
-    & \eqref{eq:rs_u} & $\sim5$ & --- & $\Omega$ & vs $\sim8\,\Omega$ parallel \\
+    & \eqref{eq:rs_u} & $\sim5$ & N/A & $\Omega$ & vs $\sim8\,\Omega$ parallel \\
 Shot noise $S_{\mathrm{shot}}$
-    & \eqref{eq:shot} & $4.2\times10^{-28}$ & --- & A$^2$\,Hz$^{-1}$ & Dark condition \\
+    & \eqref{eq:shot} & $4.2\times10^{-28}$ & N/A & A$^2$\,Hz$^{-1}$ & Dark condition \\
 $D^*$
-    & \eqref{eq:dstar} & $\geq2.95\times10^{10}$ & --- & Jones & \\
+    & \eqref{eq:dstar} & $\geq2.95\times10^{10}$ & N/A & Jones & \\
 $P_{\mathrm{sens}}$ (shot-noise limited)
-    & \eqref{eq:sens_full} & $-17.1$ & --- & dBm & Using $f_{3\,\mathrm{dB,pk}}$ \\
+    & \eqref{eq:sens_full} & $-17.1$ & N/A & dBm & Using $f_{3\,\mathrm{dB,pk}}$ \\
 \bottomrule
 \end{tabular}
 \end{adjustbox}
 \end{table}
 
-\subsection{Design Trade-offs and Limiting Mechanisms}
+\subsection[Design Trade-Offs]{Design Trade-offs and Limiting Mechanisms}
 \label{sec:pd_discussion}
 
 \paragraph{Absorption profile and the optical-to-electrical coupling chain.}
@@ -2165,17 +2217,19 @@ occurs with the calibrated lifetime $\tau_0=\SI{5}{\nano\second}$.
 \paragraph{Dark current mechanisms and temperature sensitivity.}
 The \SI{1.3}{\nano\ampere} dark current is dominated by SRH generation.
 The strong exponential temperature dependence $n_i\propto\exp(-E_g/2kT)$
-in germanium---where $E_{g,\mathrm{ind}}=\SI{0.66}{\electronvolt}$ is
-substantially smaller than silicon's \SI{1.12}{\electronvolt}---implies that
+in germanium, where $E_{g,\mathrm{ind}}=\SI{0.66}{\electronvolt}$ is
+substantially smaller than silicon's \SI{1.12}{\electronvolt}, implies that
 $I_d$ approximately doubles for every $\Delta T\approx\SI{10}{\kelvin}$
 increase in junction temperature. In a data-centre transceiver operating at
-$40$--$70\,^\circ$C junction temperature, this implies
+\SIrange{40}{70}{\celsius} junction temperature, this implies
 $I_d(70\,^\circ\mathrm{C})\approx4\times I_d(25\,^\circ\mathrm{C})\approx\SI{5}{\nano\ampere}$,
 raising $S_{\mathrm{shot}}$ from
 $\SI{4.2e-28}{\ampere\squared\per\hertz}$ to
-$\SI{1.6e-27}{\ampere\squared\per\hertz}$---still two orders of magnitude below
-$S_{\mathrm{TIA}}$ at \SI{103}{\giga\hertz}, confirming that the TIA remains
-the dominant noise source even at elevated temperature.
+$\SI{1.6e-27}{\ampere\squared\per\hertz}$, which remains far below the
+load-defined thermal-noise floor from \cref{eq:thermal} at
+\SI{103}{\giga\hertz}. Elevated temperature therefore changes the dark current
+appreciably without altering the conclusion that the intrinsic device noise
+remains low.
 
 \paragraph{Electric field screening under strong optical injection.}
 The analysis of \cref{sec:pd_results} is conducted at \SI{100}{\micro\watt},
@@ -2291,78 +2345,14 @@ exceeding the drift-diffusion ceiling.
         with a star.}
     \caption{Two-dimensional design space of the vertical n-i-p Ge-on-Si
     waveguide photodiode (O-band, U-shaped electrode). The three overlaid
-    constraints---Beer-Lambert absorption saturation, transit-time/RC balance
-    locus $W_i^*$, and electric field screening power---define the physically
+    constraints, Beer-Lambert absorption saturation, the transit-time/RC balance
+    locus $W_i^*$, and electric field screening power, define the physically
     feasible and optimally performing region within which the chosen design
     point is located.}
     \label{fig:design_space_2d}
 \end{figure}
 
-\section{Device-to-System Projection and IEEE 802.3 400GBASE-DR4}
-\label{sec:pd_system}
-
-\subsection{Context: The IEEE 802.3 400GBASE-DR4 Standard}
-\label{subsec:pd_ieee_context}
-
-The International Ethernet standard IEEE~802.3 Clause~140 defines the
-400GBASE-DR4 physical layer medium dependent (PMD) specification for
-\SI{400}{\giga\bit\per\second} single-mode fibre transmission at \SI{1310}{\nano\metre}
-over a reach of up to \SI{500}{\metre}~\cite{IEEE80232022}. The standard
-prescribes four parallel optical lanes ($\times4$) each carrying
-\SI{106.25}{\giga\bit\per\second} raw line rate at a symbol rate of
-$f_s=\SI{53.125}{\giga\baud}$, yielding an aggregate coded throughput of
-\SI{425}{\giga\bit\per\second} across the four optical lanes. The key
-receiver-side specifications extracted from the
-standard are summarised in \cref{tab:ieee_specs}.
-
-\begin{table}[H]
-\centering
-\caption{IEEE~802.3 400GBASE-DR4 receiver-side photodetector and optical
-interface specifications extracted from Clause~140~\cite{IEEE80232022} and
-their mapping to the device metrics of \cref{sec:pd_concept}. The final
-column identifies the governing equation linking the standard requirement to
-the device design variables.}
-\label{tab:ieee_specs}
-\footnotesize
-\begin{adjustbox}{max width=\linewidth}
-\begin{tabular}{>{\RaggedRight\arraybackslash}p{3.0cm} >{\RaggedRight\arraybackslash}p{2.2cm} >{\RaggedRight\arraybackslash}p{2.2cm} >{\RaggedRight\arraybackslash}p{2.2cm} >{\RaggedRight\arraybackslash}p{2.5cm}}
-\toprule
-Parameter & Symbol & Value & Unit & Governing Eq. \\
-\midrule
-Wavelength range & $\lambda$ & 1260--1360 & nm & \cref{eq:abs_fraction} \\
-Symbol rate & $f_s$ & 53.125 & Gbaud & \cref{eq:H_pd} \\
-Modulation format & --- & PAM-4 & --- & \cref{eq:ser_pam} \\
-Minimum receiver sensitivity (OMA) & $\mathrm{OMA_{out,min}}$ & $-6.0$ & dBm & \cref{eq:ser_pam} \\
-Maximum input power & $P_{\mathrm{in,max}}$ & $+3.4$ & dBm & \cref{eq:p_screening} \\
-Receiver BER target (before FEC) & BER & $\leq5\times10^{-5}$ & --- & \cref{eq:ser_pam} \\
-Minimum receiver $-3\,\mathrm{dB}$ bandwidth & $f_{3\,\mathrm{dB,min}}$ & $\geq0.75f_s$ & GHz & \cref{eq:bw_total} \\
-Maximum differential group delay & DGD & 5.0 & ps & \cref{eq:bandgap_strain} \\
-Reflectance tolerance & $\Gamma_{\mathrm{max}}$ & $-26$ & dB & \cref{eq:fdtd_abs} \\
-\bottomrule
-\end{tabular}
-\end{adjustbox}
-\end{table}
-
-The minimum required receiver bandwidth of $0.75\times\SI{53.125}{\giga\hertz}
-=\SI{39.8}{\giga\hertz}$ is well within the \SI{103}{\giga\hertz} capability
-of the benchmark-calibrated peaked response used for system projection. The
-conservative baseline model of \cref{eq:bw_total} also remains compliant, but
-with much smaller margin; the distinction matters because the geometry sweeps
-and the final link projection answer different engineering questions. The
-maximum input power of \SI{+3.4}{\dBm}
-$=\SI{2.19}{\milli\watt}$, however, substantially exceeds the electric field
-screening threshold of $P_{\mathrm{screening}}\approx\SI{340}{\micro\watt}$
-computed from \cref{eq:p_screening}. This discrepancy reveals an important
-practical requirement: in a fully compliant 400GBASE-DR4 receiver, an optical
-attenuator or variable optical attenuator (VOA) must be placed before the
-photodetector to ensure that the received power never exceeds
-$P_{\mathrm{opt}}\leq P_{\mathrm{screening}}$ at the junction facet. The
-minimum OMA sensitivity of \SI{-6.0}{\dBm}$=\SI{251}{\micro\watt}$ is, by
-contrast, close to the screening threshold, confirming that the standard's
-dynamic range requirement ($P_{\mathrm{in,max}}-\mathrm{OMA_{out,min}}\approx\SI{9.4}{\decibel}$)
-spans a range that straddles the linearity limit of the present device.
-
-\subsection{Doping Configuration and Its Impact on the Receiver Dark Current Floor}
+\subsection[Detector Sensitivity]{Detector-Level Sensitivity and Doping Polarity}
 \label{subsec:pd_polarity}
 
 The dark current $I_d$ that enters the shot-noise expression \cref{eq:shot}
@@ -2376,10 +2366,10 @@ $J_{\mathrm{surf}}$ in \cref{eq:jdark_surf} above the ideal planar junction
 prediction, increasing $I_d$ by a factor of approximately two to three at
 \SI{-1}{\volt}~\cite{Alasio2024}. Through \cref{eq:sens_dark}, this translates
 into a receiver sensitivity improvement of approximately \SI{1.5}{\decibel}
-in the dark-current-dominated regime---a non-trivial gain achievable at zero
+in the dark-current-dominated regime, a non-trivial gain achievable at zero
 process cost simply by choosing the correct doping polarity.
 
-\subsection{Shot-Noise-Limited Receiver Sensitivity}
+\paragraph{Shot-Noise-Limited Sensitivity.}
 \label{subsec:pd_sens}
 
 In the shot-noise-limited regime, the signal-to-noise ratio at the output of
@@ -2416,191 +2406,22 @@ $I_d=\SI{1.3}{\nano\ampere}$, and $B_e=\SI{103}{\giga\hertz}$ into
     \label{eq:sens_result}
 \end{equation}
 
-\subsection{PAM-4 Sensitivity Framework and 400GBASE-DR4 Compliance}
-\label{subsec:pd_pam4_ieee}
+As a brief external consistency check, the extracted device metrics remain
+compatible with the receiver-side bandwidth target of IEEE~802.3
+400GBASE-DR4~\cite{IEEE80232022}, since the simulated response exceeds the
+\SI{39.8}{\giga\hertz} threshold by a comfortable margin. The more restrictive
+device-level constraint is instead the field-screening limit
+$P_{\mathrm{screening}}\approx\SI{340}{\micro\watt}$ from \cref{eq:p_screening},
+which indicates that optical power management would still be required at the
+upper end of the receive-power window. This observation is retained only as a
+final application check; it is not used as the organising framework of the
+chapter.
 
-For a PAM-$M$ direct-detection link with Gaussian noise $\sigma_n^2=i_n^2B_e$
-from \cref{eq:sigma_n}, the symbol-error rate is:
-\begin{equation}
-    P_s = \frac{M-1}{M}
-    \,\mathrm{erfc}\!\left(
-    \frac{\mathcal{R}\cdot\mathrm{OMA}_{\mathrm{out}}}
-         {\sqrt{8\,B_e\,(M-1)}\,i_n}
-    \right).
-    \label{eq:ser_pam}
-\end{equation}
-For 400GBASE-DR4 PAM-4 ($M=4$, $f_s=\SI{53.125}{\giga\baud}$,
-$B_e=f_s/2=\SI{26.6}{\giga\hertz}$), the minimum OMA is
-$\mathrm{OMA_{out,min}}=\SI{-6.0}{\dBm}=\SI{251}{\micro\watt}$. Setting
-$P_s=5\times10^{-5}$ (BER floor before FEC), $M=4$, $\mathcal{R}=\SI{0.95}{\ampere\per\watt}$,
-and solving \cref{eq:ser_pam} for the required $i_n$:
-\begin{equation}
-    i_n^{\mathrm{req}}
-    = \frac{\mathcal{R}\cdot\mathrm{OMA}_{\mathrm{out}}}
-           {\sqrt{8\,B_e\,(M-1)}\cdot\mathrm{erfc}^{-1}(MP_s/(M-1))}
-    \approx \SI{18}{\pico\ampere\per\sqrt\hertz}.
-    \label{eq:in_req}
-\end{equation}
-This requirement translates directly into a TIA noise specification:
-$i_n^{\mathrm{req}}=\SI{18}{\pico\ampere\per\sqrt\hertz}$ is achievable with
-\SI{90}{\nano\metre} CMOS TIA stages, confirming that the photodetector
-developed in this chapter is compatible with IEEE~802.3 400GBASE-DR4 when paired
-with a standard-process transimpedance amplifier. The chromatic dispersion
-transfer function at the O-band (with $|\beta_2|\approx\SI{0.5}{\pico\second\squared\per\kilo\metre}$)
-places the first signal-annihilating spectral null at
-$f_0=\sqrt{1/(2|\beta_2|z)}\approx\SI{1}{\tera\hertz}$ for the \SI{500}{\metre}
-standard reach---far outside the electrical bandwidth---confirming that no
-dispersion compensation is required within the 400GBASE-DR4 reach envelope.
 
-\begin{table}[H]
-\centering
-\caption{IEEE~802.3 400GBASE-DR4 receiver compliance summary for the simulated
-Ge-on-Si photodetector. ``Margin'' is the difference between the simulated
-capability and the standard requirement, with positive values indicating compliance.}
-\label{tab:ieee_compliance}
-\footnotesize
-\begin{adjustbox}{max width=\linewidth}
-\begin{tabular}{lccccc}
-\toprule
-Parameter & Standard Req. & Device Capability & Unit & Margin & Status \\
-\midrule
-Bandwidth ($f_{3\,\mathrm{dB}}$) & $\geq39.8$ & $\geq103$ & GHz & $+63.2$ & \checkmark \\
-Responsivity ($\mathcal{R}$) & $\geq0.7$ & $\geq0.95$ & A/W & $+0.25$ & \checkmark \\
-Dark current ($I_d$) & $\leq5$ & $\leq1.3$ & nA & $+3.7$ & \checkmark \\
-Max input power & $\leq3.4$ & $P_{\mathrm{scr}}\approx+0.4$ & dBm & $-3.0$ & VOA required \\
-Min OMA sensitivity & $\geq-6.0$ & $-17.1$ (shot-noise) & dBm & $+11.1$ & \checkmark \\
-Required $i_n$ & $\leq18$ & $\approx0.65$ (PD only) & pA/$\sqrt{\text{Hz}}$ & $+17.4$ & \checkmark (TIA limited) \\
-\bottomrule
-\end{tabular}
-\end{adjustbox}
-\end{table}
-
-\Cref{tab:ieee_compliance} reveals one compliance gap: the maximum permissible
-input power of \SI{+3.4}{\dBm} exceeds the photodetector's field-screening onset
-of $P_{\mathrm{screening}}\approx+0.4\,\mathrm{dBm}$, necessitating either a
-VOA in the receive optical path or a redesign targeting higher $P_{\mathrm{screening}}$
-through a UTC architecture (which raises the right-hand side of
-\cref{eq:saturation_current_density} by $v_{\mathrm{d,sat},e}/v_{\mathrm{d,sat},h}=1.5$)
-or wider mesa ($A_j\uparrow\Rightarrow P_{\mathrm{screening}}\uparrow$ via \cref{eq:p_screening}).
-
-\subsection{Bandwidth and Modulation Format Implications for Upgrade Paths}
-\label{subsec:pd_format}
-
-The derived $f_{3\,\mathrm{dB}}\geq\SI{103}{\giga\hertz}$ accommodates
-PAM-4 symbol rates up to approximately \SI{100}{\giga\baud}. The attenuation
-of a sinusoidal component at the Nyquist frequency is:
-\begin{equation}
-    |H(f_N)| = \frac{1}{\sqrt{1+(f_N/f_{3\,\mathrm{dB}})^2}}.
-    \label{eq:nyquist_attenuation}
-\end{equation}
-For PAM-4 at \SI{200}{\giga\bit\per\second}, corresponding to
-$f_s=\SI{100}{\giga\baud}$ and $f_N=\SI{50}{\giga\hertz}$, the attenuation is
-$|H(\SI{50}{\giga\hertz})|=1/\sqrt{1+(50/103)^2}\approx0.90$. This is less than
-\SI{1}{\decibel} of Nyquist-frequency attenuation, confirming ISI-free reception
-without equalisation from \cref{eq:H_pd}. For a hypothetical upgrade to
-\SI{400}{\giga\bit\per\second} PAM-4, where $f_N=\SI{100}{\giga\hertz}$,
-$|H(\SI{100}{\giga\hertz})|=1/\sqrt{2}\approx-\SI{3}{\decibel}$. The device is
-then operating exactly at the $-3\,\mathrm{dB}$ boundary, so at minimum a
-single-tap FFE becomes necessary. The minimum receiver sensitivity at
-\SI{400}{\giga\bit\per\second} is further degraded by the equalisation noise
-enhancement factor:
-\begin{equation}
-    \mathrm{NEF} \approx \sqrt{1+(f_N/f_{3\,\mathrm{dB}})^2}
-    = \sqrt{2} \approx \SI{1.5}{\decibel}
-    \quad\text{at }f_N=f_{3\,\mathrm{dB}}.
-    \label{eq:nef}
-\end{equation}
-This noise enhancement penalty originates in the photodetector transfer function
-and propagates through the equaliser into the receiver BER budget, providing the
-direct quantitative connection between the device-level $f_{3\,\mathrm{dB}}$ of
-\cref{eq:bw_total} and the system-level DSP complexity~\cite{Pilori2019}.
-
-\begin{figure}[H]
-    \centering
-    \missingfigure[figwidth=0.90\linewidth]{
-        Four-panel system figure. Panel (a): receiver sensitivity
-        $P_{\mathrm{sens}}$ (dBm) from \cref{eq:sens_full} versus electrical
-        bandwidth $B_e$ from 10 to \SI{200}{\giga\hertz}, for three
-        responsivity values: $\mathcal{R}=0.75,0.95,1.05$\,A/W.
-        Fix $I_d=\SI{1.3}{\nano\ampere}$ and $Q=7.03$. Mark the operating
-        point with a filled circle and the dark-current-dominated vs
-        signal-dominated crossover from \cref{eq:sens_dark,eq:sens_signal}.
-        Panel (b): required OMA$_{\mathrm{out}}$ (dBm) for BER$=10^{-4}$
-        from \cref{eq:ser_pam} versus modulation order $M=2,4,8$ at symbol
-        rates adjusted to maintain \SI{200}{\giga\bit\per\second} aggregate.
-        Panel (c): normalised $|H(f)|^2$ (dB) from 1 to \SI{250}{\giga\hertz}
-        with the present device ($f_{3\,\mathrm{dB}}=103$\,GHz), with vertical
-        dashed lines at Nyquist frequencies for OOK/100G (50\,GHz),
-        PAM-4/200G (50\,GHz), and PAM-4/400G (100\,GHz), annotating the
-        Nyquist attenuation and NEF from \cref{eq:nyquist_attenuation,eq:nef}.
-        Panel (d): compact receiver chain diagram showing fibre, coupler,
-        waveguide, photodiode, TIA, equaliser, and BER monitor, with a lane-level
-        annotation of where each loss or noise term from the chapter enters the
-        system budget.}
-    \caption{Device-to-system projection for the IEEE~802.3 400GBASE-DR4 link.
-    Left: sensitivity vs bandwidth for three responsivity values. Centre: PAM-$M$
-    OMA penalty from \cref{eq:ser_pam}. Right: photodetector frequency response
-    with Nyquist frequencies for current and future standards, quantifying the
-    equalisation burden via \cref{eq:nef}.}
-    \label{fig:system_projection}
-\end{figure}
-
-\subsection{PIC-Level Integration and Layout Constraints}
-\label{subsec:pd_pic}
-
-Integration of the photodetector within a silicon photonic integrated circuit
-(PIC) introduces layout constraints that modulate the effective device performance
-beyond the isolated-device metrics of \cref{tab:results}. Four constraints are
-quantitatively significant:
-
-\paragraph{Waveguide routing attenuation.}
-For a Si ridge waveguide with $\gamma_{\mathrm{wg}}=\SI{3.6}{\decibel\per\centi\metre}$
-at \SI{1310}{\nano\metre} and a routing length of $\ell_{\mathrm{wg}}$,
-the chip-level responsivity is:
-\begin{equation}
-    \mathcal{R}_{\mathrm{chip}} = \mathcal{R}\cdot10^{-\gamma_{\mathrm{wg}}\ell_{\mathrm{wg}}/10}.
-    \label{eq:r_chip}
-\end{equation}
-For $\ell_{\mathrm{wg}}=\SI{5}{\milli\metre}$ (a typical intra-PIC routing
-distance in a 4-lane transceiver)~\cite{Wang2024},
-$\mathcal{R}_{\mathrm{chip}}=0.95\times10^{-0.0018}\approx\SI{0.946}{\ampere\per\watt}$---
-a negligible \SI{0.2}{\percent} reduction.
-
-\paragraph{Taper yield sensitivity.}
-The adiabatic taper couples efficiency $\eta_c$ from the Si waveguide mode to
-the Ge absorber. A lithographic overlay error of $\Delta W_{\mathrm{tip}}$ in
-the tip width alters the coupling efficiency by
-$d\eta_c/dW_{\mathrm{tip}}\cdot\Delta W_{\mathrm{tip}}$. FDTD sensitivity
-analysis (not detailed here) shows that $\eta_c$ remains above \SI{95}{\percent}
-for tip width variations of $\pm\SI{20}{\nano\metre}$---within the
-$3\sigma$ tolerance of a \SI{90}{\nano\metre} lithography node.
-
-\paragraph{Thermal cross-talk.}
-In a 4-lane PIC, adjacent modulators dissipate several milliwatts of electrical
-power, raising the local temperature of the photodetector by
-$\Delta T\approx P_{\mathrm{mod}}\cdot R_{\mathrm{th}}$, where
-$R_{\mathrm{th}}\approx\SI{50}{\kelvin\per\watt}$ is a typical SOI thermal
-resistance. For $P_{\mathrm{mod}}=\SI{5}{\milli\watt}$, $\Delta T\approx\SI{0.25}{\kelvin}$,
-increasing $I_d$ by $\approx\SI{3}{\percent}$---negligible for the present dark
-current level.
-
-\paragraph{Electrical parasitics from the bondpad.}
-The bondpad capacitance $C_{\mathrm{par}}\approx\SI{10}{\femto\farad}$
-contributes to $C_{\mathrm{tot}}=C_j+C_{\mathrm{par}}$ and therefore reduces
-$f_{\mathrm{RC}}$. Co-design with a flip-chip-bonded TIA that eliminates the
-bondpad and replaces it with a \SI{1}{\femto\farad} bump capacitance would
-reduce $C_{\mathrm{tot}}$ by a factor of six, raising
-$f_{\mathrm{RC}}$ from \SI{147}{\giga\hertz} to $\sim\SI{870}{\giga\hertz}$---
-making the conservative baseline response entirely transport-limited, with the
-remaining ceiling then set by the transit physics rather than by RC loading.
-In other words, bondpad removal is highly valuable while the device is still
-parasitic-limited, but it cannot by itself replace the need to understand the
-two-carrier transport response or the package-level peaking network.
-
-\section{Physics-Informed Neural Network: Validation and Double U-shape Extension}
+\section[PINN Validation and Extension]{Physics-Informed Neural Network: Validation and Double U-shape Extension}
 \label{sec:pd_pinn}
 
-\subsection{Motivation: Simulation Cost as the Design Bottleneck}
+\subsection[PINN Motivation]{Motivation: Simulation Cost as the Design Bottleneck}
 \label{subsec:pd_pinn_motivation}
 
 The coupled FDTD-CHARGE simulation chain of \cref{sec:pd_design} requires
@@ -2622,7 +2443,7 @@ budget. The PINN surrogate model provides the means to explore the double-U
 design space at a fraction of the full-simulation cost, after first being
 validated against the single-U reference design at selected bias points.
 
-\subsection{PINN Architecture and Training Strategy}
+\subsection[PINN Architecture]{PINN Architecture and Training Strategy}
 \label{subsec:pd_pinn_arch}
 
 The PINN employed here follows the loss formulation of \cref{eq:pinn_loss,eq:pinn_pde_loss}.
@@ -2645,7 +2466,7 @@ of $\delta_{\mathrm{grad}}=\SI{5}{\nano\metre}$ as a smooth variation in the
 local band offset, avoiding the singularity in the quasi-Fermi level that would
 otherwise prevent gradient computation through the AD graph.
 
-\subsection{Validation Against the Single U-shaped Design}
+\subsection[Single-U Validation]{Validation Against the Single U-shaped Design}
 \label{subsec:pd_pinn_valid}
 
 The PINN is first trained and validated on the single U-shaped design at three
@@ -2684,7 +2505,7 @@ within \SI{5}{\percent}.
     \label{fig:pinn_validation}
 \end{figure}
 
-\subsection{Double U-shaped Anode: Concept and Expected Performance}
+\subsection[Double-U Extension]{Double U-shaped Anode: Concept and Expected Performance}
 \label{subsec:pd_double_u}
 
 The double U-shaped anode places metal contacts on both long sidewalls of the
@@ -2787,8 +2608,8 @@ O-band reception at \SI{1310}{\nano\metre}, structured as a complete engineering
 guide in which every design decision is traceable to a specific equation or
 physical argument. The chapter first established the electromagnetic, material,
 transport, and metric framework required to judge the device rigorously. It
-then used a staged device-evolution argument together with the literature
-review to show why the waveguide-integrated Ge-on-Si PIN remains the correct
+then used a physically grounded architectural justification together with the
+literature review to show why the waveguide-integrated Ge-on-Si PIN remains the correct
 architecture for the present target: germanium supplies the required O-band
 absorption while preserving silicon-photonics process compatibility, the PIN
 structure suppresses the diffusion tail associated with simpler junctions, and
@@ -2821,13 +2642,12 @@ for the compact O-band geometry, and the benchmark-calibrated peaked response
 architecture at a rate of approximately \SI{2.8}{\giga\hertz} per
 \SI{1}{\percent} of responsivity sacrificed in the baseline screening model.
 
-The device-to-system projection of \cref{sec:pd_system} derived the shot-noise-limited
-receiver sensitivity of $P_{\mathrm{sens}}\approx\SI{-17.1}{\dBm}$ from
-\cref{eq:sens_full} and established full compliance with the IEEE~802.3
-400GBASE-DR4 standard (\cref{tab:ieee_compliance}) with one exception: the
-maximum input power of \SI{+3.4}{\dBm} exceeds the electric field screening
-onset of \cref{eq:p_screening}, requiring a VOA in the receive path or a UTC
-architecture to extend the linear dynamic range.
+The detector-level sensitivity analysis derived
+$P_{\mathrm{sens}}\approx\SI{-17.1}{\dBm}$ from \cref{eq:sens_full} and showed
+that the simulated bandwidth remains compatible with the receiver-side target
+of IEEE~802.3 400GBASE-DR4. The limiting constraint in that final application
+check is not bandwidth, but the electric-field-screening onset of
+\cref{eq:p_screening}, which remains below the highest receive-power condition.
 
 The PINN surrogate of \cref{sec:pd_pinn}, validated to within \SI{5}{\percent}
 on dark current against the CHARGE reference, enabled the double U-shaped anode

@@ -251,8 +251,7 @@ choice of Ge for O-band silicon photonics. $\alpha$ values are referenced to
 standard silicon-photonics process flow.}
 \label{tab:material_compare}
 \footnotesize
-\begin{adjustbox}{max width=\linewidth}
-\begin{tabular}{lcccccc}
+\begin{tabular*}{\linewidth}{@{\extracolsep{\fill}}L{2.8cm}C{1.6cm}C{2.0cm}C{2.2cm}C{2.0cm}C{1.2cm}L{2.3cm}@{}}
 \toprule
 Material & $E_g$ [eV] & $\alpha_{1310}$ [\si{\per\centi\metre}] &
 $v_{\mathrm{sat},h}$ [\si{\centi\metre\per\second}] &
@@ -264,8 +263,7 @@ Si & 1.12 (ind.) & $\sim10$ & \SI{2.5e6}{} & 480 & 0 & Compatible \\
 InGaAs (lattice-matched to InP) & 0.75 & $\sim1\times10^4$ & \SI{5e6}{} & 4500 & $>5$ & Not compatible \\
 Ge$_{0.92}$Sn$_{0.08}$ & $\sim0.55$ (dir.) & $>5000$ & $\sim$\SI{4e6}{} & $\sim$1500 & 4.8 & Research-stage \\
 \bottomrule
-\end{tabular}
-\end{adjustbox}
+\end{tabular*}
 \end{table}
 
 \begin{figure}[H]
@@ -1250,8 +1248,7 @@ junction geometries, respectively; ``NR'' denotes values not reported by the
 authors.}
 \label{tab:pd_lit_benchmarks}
 \footnotesize
-\begin{adjustbox}{max width=\linewidth}
-\begin{tabular}{c c >{\RaggedRight\arraybackslash}p{2.05cm} >{\RaggedRight\arraybackslash}p{3.65cm} c c c}
+\begin{tabular*}{\linewidth}{@{\extracolsep{\fill}}C{0.8cm}C{0.8cm}L{1.8cm}L{5.1cm}C{1.0cm}C{1.1cm}C{1.3cm}@{}}
 \toprule
 Year & Type & Reference & Key Design Lever &
 $\mathcal{R}$ [A/W] &
@@ -1275,8 +1272,7 @@ $f_{3\,\mathrm{dB}}$ [GHz] \\
 2024 & L & \cite{Cao2024}
      & Side-coupled parallel Ge geometry & 0.80 & 24 & $>40$ \\
 \bottomrule
-\end{tabular}
-\end{adjustbox}
+\end{tabular*}
 \end{table}
 
 
@@ -1295,11 +1291,75 @@ and Yan~\textit{et al.}~\cite{Yan2024}; the multiphysics modelling context is
 treated in depth in~\cite{Alasio2024}; computational methods are discussed in
 the pedagogical framework of Wartak~\cite{Wartak2013}.
 
-The receiver-level implications of this literature-based selection are examined
-later against IEEE~802.3 400GBASE-DR4 in \cref{sec:pd_system}. At the present
-stage, the key point is that the selected vertical U-shaped topology offers the
-most coherent route to an O-band detector that combines high responsivity, low
-dark current, and process-compatible geometry.
+\subsection{IEEE 802.3 400GBASE-DR4 as the Receiver-Level Target}
+\label{subsec:pd_ieee_context}
+
+The literature-based design choice also has to be justified against the target
+system specification. IEEE~802.3 Clause~140 defines 400GBASE-DR4 as a
+\SI{400}{\giga\bit\per\second} single-mode-fibre interface in the O-band,
+implemented through four parallel optical lanes at \SI{1310}{\nano\metre} over
+reaches up to \SI{500}{\metre}~\cite{IEEE80232022}. Each lane carries
+\SI{106.25}{\giga\bit\per\second} raw line rate with PAM-4 signalling, so the
+receiver-side photodetector must be judged not only by responsivity and dark
+current, but also by the bandwidth, optical power range, and noise conditions
+implied by the standard. The key receiver-side quantities are summarised in
+\cref{tab:ieee_specs}.
+
+\begin{table}[H]
+\centering
+\caption{IEEE~802.3 400GBASE-DR4 receiver-side constraints most directly
+relevant to the photodetector, extracted from Clause~140~\cite{IEEE80232022}
+and mapped onto the device metrics of \cref{sec:pd_concept}. The final column
+identifies the principal design relation where an explicit detector-level
+mapping is used in this chapter.}
+\label{tab:ieee_specs}
+\footnotesize
+\begin{tabular*}{\linewidth}{@{\extracolsep{\fill}}L{4.2cm}C{1.9cm}C{1.7cm}C{1.0cm}L{3.3cm}@{}}
+\toprule
+Parameter & Symbol & Value & Unit & Principal relation \\
+\midrule
+Wavelength range & $\lambda$ & 1260--1360 & nm & \cref{eq:abs_fraction} \\
+Symbol rate & $f_s$ & 53.125 & Gbaud & \cref{eq:bw_total} \\
+Modulation format & --- & PAM-4 & --- & --- \\
+Minimum receiver sensitivity (OMA) & $\mathrm{OMA_{out,min}}$ & $-6.0$ & dBm & --- \\
+Maximum input power & $P_{\mathrm{in,max}}$ & $+3.4$ & dBm & \cref{eq:p_screening} \\
+Minimum receiver $-3\,\mathrm{dB}$ bandwidth & $f_{3\,\mathrm{dB,min}}$ & $\geq0.75f_s$ & GHz & \cref{eq:bw_total} \\
+Reflectance tolerance & $\Gamma_{\mathrm{max}}$ & $-26$ & dB & \cref{eq:fdtd_abs} \\
+\bottomrule
+\end{tabular*}
+\end{table}
+
+This standard-based framing clarifies why the \SI{103}{\giga\hertz}-class
+single-U benchmark is the appropriate literature anchor for the present work.
+The minimum receiver bandwidth implied by the conventional $0.75f_s$ criterion
+is only \SI{39.8}{\giga\hertz}, so the benchmark vertical topology already
+establishes comfortable speed relevance for DR4. The more demanding issue is
+not whether the chosen architecture can operate fast enough, but whether it can
+remain linear across the receive-power window imposed by the standard. The
+maximum receive power of \SI{+3.4}{\dBm} (\SI{2.19}{\milli\watt}) is far above
+the screening regime later examined through \cref{eq:p_screening}, whereas the
+minimum OMA of \SI{-6.0}{\dBm} (\SI{251}{\micro\watt}) lies much closer to the
+same operating range. Accordingly, IEEE~802.3 400GBASE-DR4 is used here not as
+a late-stage compliance claim, but as the receiver-level constraint that
+justifies the selected topology and anticipates the dynamic-range problem
+resolved in the later device analysis.
+
+From the standard perspective, the selected design is not the literature device
+with the largest raw bandwidth, but the one that satisfies the DR4 receiver
+requirements in the most balanced way. The lateral Ge-fin benchmark of
+\SI{265}{\giga\hertz} in \cref{tab:pd_lit_benchmarks} exceeds the DR4 bandwidth
+target by a very large margin, but it does so with markedly lower
+responsivity and substantially higher dark current than the selected vertical
+benchmark. Earlier vertical devices preserve stronger detector efficiency, yet
+they leave much less bandwidth margin or retain higher leakage. By contrast,
+the U-shaped vertical Ge-on-Si PIN of Shi~\textit{et al.}~\cite{Shi2024}
+combines \SI{103}{\giga\hertz}-class response,
+$\mathcal{R}=\SI{0.95}{\ampere\per\watt}$, and
+$I_d=\SI{1.3}{\nano\ampere}$ in a process-compatible O-band platform. Because
+DR4 requires a detector that is simultaneously fast enough, efficient at low
+OMA, and quiet enough not to erode receiver margin, this balanced vertical
+U-shaped architecture is the most defensible starting point for the present
+design rather than the absolute-bandwidth record holder.
 
 
 \section[Architecture and Methodology]{Device Architecture and Simulation Methodology}
@@ -1318,8 +1378,7 @@ derived from the metric framework of \cref{sec:pd_concept}.
 photodiode simulation model. All doping concentrations are net values.}
 \label{tab:layer_stack}
 \footnotesize
-\begin{adjustbox}{max width=\linewidth}
-\begin{tabular}{llllll}
+\begin{tabular*}{\linewidth}{@{\extracolsep{\fill}}L{1.8cm}L{1.5cm}C{1.8cm}C{1.3cm}C{2.3cm}L{4.1cm}@{}}
 \toprule
 Layer & Material & Thickness & Type &
 Concentration [\si{\per\centi\metre\cubed}] &
@@ -1336,8 +1395,7 @@ BOX      & \ce{SiO2}   & \SI{2}{\micro\metre}  & N/A & N/A &
 Handle   & Si          & $\sim\SI{700}{\micro\metre}$ & N/A & N/A &
     Mechanical support \\
 \bottomrule
-\end{tabular}
-\end{adjustbox}
+\end{tabular*}
 \end{table}
 
 The intrinsic germanium thickness $W_i=\SI{350}{\nano\metre}$ is selected from
@@ -1908,8 +1966,7 @@ for geometry ranking before the full peaked transfer function is reinstated.
 The bold row is the chosen design point.}
 \label{tab:wi_sweep}
 \footnotesize
-\begin{adjustbox}{max width=\linewidth}
-\begin{tabular}{ccccccc}
+\begin{tabular*}{\linewidth}{@{\extracolsep{\fill}}ccccccc@{}}
 \toprule
 $W_i$ [nm] & $f_{\mathrm{tt}}$ [GHz] & $C_j$ [fF] & $f_{\mathrm{RC}}$ [GHz] &
 $f_{3\,\mathrm{dB,base}}$ [GHz] & $\mathcal{R}$ [A/W] & $e_c$ [fJ/bit] \\
@@ -1922,8 +1979,7 @@ $f_{3\,\mathrm{dB,base}}$ [GHz] & $\mathcal{R}$ [A/W] & $e_c$ [fJ/bit] \\
 500 & 36.0 & 1.26 & 210.6 & 32.1 & 0.93 & 50 \\
 600 & 30.0 & 1.05 & 253.0 & 26.9 & 0.91 & 60 \\
 \bottomrule
-\end{tabular}
-\end{adjustbox}
+\end{tabular*}
 \end{table}
 
 \Cref{tab:wi_sweep} shows that the $f_{3\,\mathrm{dB,base}}$ column
@@ -2085,8 +2141,7 @@ reference listed. The $D^*$ value is computed from \cref{eq:dstar} with
 $A_j=\SI{1}{\micro\metre}\times\SI{6}{\micro\metre}$.}
 \label{tab:results}
 \footnotesize
-\begin{adjustbox}{max width=\linewidth}
-\begin{tabular}{lllll>{\RaggedRight\arraybackslash}p{2.5cm}}
+\begin{tabular*}{\linewidth}{@{\extracolsep{\fill}}L{3.0cm}C{1.8cm}C{1.6cm}C{1.6cm}C{1.4cm}L{3.5cm}@{}}
 \toprule
 Metric & Governing Eq. & Simulated & Benchmark & Unit & Notes \\
 \midrule
@@ -2113,8 +2168,7 @@ $D^*$
 $P_{\mathrm{sens}}$ (shot-noise limited)
     & \eqref{eq:sens_full} & $-17.1$ & N/A & dBm & Using $f_{3\,\mathrm{dB,pk}}$ \\
 \bottomrule
-\end{tabular}
-\end{adjustbox}
+\end{tabular*}
 \end{table}
 
 \subsection[Design Trade-Offs]{Design Trade-offs and Limiting Mechanisms}
@@ -2270,36 +2324,6 @@ exceeding the drift-diffusion ceiling.
     \label{fig:design_space_2d}
 \end{figure}
 
-\section{IEEE 802.3 400GBASE-DR4 Assessment}
-\label{sec:pd_system}
-
-\subsection{Receiver-Level Interpretation of the Simulated Results}
-\label{subsec:pd_ieee_context}
-
-The simulated detector can now be interpreted against the intended link
-standard. IEEE~802.3 400GBASE-DR4 specifies four parallel O-band lanes at
-\SI{106.25}{\giga\bit\per\second} using PAM-4 signalling, corresponding to a
-symbol rate of \SI{53.125}{\giga\baud} per lane. Under the conventional
-$0.75f_s$ receiver criterion, this implies a minimum electrical bandwidth of
-\SI{39.8}{\giga\hertz}~\cite{IEEE80232022}. The conservative lower-bound result
-of the present device, $f_{3\,\mathrm{dB,base}}\approx\SI{44.5}{\giga\hertz}$,
-already exceeds that requirement, while the benchmark-calibrated single-U
-response remains in the \SI{103}{\giga\hertz} class. In bandwidth terms, the
-selected vertical topology is therefore fully compatible with the DR4 lane
-rate.
-
-The more informative comparison concerns the usable optical power window rather
-than the speed limit alone. The maximum DR4 receive power of
-\SI{+3.4}{\dBm} (\SI{2.19}{\milli\watt}) substantially exceeds the screening
-threshold later extracted for the simulated junction,
-$P_{\mathrm{screening}}\approx\SI{340}{\micro\watt}$, whereas the minimum OMA
-of \SI{-6.0}{\dBm} (\SI{251}{\micro\watt}) lies much closer to that limit. The
-principal practical constraint of the present detector is therefore not the
-required modulation speed, but the fact that the DR4 receive-power range
-extends into the regime where space-charge screening can compress the
-photocurrent response. At detector level, the design is speed-compatible with
-DR4, but its upper-power margin is set by linearity rather than bandwidth.
-
 \subsection[Detector Sensitivity]{Detector-Level Sensitivity and Doping Polarity}
 \label{subsec:pd_polarity}
 
@@ -2353,9 +2377,10 @@ $I_d=\SI{1.3}{\nano\ampere}$, and $B_e=\SI{103}{\giga\hertz}$ into
     P_{\mathrm{sens}} \approx \SI{-17.1}{\dBm}.
     \label{eq:sens_result}
 \end{equation}
-This detector-level sensitivity estimate is consistent with the lower end of
-the DR4 receive-power window, while the screening analysis above identifies the
-upper-power constraint that remains to be managed in practical deployment.
+This detector-level sensitivity estimate remains consistent with the lower end
+of the DR4 receive-power window introduced in \cref{subsec:pd_ieee_context},
+while the screening analysis developed in the preceding discussion identifies
+the upper-power constraint that remains to be managed in practical deployment.
 
 \section[PINN Validation and Extension]{Physics-Informed Neural Network: Validation and Double U-shape Extension}
 \label{sec:pd_pinn}

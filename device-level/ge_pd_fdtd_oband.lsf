@@ -1,6 +1,3 @@
-switchtolayout;
-newproject;
-
 c0         = 3e8;
 lambda_c   = 1.31e-6;
 lambda_min = 1.26e-6;
@@ -8,160 +5,405 @@ lambda_max = 1.36e-6;
 f_c        = c0 / lambda_c;
 P_opt      = 100e-6;
 
-mat_Si   = "Si (Silicon) - Palik";
-mat_Ge   = "Ge (Germanium) - Palik";
-mat_SiO2 = "SiO2 (Glass) - Palik";
-
 rib_W   = 500e-9;
 wg_H    = 220e-9;
 slab_H  = 90e-9;
-Ge_W    = 5e-6;
-Ge_L    = 8e-6;
-iGe_H   = 350e-9;
-Npp_H   = 50e-9;
-Ge_H    = iGe_H + Npp_H;
 taper_L = 40e-6;
 BOX_H   = 2e-6;
-Pp_ext  = 1e-6;
+
+Ge_W      = 5e-6;
+Ge_L      = 8e-6;
+iGe_H     = 350e-9;
+Npp_H     = 50e-9;
+
+iGe_W_bot = Ge_W;
+iGe_W_top = Ge_W * 0.5;
+Npp_W     = iGe_W_top;
+ext_W     = Ge_W * 1.1;
+
+Al_cath_W_bot  = Npp_W * 0.6;
+Al_cath_W_top  = Npp_W * 0.8;
+Al_anode_W_bot = 200e-9;
+Al_anode_W_top = 500e-9;
+Al_ind_H       = 300e-9;
+
+D1 = 1.6e-6;
+D2 = 2.56e-6;
+
+y_anode_in_bot  = Ge_W/2 + D1;
+y_anode_out_bot = y_anode_in_bot + Al_anode_W_bot;
+y_anode_in_top  = Ge_W/2 + D1;
+y_anode_out_top = y_anode_in_top + Al_anode_W_top;
+
+x_back_min_bot = Ge_L + D2;
+x_back_max_bot = x_back_min_bot + Al_anode_W_bot;
+x_back_min_top = Ge_L + D2;
+x_back_max_top = x_back_min_top + Al_anode_W_top;
 
 z_BOX_bot  = -BOX_H;
 z_Si_bot   = 0;
 z_slab_top = slab_H;
-z_rib_top  = wg_H;
-z_iGe_bot  = z_rib_top;
-z_iGe_top  = z_rib_top + iGe_H;
-z_Npp_top  = z_rib_top + Ge_H;
+z_ext_top  = wg_H;
+z_iGe_bot  = z_ext_top;
+z_iGe_top  = z_iGe_bot + iGe_H;
+z_Npp_bot  = z_iGe_top - Npp_H;
+z_Npp_top  = z_iGe_top;
+z_cath_bot = z_Npp_bot;
+z_cath_top = z_Npp_top + 200e-9;
+z_ind_bot  = z_cath_top;
+z_Al_top   = z_ind_bot + Al_ind_H;
 
 src_x      = -(taper_L + 2e-6);
-fdtd_x_min = -(taper_L + 4.5e-6);
+fdtd_x_min = -(taper_L + 6e-6);
 
-addrect; set("name","BOX"); set("material",mat_SiO2);
-set("x min",fdtd_x_min-1e-6); set("x max",Ge_L+3e-6);
-set("y min",-(Ge_W/2+3e-6));  set("y max",Ge_W/2+3e-6);
-set("z min",z_BOX_bot);        set("z max",z_Si_bot);
-set("override mesh order from material database",1); set("mesh order",3);
+mat_Si   = "Si (Silicon) - Palik";
+mat_Ge   = "Ge (Germanium) - Palik";
+mat_SiO2 = "SiO2 (Glass) - Palik";
+mat_Al   = "Al (Aluminium) - CRC";
 
-addrect; set("name","Si_slab"); set("material",mat_Si);
-set("x min",fdtd_x_min-1e-6); set("x max",Ge_L+3e-6);
-set("y min",-(Ge_W/2+3e-6));  set("y max",Ge_W/2+3e-6);
-set("z min",z_Si_bot);         set("z max",z_slab_top);
-set("override mesh order from material database",1); set("mesh order",3);
+gen_mat_file     = "ge_gen_oband_ushaped.mat";
+fdtd_result_file = "ge_fdtd_results_oband_ushaped.mat";
 
-addrect; set("name","Si_ridge"); set("material",mat_Si);
-set("x min",fdtd_x_min-1e-6); set("x max",0);
-set("y min",-rib_W/2);         set("y max",rib_W/2);
-set("z min",z_slab_top);       set("z max",z_rib_top);
-set("override mesh order from material database",1); set("mesh order",2);
+switchtolayout;
+deleteall;
 
-addpoly; set("name","Si_taper"); set("material",mat_Si);
+addrect;
+set("name","BOX");
+set("material",mat_SiO2);
+set("x min",fdtd_x_min - 1e-6);
+set("x max",x_back_max_top + 3e-6);
+set("y min",-(y_anode_out_top + 2e-6));
+set("y max",  y_anode_out_top + 2e-6);
+set("z min",z_BOX_bot);
+set("z max",z_Si_bot);
+set("override mesh order from material database",1);
+set("mesh order",3);
+
+addrect;
+set("name","SiO2_clad");
+set("material",mat_SiO2);
+set("x min",fdtd_x_min - 1e-6);
+set("x max",x_back_max_top + 3e-6);
+set("y min",-(y_anode_out_top + 2e-6));
+set("y max",  y_anode_out_top + 2e-6);
+set("z min",z_Si_bot);
+set("z max",z_Al_top + 0.5e-6);
+set("override mesh order from material database",1);
+set("mesh order",3);
+set("alpha",0.3);
+
+addrect;
+set("name","Si_slab");
+set("material",mat_Si);
+set("x min",fdtd_x_min - 1e-6);
+set("x max",x_back_max_top + 3e-6);
+set("y min",-(y_anode_out_top + 2e-6));
+set("y max",  y_anode_out_top + 2e-6);
+set("z min",z_Si_bot);
+set("z max",z_slab_top);
+set("override mesh order from material database",1);
+set("mesh order",3);
+
+addrect;
+set("name","Si_ridge");
+set("material",mat_Si);
+set("x min",fdtd_x_min - 1e-6);
+set("x max",-taper_L);
+set("y min",-rib_W/2);
+set("y max", rib_W/2);
+set("z min",z_slab_top);
+set("z max",z_ext_top);
+set("override mesh order from material database",1);
+set("mesh order",2);
+
+addpoly;
+set("name","Si_taper");
+set("material",mat_Si);
+set("use relative coordinates",0);
+set("x",0);
+set("y",0);
 V = [-taper_L, -rib_W/2;
-      0,       -Ge_W/2;
-      0,        Ge_W/2;
-     -taper_L,  rib_W/2];
+     -taper_L,  rib_W/2;
+      0,        ext_W/2;
+      0,       -ext_W/2];
 set("vertices",V);
-set("z min",z_slab_top); set("z max",z_rib_top);
-set("override mesh order from material database",1); set("mesh order",2);
+set("z min",z_slab_top);
+set("z max",z_ext_top);
+set("override mesh order from material database",1);
+set("mesh order",2);
 
-addrect; set("name","Si_under_Ge"); set("material",mat_Si);
-set("x min",0); set("x max",Ge_L);
-set("y min",-Ge_W/2); set("y max",Ge_W/2);
-set("z min",z_slab_top); set("z max",z_rib_top);
-set("override mesh order from material database",1); set("mesh order",2);
+addrect;
+set("name","Si_ext");
+set("material",mat_Si);
+set("x min",0);
+set("x max",Ge_L);
+set("y min",-ext_W/2);
+set("y max", ext_W/2);
+set("z min",z_slab_top);
+set("z max",z_ext_top);
+set("override mesh order from material database",1);
+set("mesh order",2);
 
-addrect; set("name","Si_Pp_left"); set("material",mat_Si);
-set("x min",0); set("x max",Ge_L);
-set("y min",-(Ge_W/2+Pp_ext)); set("y max",-Ge_W/2);
-set("z min",z_slab_top); set("z max",z_rib_top);
-set("override mesh order from material database",1); set("mesh order",2);
+addpyramid;
+set("name","i_Ge");
+set("material",mat_Ge);
+set("x",Ge_L/2);
+set("y",0);
+set("x span bottom",Ge_L);
+set("x span top",   Ge_L);
+set("y span bottom",iGe_W_bot);
+set("y span top",   iGe_W_top);
+set("z min",z_iGe_bot);
+set("z max",z_iGe_top);
+set("override mesh order from material database",1);
+set("mesh order",1);
 
-addrect; set("name","Si_Pp_right"); set("material",mat_Si);
-set("x min",0); set("x max",Ge_L);
-set("y min",Ge_W/2); set("y max",Ge_W/2+Pp_ext);
-set("z min",z_slab_top); set("z max",z_rib_top);
-set("override mesh order from material database",1); set("mesh order",2);
+addrect;
+set("name","Npp_Ge");
+set("material",mat_Ge);
+set("x min",0);
+set("x max",Ge_L);
+set("y min",-Npp_W/2);
+set("y max", Npp_W/2);
+set("z min",z_Npp_bot);
+set("z max",z_Npp_top);
+set("override mesh order from material database",1);
+set("mesh order",1);
 
-addrect; set("name","i_Ge"); set("material",mat_Ge);
-set("x min",0); set("x max",Ge_L);
-set("y min",-Ge_W/2); set("y max",Ge_W/2);
-set("z min",z_iGe_bot); set("z max",z_iGe_top);
-set("override mesh order from material database",1); set("mesh order",1);
+addpyramid;
+set("name","Al_cath_taper");
+set("material",mat_Al);
+set("x",Ge_L/2);
+set("y",0);
+set("x span bottom",Ge_L);
+set("x span top",   Ge_L);
+set("y span bottom",Al_cath_W_bot);
+set("y span top",   Al_cath_W_top);
+set("z min",z_cath_bot);
+set("z max",z_ind_bot);
+set("override mesh order from material database",1);
+set("mesh order",1);
 
-addrect; set("name","Npp_Ge"); set("material",mat_Ge);
-set("x min",0); set("x max",Ge_L);
-set("y min",-Ge_W/2); set("y max",Ge_W/2);
-set("z min",z_iGe_top); set("z max",z_Npp_top);
-set("override mesh order from material database",1); set("mesh order",1);
+addrect;
+set("name","Al_cath_ind");
+set("material",mat_Al);
+set("x min",0);
+set("x max",Ge_L);
+set("y min",-Al_cath_W_top/2);
+set("y max", Al_cath_W_top/2);
+set("z min",z_ind_bot);
+set("z max",z_Al_top);
+set("override mesh order from material database",1);
+set("mesh order",1);
+
+addrect;
+set("name","Al_anode_left_taper");
+set("material",mat_Al);
+set("x min",0);
+set("x max",x_back_min_bot);
+set("y min",-y_anode_out_bot);
+set("y max",-y_anode_in_bot);
+set("z min",z_slab_top);
+set("z max",z_ind_bot);
+set("override mesh order from material database",1);
+set("mesh order",1);
+
+addrect;
+set("name","Al_anode_right_taper");
+set("material",mat_Al);
+set("x min",0);
+set("x max",x_back_min_bot);
+set("y min", y_anode_in_bot);
+set("y max", y_anode_out_bot);
+set("z min",z_slab_top);
+set("z max",z_ind_bot);
+set("override mesh order from material database",1);
+set("mesh order",1);
+
+addrect;
+set("name","Al_anode_back_taper");
+set("material",mat_Al);
+set("x min",x_back_min_bot);
+set("x max",x_back_max_bot);
+set("y min",-y_anode_out_bot);
+set("y max", y_anode_out_bot);
+set("z min",z_slab_top);
+set("z max",z_ind_bot);
+set("override mesh order from material database",1);
+set("mesh order",1);
+
+addrect;
+set("name","Al_anode_left_ind");
+set("material",mat_Al);
+set("x min",0);
+set("x max",x_back_min_top);
+set("y min",-y_anode_out_top);
+set("y max",-y_anode_in_top);
+set("z min",z_ind_bot);
+set("z max",z_Al_top);
+set("override mesh order from material database",1);
+set("mesh order",1);
+
+addrect;
+set("name","Al_anode_right_ind");
+set("material",mat_Al);
+set("x min",0);
+set("x max",x_back_min_top);
+set("y min", y_anode_in_top);
+set("y max", y_anode_out_top);
+set("z min",z_ind_bot);
+set("z max",z_Al_top);
+set("override mesh order from material database",1);
+set("mesh order",1);
+
+addrect;
+set("name","Al_anode_back_ind");
+set("material",mat_Al);
+set("x min",x_back_min_top);
+set("x max",x_back_max_top);
+set("y min",-y_anode_out_top);
+set("y max", y_anode_out_top);
+set("z min",z_ind_bot);
+set("z max",z_Al_top);
+set("override mesh order from material database",1);
+set("mesh order",1);
 
 addfdtd;
 set("dimension","3D");
 set("background material",mat_SiO2);
-set("x min",fdtd_x_min);        set("x max",Ge_L+1.5e-6);
-set("y min",-(Ge_W/2+1.5e-6));  set("y max",Ge_W/2+1.5e-6);
-set("z min",z_Si_bot-0.5e-6);   set("z max",z_Npp_top+0.8e-6);
-set("simulation time",2000e-15);
+set("x min",fdtd_x_min);
+set("x max",x_back_max_top + 2e-6);
+set("y min",-(y_anode_out_top + 0.5e-6));
+set("y max",  y_anode_out_top + 0.5e-6);
+set("z min",z_Si_bot - 0.5e-6);
+set("z max",z_Al_top + 0.3e-6);
+set("simulation time",3000e-15);
 set("mesh accuracy",3);
-set("x min bc","PML"); set("x max bc","PML");
-set("y min bc","PML"); set("y max bc","PML");
-set("z min bc","PML"); set("z max bc","PML");
+set("x min bc","PML");
+set("x max bc","PML");
+set("y min bc","PML");
+set("y max bc","PML");
+set("z min bc","PML");
+set("z max bc","PML");
 
-addmesh; set("name","mesh_Ge");
-set("x min",-0.2e-6);           set("x max",Ge_L+0.2e-6);
-set("y min",-(Ge_W/2+0.1e-6));  set("y max",Ge_W/2+0.1e-6);
-set("z min",z_iGe_bot-0.05e-6); set("z max",z_Npp_top+0.05e-6);
-set("dx",20e-9); set("dy",20e-9); set("dz",20e-9);
+addmesh;
+set("name","mesh_Ge");
+set("x min",-0.2e-6);
+set("x max",Ge_L + 0.2e-6);
+set("y min",-(Ge_W/2 + 0.1e-6));
+set("y max",  Ge_W/2 + 0.1e-6);
+set("z min",z_iGe_bot - 0.05e-6);
+set("z max",z_Npp_top + 0.05e-6);
+set("dx",15e-9);
+set("dy",15e-9);
+set("dz",15e-9);
 
-addpower; set("name","T_ref");
+addmesh;
+set("name","mesh_Al_contacts");
+set("x min",0 - 0.1e-6);
+set("x max",x_back_max_top + 0.1e-6);
+set("y min",-(y_anode_out_top + 0.1e-6));
+set("y max",  y_anode_out_top + 0.1e-6);
+set("z min",z_Si_bot - 0.05e-6);
+set("z max",z_Al_top + 0.05e-6);
+set("dx",30e-9);
+set("dy",30e-9);
+set("dz",20e-9);
+
+addpower;
+set("name","T_ref");
+set("monitor type","2D X-normal");
+set("override global monitor settings",1);
+set("frequency points",100);
+set("x",src_x + 1e-6);
+set("y min",-(rib_W/2 + 1e-6));
+set("y max",  rib_W/2 + 1e-6);
+set("z min",z_Si_bot - 0.3e-6);
+set("z max",z_ext_top + 0.3e-6);
+
+addpower;
+set("name","T_after_Ge");
 set("monitor type",5);
-set("override global monitor settings",1); set("frequency points",100);
-set("x",src_x + 2e-6);
-set("y min",-(rib_W/2+1e-6)); set("y max",rib_W/2+1e-6);
-set("z min",z_Si_bot-0.3e-6); set("z max",z_rib_top+0.3e-6);
+set("override global monitor settings",1);
+set("frequency points",100);
+set("x",Ge_L + 0.5e-6);
+set("y min",-(Ge_W/2 + 1e-6));
+set("y max",  Ge_W/2 + 1e-6);
+set("z min",z_Si_bot - 0.2e-6);
+set("z max",z_Npp_top + 0.4e-6);
 
-addpower; set("name","T_after_Ge");
-set("monitor type",5);
-set("override global monitor settings",1); set("frequency points",100);
-set("x",Ge_L+0.5e-6);
-set("y min",-(Ge_W/2+1e-6)); set("y max",Ge_W/2+1e-6);
-set("z min",z_Si_bot-0.2e-6); set("z max",z_Npp_top+0.4e-6);
-
-addpower; set("name","Ge_abs_3D");
+addpower;
+set("name","Ge_abs_3D");
 set("monitor type",8);
 set("override global monitor settings",1);
 set("use wavelength spacing",1);
-set("wavelength center",lambda_c); set("wavelength span",20e-9);
+set("wavelength center",lambda_c);
+set("wavelength span",20e-9);
 set("frequency points",1);
-set("x min",0); set("x max",Ge_L);
-set("y min",-Ge_W/2); set("y max",Ge_W/2);
-set("z min",z_iGe_bot); set("z max",z_iGe_top);
+set("x min",0);
+set("x max",Ge_L);
+set("y min",-Ge_W/2);
+set("y max", Ge_W/2);
+set("z min",z_iGe_bot);
+set("z max",z_iGe_top);
 
-addmode; set("name","source");
-set("injection axis","x"); set("direction","forward");
+addindex;
+set("name","index_Ge_abs");
+set("monitor type",4);
+set("x min",0);
+set("x max",Ge_L);
+set("y min",-Ge_W/2);
+set("y max", Ge_W/2);
+set("z min",z_iGe_bot);
+set("z max",z_iGe_top);
+
+addtime;
+set("name","time_monitor");
+set("monitor type",1);
+set("x",Ge_L/2);
+set("y",0);
+set("z",(z_iGe_bot + z_iGe_top)/2);
+
+addpower;
+set("name","E_field_XZ");
+set("monitor type",6);
+set("override global monitor settings",1);
+set("frequency points",100);
+set("y",0);
+set("x min",fdtd_x_min + 0.5e-6);
+set("x max",x_back_max_top + 1.5e-6);
+set("z min",z_Si_bot - 0.3e-6);
+set("z max",z_Al_top + 0.2e-6);
+
+addmode;
+set("name","source");
+set("injection axis","x");
+set("direction","forward");
 set("x",src_x);
-set("y min",-(rib_W/2+1e-6)); set("y max",rib_W/2+1e-6);
-set("z min",z_Si_bot-0.3e-6); set("z max",z_rib_top+0.3e-6);
-set("wavelength start",lambda_min); set("wavelength stop",lambda_max);
+set("y min",-(rib_W/2 + 1e-6));
+set("y max",  rib_W/2 + 1e-6);
+set("z min",z_Si_bot - 0.3e-6);
+set("z max",z_ext_top + 0.3e-6);
+set("wavelength start",lambda_min);
+set("wavelength stop",lambda_max);
 set("mode selection","fundamental TE mode");
 
-?"=== FDTD O-band | Ge_L="+num2str(Ge_L*1e6)+" um | src_x="+num2str(src_x*1e6,"%.1f")+" um ===";
-
-switchtolayout;
-save("ge_pd_oband_check.fsp");
+save("ge_pd_fdtd_oband_ushaped.fsp");
 run;
 
-if (havedata("T_after_Ge","f") == 0) {
-    ?"ERROR: simulation produced no data - open ge_pd_oband_check.fsp and check geometry/mesh";
-    break;
-}
+if(havedata("T_after_Ge","f") == 0){ break; }
 
 f_arr   = getdata("T_after_Ge","f");
 T_vs_f  = transmission("T_after_Ge");
 T_ref_f = transmission("T_ref");
 T_c     = real(interp(T_vs_f,  f_arr, f_c));
 T_r     = real(interp(T_ref_f, f_arr, f_c));
-A_TE    = max([(T_r - abs(T_c)) / T_r, 0]);
-?"Absorption @ 1310 nm: "+num2str(A_TE*100,"%.2f")+" %";
+A_TE    = max([(T_r - T_c) / T_r, 0]);
 
-eps_i_Ge = 2 * 4.275 * 0.368;
+n_Ge_cplx = getindex(mat_Ge, f_c);
+n_Ge_real = real(n_Ge_cplx(1));
+n_Ge_imag = imag(n_Ge_cplx(1));
+eps_i_Ge  = 2 * n_Ge_real * n_Ge_imag;
 
 E_data  = getresult("Ge_abs_3D","E");
 x_g     = E_data.x;
@@ -169,22 +411,21 @@ y_g     = E_data.y;
 z_g     = E_data.z;
 E_field = E_data.E;
 
-E2   = abs(E_field(:,:,:,1,1))^2 + abs(E_field(:,:,:,1,2))^2 + abs(E_field(:,:,:,1,3))^2;
-sp   = sourcepower(f_c);
-omega_c = 2 * pi * f_c;
-G_3d = (eps0 * eps_i_Ge * omega_c / (2*hbar)) * E2 * (P_opt / sp);?"Peak G = "+num2str(max(G_3d),"%.3e")+" m^-3 s^-1";
+E2 = abs(E_field(:,:,:,1,1))^2 + abs(E_field(:,:,:,1,2))^2 + abs(E_field(:,:,:,1,3))^2;
 
-?"--- Gen dataset bounds (must match Ge volume in CHARGE) ---";
-?"  x : "+num2str(min(x_g)*1e6,"%.3f")+" to "+num2str(max(x_g)*1e6,"%.3f")+" um  (expect 0 to "+num2str(Ge_L*1e6,"%.1f")+")";
-?"  y : "+num2str(min(y_g)*1e6,"%.3f")+" to "+num2str(max(y_g)*1e6,"%.3f")+" um  (expect "+num2str(-Ge_W/2*1e6,"%.2f")+" to "+num2str(Ge_W/2*1e6,"%.2f")+")";
-?"  z : "+num2str(min(z_g)*1e6,"%.3f")+" to "+num2str(max(z_g)*1e6,"%.3f")+" um  (expect "+num2str(z_iGe_bot*1e6,"%.3f")+" to "+num2str(z_iGe_top*1e6,"%.3f")+")";
-?"  Peak G = "+num2str(max(G_3d),"%.3e")+" m^-3 s^-1  (expect ~1e27-1e28)";
-?"-----------------------------------------------------------";
+sp = sourcepower(f_c);
+
+G_3d = (eps0 * eps_i_Ge / (2 * hbar)) * E2 * (P_opt / sp);
 
 G_ds = rectilineardataset("G", x_g, y_g, z_g);
 G_ds.addattribute("G", G_3d);
-matlabsave("ge_gen_oband.mat", G_ds);
 
-matlabsave("ge_fdtd_results_oband.mat", A_TE, lambda_c, P_opt, Ge_L, Ge_W);
-?"Saved ge_gen_oband.mat and ge_fdtd_results_oband.mat";
-?"=== FDTD done - run ge_pd_device_oband.lsf next ===";
+P_opt_saved = P_opt;
+matlabsave(gen_mat_file, G_ds, P_opt_saved);
+
+matlabsave(fdtd_result_file, A_TE, lambda_c, P_opt, Ge_L, Ge_W);
+
+?"FDTD complete.";
+?"  A_TE @ " + num2str(lambda_c*1e9,"%.0f") + " nm : " + num2str(A_TE*100,"%.1f") + " %";
+?"  Optical generation map saved to : " + gen_mat_file;
+?"  FDTD summary saved to           : " + fdtd_result_file;

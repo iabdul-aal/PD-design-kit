@@ -332,31 +332,6 @@ set("y max",  Ge_W/2 + 1e-6);
 set("z min",z_Si_bot - 0.2e-6);
 set("z max",z_Npp_top + 0.4e-6);
 
-addpower;
-set("name","Ge_abs_3D");
-set("monitor type",8);
-set("override global monitor settings",1);
-set("use wavelength spacing",1);
-set("wavelength center",lambda_c);
-set("wavelength span",20e-9);
-set("frequency points",1);
-set("x min",0);
-set("x max",Ge_L);
-set("y min",-Ge_W/2);
-set("y max", Ge_W/2);
-set("z min",z_iGe_bot);
-set("z max",z_iGe_top);
-
-addindex;
-set("name","index_Ge_abs");
-set("monitor type",4);
-set("x min",0);
-set("x max",Ge_L);
-set("y min",-Ge_W/2);
-set("y max", Ge_W/2);
-set("z min",z_iGe_bot);
-set("z max",z_iGe_top);
-
 addtime;
 set("name","time_monitor");
 set("monitor type",1);
@@ -375,6 +350,231 @@ set("x max",x_back_max_top + 1.5e-6);
 set("z min",z_Si_bot - 0.3e-6);
 set("z max",z_Al_top + 0.2e-6);
 
+addanalysisgroup;
+set("name","generation_rate");
+set("x", Ge_L/2);
+set("y", 0);
+set("z", (z_iGe_bot + z_iGe_top)/2);
+
+adduserprop("x span",          4, Ge_L);
+adduserprop("y span",          4, Ge_W);
+adduserprop("z span",          4, iGe_H);
+adduserprop("down sample x",   4, 1);
+adduserprop("down sample y",   4, 1);
+adduserprop("down sample z",   4, 1);
+adduserprop("source intensity",4, P_opt);
+adduserprop("export filename", 1, gen_mat_file);
+adduserprop("average dimension",1,"none");
+adduserprop("periods",         4, 1);
+adduserprop("make plots",      2, 0);
+
+setup_script = " #begin
+deleteall;
+addpower;
+set('name','Ge_abs_3D');
+addindex;
+set('name','index_Ge_abs');
+selectall;
+set('monitor type','3D');
+set('x',0);
+set('x span',%x span%);
+set('y',0);
+set('y span',%y span%);
+set('z',0);
+set('z span',%z span%);
+set('down sample x',%down sample x%);
+set('down sample y',%down sample y%);
+set('down sample z',%down sample z%);
+set('override global monitor settings',0);
+set('output Hx',0);
+set('output Hy',0);
+set('output Hz',0);
+set('output Px',0);
+set('output Py',0);
+set('output Pz',1);
+set('spatial interpolation','none');
+#end ";
+
+set("setup script", setup_script);
+
+analysis_script = " #begin
+f=getdata('Ge_abs_3D','f');
+x=getdata('Ge_abs_3D','x',1);
+y=getdata('Ge_abs_3D','y',1);
+z=getdata('Ge_abs_3D','z',1);
+delta_x=getdata('Ge_abs_3D','delta_x',1);
+delta_y=getdata('Ge_abs_3D','delta_y',1);
+if (havedata('Ge_abs_3D','dimension')==3) {
+  delta_z=getdata('Ge_abs_3D','delta_z',1);
+} else {
+  delta_z=0;
+}
+Nx=length(x);
+Ny=length(y);
+Nz=length(z);
+Nf=length(f);
+W=meshgrid4d(4,x,y,z,f*2*pi);
+SP=meshgrid4d(4,x,y,z,sourcepower(f));
+if (havedata('index_Ge_abs','index_x')) {
+  Pabs_x=0.5*eps0*W*(abs(getdata('Ge_abs_3D','Ex',1))^2*imag(getdata('index_Ge_abs','index_x',1)^2));
+  Pabs_y=0.5*eps0*W*(abs(getdata('Ge_abs_3D','Ey',1))^2*imag(getdata('index_Ge_abs','index_y',1)^2));
+} else {
+  Pabs_x=matrix(Nx,Ny,Nz,Nf);
+  Pabs_y=matrix(Nx,Ny,Nz,Nf);
+}
+if (havedata('index_Ge_abs','index_z')) {
+  Pabs_z=0.5*eps0*W*(abs(getdata('Ge_abs_3D','Ez',1))^2*imag(getdata('index_Ge_abs','index_z',1)^2));
+} else {
+  Pabs_z=matrix(Nx,Ny,Nz,Nf);
+}
+Pabs_matrix=(interp(Pabs_x,x+delta_x,y,z,f,x,y,z,f)+interp(Pabs_y,x,y+delta_y,z,f,x,y,z,f)+interp(Pabs_z,x,y,z+delta_z,f,x,y,z,f))/SP;
+Pabs_x=0; Pabs_y=0; Pabs_z=0; W=0; SP=0;
+if (havedata('index_Ge_abs','index_x')) {
+  gx=abs(getdata('Ge_abs_3D','Ex',1))^2*imag(eps0*getdata('index_Ge_abs','index_x',1)^2);
+  gy=abs(getdata('Ge_abs_3D','Ey',1))^2*imag(eps0*getdata('index_Ge_abs','index_y',1)^2);
+} else {
+  gx=matrix(Nx,Ny,Nz,Nf);
+  gy=matrix(Nx,Ny,Nz,Nf);
+}
+if (havedata('index_Ge_abs','index_z')) {
+  gz=abs(getdata('Ge_abs_3D','Ez',1))^2*imag(eps0*getdata('index_Ge_abs','index_z',1)^2);
+} else {
+  gz=matrix(Nx,Ny,Nz,Nf);
+}
+g=0.5*(interp(gx,x+delta_x,y,z,f,x,y,z,f)+interp(gy,x,y+delta_y,z,f,x,y,z,f)+interp(gz,x,y,z+delta_z,f,x,y,z,f))/hbar;
+gx=0; gy=0; gz=0;
+lam_nm=c/f*1e9;
+norma=%source intensity%/sourceintensity(f);
+norma=meshgrid4d(4,x,y,z,norma);
+if (Nf>1) {
+  G_matrix=integrate2(g*norma,4,-lam_nm)/(max(lam_nm)-min(lam_nm));
+} else {
+  G_matrix=g*norma;
+}
+g=0;
+if (length(getdata('Ge_abs_3D','x',1))!=length(getdata('Ge_abs_3D','x',2))) {
+  x=[-x(Nx:-1:2);x];
+  PabsTemp=Pabs_matrix;
+  Pabs_matrix=matrix(2*Nx-1,Ny,Nz,Nf);
+  GTemp=G_matrix;
+  G_matrix=matrix(2*Nx-1,Ny,Nz);
+  Pabs_matrix(1:(Nx-1),1:Ny,1:Nz,1:Nf)=PabsTemp(Nx:-1:2,1:Ny,1:Nz,1:Nf);
+  Pabs_matrix(Nx:(2*Nx-1),1:Ny,1:Nz,1:Nf)=PabsTemp;
+  G_matrix(1:(Nx-1),1:Ny,1:Nz)=GTemp(Nx:-1:2,1:Ny,1:Nz);
+  G_matrix(Nx:(2*Nx-1),1:Ny,1:Nz)=GTemp;
+  Nx=length(x);
+}
+if (length(getdata('Ge_abs_3D','y',1))!=length(getdata('Ge_abs_3D','y',2))) {
+  y=[-y(Ny:-1:2);y];
+  PabsTemp=Pabs_matrix;
+  Pabs_matrix=matrix(Nx,2*Ny-1,Nz,Nf);
+  GTemp=G_matrix;
+  G_matrix=matrix(Nx,2*Ny-1,Nz);
+  Pabs_matrix(1:Nx,1:(Ny-1),1:Nz,1:Nf)=PabsTemp(1:Nx,Ny:-1:2,1:Nz,1:Nf);
+  Pabs_matrix(1:Nx,Ny:(2*Ny-1),1:Nz,1:Nf)=PabsTemp;
+  G_matrix(1:Nx,1:(Ny-1),1:Nz)=GTemp(1:Nx,Ny:-1:2,1:Nz);
+  G_matrix(1:Nx,Ny:(2*Ny-1),1:Nz)=GTemp;
+  Ny=length(y);
+}
+PabsTemp=0; GTemp=0;
+dim=getdata('Ge_abs_3D','dimension');
+if ((%average dimension%!='x')&(%average dimension%!='y')) { %average dimension%='none'; }
+if (periods<1) { periods=1; }
+if ((dim==2)&(%average dimension%!='none')) { message('Warning! Should not average in 2D simulations.'); }
+if (%average dimension%=='x') {
+  G_temp=matrix(2,Ny,Nz);
+  G_temp(1,1:Ny,1:Nz)=integrate2(G_matrix,1,x)/(max(x)-min(x));
+  G_temp(2,1:Ny,1:Nz)=integrate2(G_matrix,1,x)/(max(x)-min(x));
+  x_export=[min(x),max(x)];
+  G_matrix_export=G_temp;
+  y_export=y;
+  z_export=z;
+}
+if (%average dimension%=='y') {
+  G_temp=matrix(Nx,2,Nz);
+  G_temp(1:Nx,1,1:Nz)=integrate2(G_matrix,2,y)/(max(y)-min(y));
+  G_temp(1:Nx,2,1:Nz)=integrate2(G_matrix,2,y)/(max(y)-min(y));
+  y_export=[min(y),max(y)];
+  G_matrix_export=G_temp;
+  x_export=x;
+  z_export=z;
+}
+if ((dim==3)&(%average dimension%=='none')) {
+  G_matrix_export=G_matrix;
+  x_export=x;
+  y_export=y;
+  z_export=z;
+}
+if ((dim==2)&(%average dimension%=='none')) {
+  G_matrix_export=matrix(Nx,Ny,2);
+  G_matrix_export(1:Nx,1:Ny,1)=G_matrix;
+  G_matrix_export(1:Nx,1:Ny,2)=G_matrix;
+  x_export=x;
+  y_export=y;
+  z_export=[-1e-6,1e-6];
+  Nz=2;
+}
+if ((%average dimension%=='x')&(periods>1)) {
+  temp=G_matrix_export;
+  for (i=1;i<periods;i=i+1) {
+    G_matrix_export=[G_matrix_export,temp(1:length(x_export),2:Ny,1:Nz)];
+    y_export=[y_export;y(2:Ny)+max(y_export)-min(y_export)];
+  }
+  y_export=y_export-(max(y_export)+min(y_export))/2;
+}
+if (((dim==3)|(%average dimension%=='y'))&(periods>1)) {
+  temp=G_matrix_export;
+  for (i=1;i<periods;i=i+1) {
+    G_matrix_export=[G_matrix_export;temp(2:Nx,1:length(y_export),1:Nz)];
+    x_export=[x_export;x(2:Nx)+max(x_export)-min(x_export)];
+  }
+  x_export=x_export-(max(x_export)+min(x_export))/2;
+}
+temp=0;
+x_original=x; y_original=y; z_original=z;
+G=G_matrix_export;
+x=x_export; y=y_export; z=z_export;
+if (length(%export filename%)>0) {
+  matlabsave(%export filename%,x,y,z,G);
+}
+x=x_original; y=y_original; z=z_original;
+Nz=length(z);
+normLengthX=max(x)-min(x);
+normLengthY=max(y)-min(y);
+Igen=e*integrate2(G_matrix,1:3,x,y,z);
+if (dim==3) {
+  Jsc=Igen/(normLengthX*normLengthY);
+} else {
+  Jsc=Igen/normLengthX;
+}
+normLengthX=max(x_export)-min(x_export);
+normLengthY=max(y_export)-min(y_export);
+normLengthZ=max(z_export)-min(z_export);
+Igen_export=e*integrate2(G_matrix_export,1:3,x_export,y_export,z_export);
+if (dim==3) {
+  Jsc_export=Igen_export/(normLengthX*normLengthY);
+} else {
+  Jsc_export=Igen_export/(normLengthX*normLengthZ);
+}
+Pabs=rectilineardataset('Pabs',x,y,z);
+Pabs.addparameter('lambda',c/f,'f',f);
+Pabs.addattribute('Pabs',Pabs_matrix);
+G=rectilineardataset('G',x,y,z);
+G.addattribute('G',G_matrix);
+G_export=rectilineardataset('G export',x_export,y_export,z_export);
+G_export.addattribute('G',G_matrix_export);
+Pabs_total=matrixdataset('Pabs total');
+Pabs_total.addparameter('lambda',c/f,'f',f);
+Pabs_total.addattribute('Pabs_total',integrate2(Pabs_matrix,1:3,x,y,z));
+Jsc=Jsc;
+?'Current from simulation volume: '+num2str(Igen)+' A';
+?'Short circuit current: '+num2str(Jsc)+' A/m^2    ('+num2str(Jsc/10)+' mA/cm^2)';
+?'Exported data short circuit current: '+num2str(Jsc_export)+' A/m^2';
+?'Max generation rate: '+num2str(max(G.G))+'  1/m^3/s';
+#end ";
+
+set("analysis script", analysis_script);
+
 addmode;
 set("name","source");
 set("injection axis","x");
@@ -391,7 +591,7 @@ set("mode selection","fundamental TE mode");
 save("ge_pd_fdtd_oband_ushaped.fsp");
 run;
 
-if(havedata("T_after_Ge","f") == 0){ break; }
+if (havedata("T_after_Ge","f") == 0){ break; }
 
 f_arr   = getdata("T_after_Ge","f");
 T_vs_f  = transmission("T_after_Ge");
@@ -400,32 +600,8 @@ T_c     = real(interp(T_vs_f,  f_arr, f_c));
 T_r     = real(interp(T_ref_f, f_arr, f_c));
 A_TE    = max([(T_r - T_c) / T_r, 0]);
 
-n_Ge_cplx = getindex(mat_Ge, f_c);
-n_Ge_real = real(n_Ge_cplx(1));
-n_Ge_imag = imag(n_Ge_cplx(1));
-eps_i_Ge  = 2 * n_Ge_real * n_Ge_imag;
-
-E_data  = getresult("Ge_abs_3D","E");
-x_g     = E_data.x;
-y_g     = E_data.y;
-z_g     = E_data.z;
-E_field = E_data.E;
-
-E2 = abs(E_field(:,:,:,1,1))^2 + abs(E_field(:,:,:,1,2))^2 + abs(E_field(:,:,:,1,3))^2;
-
-sp = sourcepower(f_c);
-
-G_3d = (eps0 * eps_i_Ge / (2 * hbar)) * E2 * (P_opt / sp);
-
-G_ds = rectilineardataset("G", x_g, y_g, z_g);
-G_ds.addattribute("G", G_3d);
-
-P_opt_saved = P_opt;
-matlabsave(gen_mat_file, G_ds, P_opt_saved);
-
 matlabsave(fdtd_result_file, A_TE, lambda_c, P_opt, Ge_L, Ge_W);
 
 ?"FDTD complete.";
 ?"  A_TE @ " + num2str(lambda_c*1e9,"%.0f") + " nm : " + num2str(A_TE*100,"%.1f") + " %";
-?"  Optical generation map saved to : " + gen_mat_file;
-?"  FDTD summary saved to           : " + fdtd_result_file;
+?"  FDTD summary saved to : " + fdtd_result_file;

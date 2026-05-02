@@ -18,7 +18,6 @@ PD-Design-Kit/
 |-- device-level/     Lumerical FDTD and CHARGE scripts, MATLAB postprocess, KLayout mask
 |-- system-level/     MATLAB PAM-4 transfer model and INTERCONNECT export
 |-- thesis/           LaTeX chapter, bibliography, figures, and presentation deck
-|-- CHANGELOG.md
 |-- CITATION.cff
 |-- LICENSE
 `-- README.md

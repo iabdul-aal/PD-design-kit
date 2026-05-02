@@ -17,8 +17,7 @@ abstract: >
   spanning system-level MATLAB modeling to device-level Lumerical FDTD and CHARGE
   simulations. Includes a Lumerical INTERCONNECT-ready compact photodetector data
   export for circuit-level insertion. Targets high-speed PAM-4 optical receivers at
-  1310 nm with >100 GHz bandwidth, reproducing results from Yang Shi et al.,
-  Photonics Research 12, 1 (2024).
+  1310 nm with >100 GHz bandwidth.
 keywords:
   - photodiode
   - germanium-on-silicon
@@ -31,14 +30,3 @@ keywords:
   - 1310 nm
   - Lumerical INTERCONNECT
 repository-code: "https://github.com/iabdul-aal/PD-design-kit"
-references:
-  - type: article
-    title: "High-performance Ge-on-Si photodetectors for O-band optical communications"
-    authors:
-      - family-names: Shi
-        given-names: Yang
-    journal: "Photonics Research"
-    volume: 12
-    issue: 1
-    year: 2024
-    doi: 10.1364/PRJ.504759

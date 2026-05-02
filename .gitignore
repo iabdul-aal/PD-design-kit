@@ -45,7 +45,6 @@ desktop.ini
 
 # Local papers
 *.pdf
-!thesis/figures/*.pdf
 
 # Excluded thesis drafts
 thesis/papers.csv

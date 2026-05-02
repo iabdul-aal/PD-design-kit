@@ -191,9 +191,7 @@ for k = 1:numel(axes_list)
         'TickDir',        'out');
 end
 drawnow;
-exportgraphics(fig, fullfile(style.figure_dir, [base_name, '.pdf']), ...
-    'ContentType', 'vector', 'BackgroundColor', 'white');
 exportgraphics(fig, fullfile(style.figure_dir, [base_name, '.png']), ...
     'Resolution', style.dpi, 'BackgroundColor', 'white');
-fprintf('Saved %s.[pdf|png]\n', fullfile(style.figure_dir, base_name));
+printf('Saved %s.png\n', fullfile(style.figure_dir, base_name));
 end

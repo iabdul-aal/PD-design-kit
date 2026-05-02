@@ -58,6 +58,5 @@ function save_interconnect_figure(fig, outDir, baseName, dpi)
 if ~exist(outDir, 'dir'), mkdir(outDir); end
 set(fig, 'Color', 'w', 'InvertHardcopy', 'off', 'Renderer', 'painters');
 drawnow;
-exportgraphics(fig, fullfile(outDir, [baseName, '.pdf']), 'ContentType', 'vector', 'BackgroundColor', 'white');
 exportgraphics(fig, fullfile(outDir, [baseName, '.png']), 'Resolution', dpi, 'BackgroundColor', 'white');
 end

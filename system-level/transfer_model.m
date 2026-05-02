@@ -681,7 +681,6 @@ function saveThesisFigure(fig, outDir, baseName, dpi)
 if ~exist(outDir, 'dir'), mkdir(outDir); end
 set(fig, 'Color', 'w', 'InvertHardcopy', 'off', 'Renderer', 'painters');
 drawnow;
-exportgraphics(fig, fullfile(outDir, [baseName, '.pdf']), 'ContentType', 'vector', 'BackgroundColor', 'white');
 exportgraphics(fig, fullfile(outDir, [baseName, '.png']), 'Resolution', dpi, 'BackgroundColor', 'white');
-fprintf('Saved %s.[pdf|png]\n', fullfile(outDir, baseName));
+printf('Saved %s.png\n', fullfile(outDir, baseName));
 end

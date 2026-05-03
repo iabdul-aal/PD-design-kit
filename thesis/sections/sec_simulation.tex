@@ -1,4 +1,4 @@
-\section[Simulation Methodology]{Multiphysics Simulation Methodology}
+﻿\section[Simulation Methodology]{Multiphysics Simulation Methodology}
 \label{sec:pd_simulation}
 
 The device performance metrics established in \cref{sec:pd_metrics} are evaluated
@@ -25,6 +25,33 @@ The complex permittivity is sampled at the material-dependent optical frequency
 through tabulated complex refractive indices: for germanium at \SI{1310}{\nano\metre},
 $n\approx4.27$ and $\kappa\approx0.22$, yielding
 $\alpha\approx\SI{2.1e3}{\per\centi\metre}$ from \cref{eq:alpha_kappa}.
+
+\paragraph{FDTD source field and the Îµ''-based generation rate.}
+Following the convention of Hamadou~\textit{et al.}~\cite{Hamadou2023}, the
+monochromatic optical source in the FDTD domain is a Gaussian-modulated pulse:
+\begin{equation}
+    \tilde{\mathbf{E}}(\mathbf{r},t)
+    = E_0\exp\!\left[-\frac{(t-t_0)^2}{2\Delta t^2}\right]
+      \sin\!\bigl[-\omega(t-t_0)\bigr]\,\hat{\mathbf{x}},
+    \label{eq:fdtd_source}
+\end{equation}
+where $t_0$ is the temporal offset and $\Delta t$ is related to the
+pulse FWHM by $\Delta t=\mathrm{FWHM}/(2\sqrt{\ln 2})$.
+After the time-domain solution is Fourier-transformed, the volumetric
+optical generation rate extracted from the monochromatic field is:
+\begin{equation}
+    G(\mathbf{r},\omega)
+    = \frac{\pi\,\varepsilon_0\,\varepsilon''_r(\omega)}{h}
+      \,|\tilde{\mathbf{E}}(\mathbf{r},\omega)|^2,
+    \label{eq:gen_rate_eps}
+\end{equation}
+where $\varepsilon''_r(\omega)=2n\kappa$ is the imaginary part of the relative
+permittivity and $h$ is Planck's constant~\cite{Hamadou2023}.
+\Cref{eq:gen_rate_eps} is equivalent to \cref{eq:gopt_poynting_local} under
+the plane-wave approximation, and reduces to \cref{eq:gen_rate} in the
+uniform-field limit; the FDTD solver evaluates it pointwise over the
+three-dimensional Ge volume before transferring the resulting
+$G(\mathbf{r})$ array to the CHARGE drift-diffusion solver.
 Frequency-domain power monitors record $T(\omega)$ and $R(\omega)$, from which:
 \begin{equation}
     \mathcal{A}(\omega) = 1 - |T(\omega)|^2 - |R(\omega)|^2
@@ -96,11 +123,34 @@ $10^{-\gamma_{\mathrm{wg}}\ell_{\mathrm{wg}}/10}$ to \cref{eq:responsivity}.
 \subsection[Electrical Simulation: CHARGE]{Electrical Simulation: Three-Dimensional Drift-Diffusion}
 \label{subsec:pd_charge}
 
-Carrier transport is simulated in Lumerical DEVICE CHARGE under three-dimensional
-steady-state conditions, solving the PDE system of
+Carrier transport is simulated in Lumerical DEVICE CHARGE under two-dimensional steady-state conditions, solving the PDE system of
 \cref{eq:poisson,eq:Jn,eq:Jp,eq:cont_n,eq:cont_p} on an adaptive
-finite-element mesh. Carrier mobilities in germanium follow the Canali
-velocity-saturation model~\cite{Alasio2024}:
+finite-element mesh. Two complementary carrier mobility models are employed.
+The \emph{Caughey-Thomas} model accounts for impurity scattering through a
+doping-concentration-dependent low-field mobility~\cite{Hamadou2023}:
+\begin{equation}
+    \mu_{n,p}(N_A+N_D)
+    = \mu^{\min}_{n,p}
+      + \frac{\mu^L_{n,p} - \mu^{\min}_{n,p}}
+             {1 + \left(\dfrac{N_A+N_D}{N^0_{n,p}}\right)^{\!\alpha_{n,p}}},
+    \label{eq:caughey_thomas}
+\end{equation}
+where $\mu^L_{n,p}$ is the lattice-scattering-limited mobility, $\mu^{\min}_{n,p}$
+the ionised-impurity saturation floor, and $N^0_{n,p}$, $\alpha_{n,p}$ fitting
+parameters. High-field velocity saturation is then superimposed through a
+monotonic saturation model~\cite{Hamadou2023}:
+\begin{equation}
+    \mu'_{n,p}(|\mathbf{E}|)
+    = \frac{\mu_{n,p}}
+           {\left[1
+             + \left(\dfrac{\mu_{n,p}|\mathbf{E}|}{v^S_{n,p}}
+               \right)^{\!\beta_{n,p}}
+           \right]^{\!1/\beta_{n,p}}},
+    \label{eq:highfield_mob}
+\end{equation}
+yielding the field-dependent diffusivity $D_{n,p}=\mu'_{n,p}k_BT/q$ from
+\cref{eq:einstein}. \Cref{eq:highfield_mob} is equivalent in functional form
+to the Canali velocity-saturation model~\cite{Alasio2024}:
 \begin{equation}
     \mu_{n,p}(|\mathbf{E}|)
     = \frac{(\alpha_{\mathrm{C}}+1)\,\mu_{n,p}^{(0)}}
@@ -121,6 +171,24 @@ $v_{\mathrm{d,sat},h}=\SI{4e6}{\centi\metre\per\second}$ enter
 $\mu_p^{(0)}$ changes $f_{\mathrm{tt}}$ by less than \SI{1}{\percent},
 confirming the robustness of the transit-time estimate in \cref{eq:bw_tt}
 to low-field mobility uncertainty~\cite{Alasio2024}.
+
+\paragraph{Junction capacitance and the microhole filling factor.}
+For a planar junction the parallel-plate capacitance follows \cref{eq:cj}.
+If photon-trapping microholes of total area $A_h$ are etched through the
+junction region, the effective junction area is reduced by the filling
+factor~\cite{Hamadou2023}:
+\begin{equation}
+    \rho_f = \frac{A_h}{A_j},
+    \quad
+    C_{j,\mathrm{mh}}
+    = \frac{\varepsilon_0\varepsilon_r\,A_j}{W_i}\,(1-\rho_f),
+    \label{eq:cj_filling}
+\end{equation}
+so that microholes simultaneously improve absorption efficiency and reduce
+capacitance, at the cost of increased surface recombination along the
+etched sidewalls through \cref{eq:jdark_surf}. The present Ge-on-Si design
+does not employ microholes; \cref{eq:cj_filling} is retained as a reference
+for future microstructure extensions.
 
 \begin{equation}
     \mu_{n,p}(|\mathbf{E}|) = \frac{\mu_{n,p}^{(0)}}
@@ -193,7 +261,7 @@ graph, eliminating the requirement for a structured mesh and the associated
 spatial discretisation error.
 
 The network architecture consists of four fully connected hidden layers with 128
-neurons each, hyperbolic-tangent activations, and a three-dimensional spatial
+neurons each, hyperbolic-tangent activations, and a two-dimensional spatial
 input $\mathbf{r}=(x,y,z)$ producing three outputs $(\hat{n},\hat{p},\hat{\phi})$.
 The total number of trainable parameters is approximately $49\,000$, small enough
 for training on a single GPU (NVIDIA A100) in approximately 4 hours. At selected

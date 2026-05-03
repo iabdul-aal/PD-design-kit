@@ -10,7 +10,7 @@ h  = 6.626e-34;
 c0 = 3e8;
 
 assert(exist(cml_mat, 'file') == 2, ...
-    'CML data file not found: %s\nRun ge_pd_oband_ushaped_postprocess.m first.', cml_mat);
+    'CML data file not found: 
 cml = load(cml_mat);
 
 lambda_c = cml.geometry.lambda_c_m;
@@ -25,7 +25,7 @@ Lp_H     = cml.bandwidth.Lp_pH * 1e-12;
 R_load   = 50;
 T_K      = cml.temperature.T_sim_K;
 
-fprintf('CML loaded: R=%.4f A/W  Id=%.3f nA  f3dB=%.1f GHz  Rs=%.1f Ohm  Cj=%.1f fF\n', ...
+fprintf('CML loaded: R=
     R_AW, Id_A*1e9, f3dB_Hz/1e9, Rs_ohm, Cj_F*1e15);
 
 symbol_rate = 53.125e9;
@@ -142,15 +142,15 @@ Psen_W  = Q_req*(M-1)*2*sqrt(s2th_nom) / (R_AW * 2*dP);
 Psen_dBm = 10*log10(Psen_W/1e-3);
 
 fprintf('\n=== INTERCONNECT System Results ===\n');
-fprintf('  Symbol rate          : %.3f GBd\n',  symbol_rate/1e9);
-fprintf('  Line rate (PAM-4)    : %.1f Gb/s\n',  symbol_rate*2/1e9);
-fprintf('  Responsivity         : %.4f A/W\n',   R_AW);
-fprintf('  Dark current         : %.3f nA\n',    Id_A*1e9);
-fprintf('  Bandwidth f3dB       : %.1f GHz\n',   f3dB_Hz/1e9);
-fprintf('  SNR (simulated)      : %.2f dB\n',    SNR_dB);
-fprintf('  BER (simulated)      : %.2e\n',        BER_sim);
-fprintf('  SER (simulated)      : %.2e\n',        SER_sim);
-fprintf('  Sensitivity @BER1e-9 : %.2f dBm\n',   Psen_dBm);
+fprintf('  Symbol rate          : 
+fprintf('  Line rate (PAM-4)    : 
+fprintf('  Responsivity         : 
+fprintf('  Dark current         : 
+fprintf('  Bandwidth f3dB       : 
+fprintf('  SNR (simulated)      : 
+fprintf('  BER (simulated)      : 
+fprintf('  SER (simulated)      : 
+fprintf('  Sensitivity @BER1e-9 : 
 
 eyeSamp  = 2 * sps;
 nTraces  = min(floor(nSamp / eyeSamp), 200);
@@ -161,7 +161,7 @@ fig1 = figure('Color','w','Position',[80,80,1600,1000],'Name','PAM-4 Eye Diagram
 plot(tEye_ps, eyeData, 'k', 'LineWidth', 0.4, 'Color', [0.2 0.2 0.2]);
 xlabel('Time (ps)',       'FontSize', cfg.label_size, 'FontWeight','bold');
 ylabel('Photocurrent (\muA)', 'FontSize', cfg.label_size, 'FontWeight','bold');
-title(sprintf('PAM-4 Eye Diagram -- %.1f GBd, SNR = %.1f dB', symbol_rate/1e9, SNR_dB), ...
+title(sprintf('PAM-4 Eye Diagram -- 
     'FontSize', cfg.title_size, 'FontWeight','bold');
 xlim([tEye_ps(1), tEye_ps(end)]);
 grid on;
@@ -200,7 +200,7 @@ for tv = thr, xline(tv*1e6,'k--','LineWidth',1.5); end
 hold off;
 xlabel('Matched Filter Output (\muA)', 'FontSize', cfg.label_size, 'FontWeight','bold');
 ylabel('Count',                         'FontSize', cfg.label_size, 'FontWeight','bold');
-title(sprintf('PAM-4 Decision Histogram -- SNR = %.1f dB', SNR_dB), ...
+title(sprintf('PAM-4 Decision Histogram -- SNR = 
     'FontSize', cfg.title_size, 'FontWeight','bold');
 grid on; style_ax(cfg);
 save_fig(fig3, figure_dir, 'system_pam4_histogram', cfg.dpi);
@@ -213,8 +213,8 @@ yyaxis right;
 semilogx(model.f_GHz, model.norm_dB, 'k--', 'LineWidth', cfg.line_width);
 ylabel('Normalised Response (dB)', 'FontSize', cfg.label_size, 'FontWeight','bold');
 xlabel('Frequency (GHz)', 'FontSize', cfg.label_size, 'FontWeight','bold');
-xline(model.f_rc/1e9,  'k:',  sprintf('f_{RC}=%.0f GHz',  model.f_rc/1e9),  'LineWidth',1.5);
-xline(model.f_pkg/1e9, 'k-.', sprintf('f_{pkg}=%.0f GHz', model.f_pkg/1e9), 'LineWidth',1.5);
+xline(model.f_rc/1e9,  'k:',  sprintf('f_{RC}=
+xline(model.f_pkg/1e9, 'k-.', sprintf('f_{pkg}=
 title('INTERCONNECT Compact Model -- Electro-optic Response', ...
     'FontSize', cfg.title_size, 'FontWeight','bold');
 legend({'|Z_t|','Norm. EO','f_{RC}','f_{pkg}'},'Location','southwest');
@@ -233,7 +233,7 @@ title('Sensitivity Summary -- PAM-4 DR4', 'FontSize', cfg.title_size, 'FontWeigh
 grid on; style_ax(cfg);
 save_fig(fig5, figure_dir, 'system_sensitivity_summary', cfg.dpi);
 
-fprintf('\nFigures saved to %s\n', figure_dir);
+fprintf('\nFigures saved to 
 
 function style_ax(cfg)
 set(gca, 'FontSize', cfg.font_size, 'FontName', cfg.font_name, 'LineWidth', 1.5, ...
@@ -246,5 +246,5 @@ if ~exist(outDir, 'dir'), mkdir(outDir); end
 set(fig, 'Color','w','InvertHardcopy','off','Renderer','painters');
 drawnow;
 exportgraphics(fig, fullfile(outDir, [baseName,'.png']), 'Resolution', dpi, 'BackgroundColor','white');
-fprintf('  Saved %s\n', fullfile(outDir, [baseName,'.png']));
+fprintf('  Saved 
 end

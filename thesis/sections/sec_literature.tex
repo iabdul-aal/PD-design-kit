@@ -234,6 +234,27 @@ $I_d=\SI{1.3}{\nano\ampere}$ in a process-compatible O-band platform.
 Because DR4 requires a detector that is simultaneously fast enough, efficient at
 low OMA, and quiet enough not to erode receiver margin, this balanced vertical
 U-shaped architecture is the most defensible starting point for the present design.
+
+\paragraph{Microhole enhancements and DBR implementations.}
+Two structural variants highlight alternative optimization paths for bandwidth
+and responsivity. To decouple the absorption length from the transit time,
+Hamadou~\textit{et al.}~\cite{Hamadou2023} investigated surface-illuminated
+silicon PIN photodiodes structured with photon-trapping microholes.
+Their 3D Lumerical FDTD and CHARGE simulations demonstrated that etching a
+$2\times2$ array of \SI{0.7}{\micro\metre} square microholes into the intrinsic
+region enhances optical absorption through photon trapping while simultaneously
+reducing the junction capacitance by a geometric filling factor $\rho_f$.
+By carefully minimizing parasitic bonding capacitance ($C_b=\SI{70}{\femto\farad}$)
+and series resistance ($R_s=\SI{3.6}{\ohm}$), their \SI{20x20}{\micro\metre} device
+achieved an open PAM-4 eye at \SI{50}{\giga\baud}.
+Separately, the seminal work of Li~\textit{et al.}~\cite{Li2012} demonstrated
+a \SI{112}{\giga\bit\per\second} CMOS-compatible waveguide Germanium photodetector
+by utilizing a distributed Bragg reflector (DBR). The DBR allowed the optical
+absorption length to be doubled without extending the physical transport distance,
+while their interdigitated electrode geometry highlighted the delicate balance
+between transit-time reduction and the onset of high dark current from strong
+electric fields.
+
 Broader reviews of the design space are provided by Wang~\textit{et al.}~\cite{Wang2024}
 and Yan~\textit{et al.}~\cite{Yan2024}; the multiphysics modelling context is
 treated in depth in~\cite{Alasio2024}; computational methods are discussed in

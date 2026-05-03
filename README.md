@@ -72,19 +72,23 @@ PD-Design-Kit/
 │   ├── ge_pd_interconnect_postprocess.m          System-level figure generation
 │   └── ge_pd_layout.py                           KLayout GDSII mask generation
 ├── thesis/
-│   ├── chapter_photodetector_check.tex           Main driver for standalone chapter testing
+│   ├── chapter_photodetector_combine.tex         Standalone document (title page, ToC, chapter, bibliography)
 │   ├── chapter_photodetector.tex                 Thesis inclusion driver (pulls from sections/)
 │   ├── chapter_photodetector_slides.tex          Beamer presentation deck
 │   ├── build_photodetector_chapter.ps1           PowerShell script to compile chapter PDF
 │   ├── build_photodetector_slides.ps1            PowerShell script to compile slides PDF
 │   ├── references.bib                            BibTeX bibliography
 │   ├── sections/                                 Modularized "Zero to Hero" chapter content
-│   │   ├── sec_physical_foundations.tex          (From First Principles)
-│   │   ├── sec_literature_review.tex             (State of the Art & Positioning)
-│   │   ├── sec_architecture_methodology.tex      (Architecture & Methodology)
-│   │   ├── sec_results_discussion.tex            (Results & Trade-off Analysis)
-│   │   ├── sec_conclusion.tex                    (Conclusion & Frontiers)
-│   │   └── sec_pd_pinn_extension.tex             (PINN Extension / Future Work)
+│   │   ├── sec_introduction.tex                  Introduction and chapter scope
+│   │   ├── sec_fundamentals.tex                  Fundamentals of photodetection (Maxwell → SRH)
+│   │   ├── sec_metrics.tex                       Performance metrics and design trade-offs
+│   │   ├── sec_architectures.tex                 Photodetector architectures and selection rationale
+│   │   ├── sec_material.tex                      Material platform: Ge-on-Si
+│   │   ├── sec_literature.tex                    Literature review and state of the art
+│   │   ├── sec_design.tex                        Proposed device architecture and design rationale
+│   │   ├── sec_simulation.tex                    Multiphysics simulation methodology
+│   │   ├── sec_results.tex                       Results, discussion, and sensitivity analysis
+│   │   └── sec_summary.tex                       Chapter summary and transition
 │   └── figures/                                  All exported figures (300 DPI PNG)
 ├── CITATION.cff
 ├── LICENSE

@@ -1,4 +1,4 @@
-\documentclass[aspectratio=169,11pt]{beamer}
+﻿\documentclass[aspectratio=169,11pt]{beamer}
 \usetheme{Boadilla}
 \usefonttheme{professionalfonts}
 
@@ -25,7 +25,7 @@
 \author{Omar Mahfouz, Farah Elsayed, Mark Zakria, Mahmoud Magdy,\\Islam Ibrahim, Alyedeen Hassan, Khalid Khalil}
 \institute{Department of Electronics and Communications Engineering\\Faculty of Engineering\\Alexandria University}
 \date{2026}
-\titlegraphic{\includegraphics[width=2.5cm]{AU Logo Colored.png}}
+\titlegraphic{\includegraphics[width=2.5cm]{au_logo_colored.png}}
 
 \begin{document}
 
@@ -51,7 +51,7 @@
     {\scriptsize 2026\par}
     
     \vfill
-    \includegraphics[height=1.8cm,keepaspectratio]{AU Logo Colored.png}
+    \includegraphics[height=1.8cm,keepaspectratio]{au_logo_colored.png}
 \end{frame}
 
 \begin{frame}{Motivation and Targets}
@@ -62,14 +62,14 @@
 \end{itemize}
 \vspace{0.5em}
 \centering
-\begin{tabular}{lr}
+\begin{tabular}{ll}
 \toprule
 Metric & Target \\
 \midrule
-Responsivity & $\geq \SI{0.95}{\ampere/\watt}$ \\
+Responsivity & $\geq \SI{0.95}{\ampere\per\watt}$ \\
 Dark current & $\leq \SI{1.3}{\nano\ampere}$ \\
 Bandwidth & $\geq \SI{103}{\giga\hertz}$ \\
-Detectivity & $\geq 2.95\times10^{10}~\si{\centi\metre\sqrt{\hertz}/\watt}$ \\
+Detectivity & $\geq 2.95\times10^{10}$~Jones \\
 \bottomrule
 \end{tabular}
 \end{frame}
@@ -125,6 +125,8 @@ BOX & \SI{2}{\micro\metre} \\
 \end{frame}
 
 \begin{frame}{Electrical Simulation Flow}
+\begin{columns}[T]
+\begin{column}{0.55\textwidth}
 \begin{itemize}
 \item \textbf{Lumerical DEVICE CHARGE} solves carrier transport under reverse bias.
 \item SRH recombination enabled with $\tau_n = \tau_p$ (calibrated to match dark current target).
@@ -137,13 +139,19 @@ BOX & \SI{2}{\micro\metre} \\
 \end{itemize}
 \item Bandwidth estimated from \textbf{transit-time + RC} limits.
 \end{itemize}
+\end{column}
+\begin{column}{0.4\textwidth}
+\centering
+\includegraphics[width=\linewidth,height=0.6\textheight,keepaspectratio]{figures/phys_carrier_density.png}
+\end{column}
+\end{columns}
 \end{frame}
 
 \begin{frame}{Dark Current Result}
 \begin{columns}[T]
 \begin{column}{0.55\textwidth}
 \begin{itemize}
-\item All parameters flow from solvers --- no hardcoded paper values.
+\item All parameters flow from solvers---no hardcoded paper values.
 \item Low dark current is essential for:
 \begin{itemize}
 \item Receiver sensitivity
@@ -171,7 +179,7 @@ BOX & \SI{2}{\micro\metre} \\
 \end{column}
 \end{columns}
 \vspace{0.3em}
-\footnotesize Band alignment, carrier density, and depletion shaping near $V=-1$\,V explain the tradeoff between responsivity, dark current, and speed.
+\footnotesize Band alignment, carrier density, and depletion shaping near $V=-1\,$V explain the tradeoff between responsivity, dark current, and speed.
 \end{frame}
 
 \begin{frame}{Electric Field and Bandwidth}
@@ -246,7 +254,6 @@ BOX & \SI{2}{\micro\metre} \\
 \begin{frame}{Data Pipeline Overview}
 \centering
 
-
 \vspace{0.5em}
 \footnotesize
 \texttt{FDTD .lsf} $\to$ \texttt{fdtd\_results.mat} $\to$ \texttt{CHARGE .lsf} $\to$ \texttt{charge\_results.mat} $\to$ \texttt{postprocess.m} $\to$ \texttt{CML .mat} $\to$ \texttt{system-level}
@@ -263,13 +270,13 @@ All parameters flow from Lumerical solvers $\to$ MAT files $\to$ MATLAB postproc
 \item The chapter demonstrates a \textbf{Ge-on-Si O-band photodiode} targeting published high-speed metrics.
 \item The workflow is consistent across:
 \begin{itemize}
-\item \textbf{Device-level FDTD} --- optical absorption, generation rate
-\item \textbf{Device-level CHARGE} --- dark current, responsivity, band structure
-\item \textbf{Device-level postprocess} --- CML dataset, all derived parameters
-\item \textbf{System-level MATLAB} --- PAM-4 BER, eye diagrams, histograms
-\item \textbf{INTERCONNECT-ready export} --- circuit-level integration
+        \item \textbf{Device-level FDTD}---optical absorption, generation rate
+        \item \textbf{Device-level CHARGE}---dark current, responsivity, band structure
+        \item \textbf{Device-level postprocess}---CML dataset, all derived parameters
+        \item \textbf{System-level MATLAB}---PAM-4 BER, eye diagrams, histograms
+        \item \textbf{INTERCONNECT-ready export}---circuit-level integration
 \end{itemize}
-\item \textbf{Zero hardcoded paper values} --- all metrics from solvers and geometry.
+\item \textbf{Zero hardcoded paper values}---all metrics from solvers and geometry.
 \end{itemize}
 \end{frame}
 

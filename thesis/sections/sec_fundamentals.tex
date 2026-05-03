@@ -195,8 +195,12 @@ are:
     \mathbf{J}_p &= q\mu_p\,p\,\mathbf{E} - qD_p\,\nabla p,
         \label{eq:Jp}
 \end{align}
-where the Einstein relations $D_{n,p}=\mu_{n,p}kT/q$ hold for non-degenerate
-statistics. The general, time-dependent carrier continuity equations are:
+where the carrier diffusivities follow the Einstein relation~\cite{Hamadou2023}:
+\begin{equation}
+    D_{n,p} = \mu_{n,p}\,\frac{k_B T}{q}.
+    \label{eq:einstein}
+\end{equation}
+The general, time-dependent carrier continuity equations are:
 \begin{align}
     \frac{\partial n}{\partial t}
         &= \frac{1}{q}\nabla\cdot\mathbf{J}_n
@@ -361,14 +365,42 @@ Three recombination mechanisms are quantitatively relevant in the germanium
 absorber~\cite{SzeNg2006,Basu2003}.
 
 \emph{Shockley-Read-Hall (SRH) recombination}, mediated by deep-level trap
-states, is:
+states, is~\cite{Hamadou2023}:
 \begin{equation}
     U_{\mathrm{SRH}}
     = \frac{np - n_i^2}{\tau_p\!\left(n + n_1\right)
       + \tau_n\!\left(p + p_1\right)},
     \label{eq:srh}
 \end{equation}
-where $n_1=n_i\exp[(E_t-E_i)/kT]$ and $p_1=n_i\exp[(E_i-E_t)/kT]$.
+where the effective trap-state carrier densities are:
+\begin{align}
+    n_1 &= n_i\exp\!\left[\frac{E_t-E_i}{k_BT}\right], &
+    p_1 &= n_i\exp\!\left[\frac{E_i-E_t}{k_BT}\right].
+    \label{eq:np1_trap}
+\end{align}
+
+\paragraph{Fossum doping-dependent SRH lifetime.}
+In the presence of a background doping $N_A+N_D$, the SRH carrier lifetime is
+not constant but falls with increasing impurity concentration. The Fossum
+model~\cite{Hamadou2023} captures this dependence as:
+\begin{equation}
+    \tau_{\mathrm{SRH},n/p}
+    = \frac{\tau^{(0)}_{\mathrm{SRH},n/p}}
+           {a_1 + a_2\,\mathcal{N}_{n/p}
+            + a_3\,\mathcal{N}_{n/p}^{\,a_4}},
+    \quad
+    \mathcal{N}_{n/p} = \frac{N_A+N_D}{N^{(\mathrm{ref})}_{n/p}},
+    \label{eq:fossum}
+\end{equation}
+where $\tau^{(0)}_{\mathrm{SRH},n/p}$ is the low-concentration lifetime and
+$a_1,\ldots,a_4$ are fitting parameters. In the limit $a_2=0$,
+$a_1=a_3=a_4=1$, \cref{eq:fossum} reduces to the standard
+Shockley-Read-Hall result $\tau=\tau^{(0)}/(1+N/N^{(\mathrm{ref})})$.
+For the heavily doped $n^{++}$-Ge cathode at
+$N_D=\SI{e19}{\per\centi\metre\cubed}$, \cref{eq:fossum} gives a lifetime
+reduction of approximately one order of magnitude relative to $\tau^{(0)}$,
+confirming that carrier recombination is concentrated in the contact region
+rather than the intrinsic absorber.
 Within the fully depleted intrinsic region at the midgap trap condition
 $E_t=E_i$, \cref{eq:srh} reduces to:
 \begin{equation}
@@ -380,8 +412,25 @@ where $\tau_0=(\tau_n+\tau_p)/2$. SRH is the dominant mechanism in Ge-on-Si
 because the threading dislocations formed during heteroepitaxial growth act as
 efficient midgap trap centres.
 
-\emph{Auger recombination} follows
-$U_{\mathrm{Auger}}=C_n n(np-n_i^2)+C_p p(np-n_i^2)$.
+\emph{Auger recombination} is~\cite{Hamadou2023}:
+\begin{equation}
+    U_{\mathrm{Auger}}
+    = \bigl(C_n\,n + C_p\,p\bigr)\bigl(np - n_i^2\bigr),
+    \label{eq:auger}
+\end{equation}
+where $C_n$ and $C_p$ are the electron and hole Auger capture coefficients.
+The combined effective carrier lifetime accounting for both SRH and Auger
+mechanisms is:
+\begin{equation}
+    \frac{1}{\tau_{n/p}}
+    = \frac{1}{\tau_{\mathrm{Auger},n/p}}
+    + \frac{1}{\tau_{\mathrm{SRH},n/p}},
+    \label{eq:lifetime_combined}
+\end{equation}
+where $\tau_{\mathrm{Auger},n/p}$ is derived from \cref{eq:auger} evaluated
+at the local carrier densities. \Cref{eq:lifetime_combined} defines the
+effective recombination time used in the CHARGE simulation
+of \cref{subsec:pd_charge}.
 
 \emph{Radiative recombination} is modelled as:
 \begin{equation}

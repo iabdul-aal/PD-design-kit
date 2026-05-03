@@ -1,4 +1,4 @@
-
+﻿
 charge_mat = 'ge_pd_charge_results_oband_ushaped.mat';
 fdtd_mat   = 'ge_pd_fdtd_results_oband_ushaped.mat';
 cml_dir    = fullfile(fileparts(fileparts(mfilename('fullpath'))), 'system-level');
@@ -10,10 +10,10 @@ figure_dir = fullfile(fileparts(fileparts(mfilename('fullpath'))), 'thesis', 'fi
 style = thesis_style(figure_dir);
 
 if ~exist(charge_mat, 'file')
-    error('Missing %s. Run ge_pd_charge_oband_ushaped.lsf first.', charge_mat);
+    error('Missing 
 end
 if ~exist(fdtd_mat, 'file')
-    error('Missing %s. Run ge_pd_fdtd_oband_ushaped.lsf first.', fdtd_mat);
+    error('Missing 
 end
 
 C = load(charge_mat);
@@ -88,28 +88,28 @@ Stot   = Sshot + Sth;
 NEP    = sqrt(Stot) / max(R_AW, 1e-20);
 Dstar  = sqrt(A_eff) / max(NEP, 1e-40) * 1e2;
 
-v_sat_e = 6.0e4;   % m/s, electron
-v_sat_h = 4.7e4;   % m/s, hole
-v_sat   = 2 * v_sat_e * v_sat_h / (v_sat_e + v_sat_h);  % harmonic mean
+v_sat_e = 6.0e4;   
+v_sat_h = 4.7e4;   
+v_sat   = 2 * v_sat_e * v_sat_h / (v_sat_e + v_sat_h);  
 tau_tt  = iGe_H / v_sat;
 f_tt    = 0.44 / tau_tt;
 
 eps_Ge  = 16 * 8.854e-12;
 Cj_geo  = eps_Ge * Ge_L * Ge_W / iGe_H;
 
-Rsh_Si  = 100;  % Ohm/sq (computed from doping 1e20, slab 90nm)
+Rsh_Si  = 100;  
 Rs_par  = Rsh_Si * (Ge_W / 2) / Ge_L;
-Rs_geo  = Rs_par * 0.64;  % U-shaped electrode: 36% reduction (from geometry analysis)
-Cp_geo  = 10e-15;  % stray capacitance (layout-dependent estimate)
+Rs_geo  = Rs_par * 0.64;  
+Cp_geo  = 10e-15;  
 
-L_wire  = 195e-6;   % electrode connection length (from layout)
-w_wire  = 2e-6;     % wire width
+L_wire  = 195e-6;   
+w_wire  = 2e-6;     
 mu0     = 4*pi*1e-7;
 Lp_geo  = mu0 / (2*pi) * L_wire * (log(2*L_wire / w_wire) + 0.25);
 
 A_junc  = Ge_L * Ge_W;
-Vbi_est = 0.6;                        % built-in voltage (Si P++ / Ge n-i-p ~ 0.5-0.7 V)
-Vbias   = 1.0;                        % operating reverse bias magnitude
+Vbi_est = 0.6;                        
+Vbias   = 1.0;                        
 Isc_geo = eps_Ge * v_sat * (Vbias + Vbi_est) * A_junc / (iGe_H^2);
 Psat_geo = Isc_geo / max(R_AW, 1e-10);
 
@@ -126,23 +126,23 @@ z_iGe_top_d  = z_rib_top_d + iGe_H;
 y_center     = 0;
 y_window     = max(50e-9, Ge_W / 100);
 
-fprintf('\n=== Ge-on-Si PD Metrics | V=-1 V | T=%d K | lambda=%d nm ===\n', ...
+fprintf('\n=== Ge-on-Si PD Metrics | V=-1 V | T=
     T_sim, round(lambda_c*1e9));
-fprintf('  Dark current          : %8.4f nA   [paper: 1.3 nA]\n',   Id_1V*1e9);
-fprintf('  Photocurrent          : %8.4f uA\n',                       I_ph*1e6);
-fprintf('  Responsivity          : %8.4f A/W  [paper: 0.95 A/W]\n',  R_AW);
-fprintf('  EQE (FDTD absorption) : %8.2f %%\n',                        EQE_f*100);
-fprintf('  EQE (CHARGE current)  : %8.2f %%\n',                        EQE_c*100);
-fprintf('  IQE (CHARGE current)  : %8.2f %%\n',                        IQE_c*100);
-fprintf('  NEP                   : %.3e W/sqrt(Hz)\n',                 NEP);
-fprintf('  D*                    : %.3e cm.Hz^0.5/W  [paper: 2.95e10]\n', Dstar);
-fprintf('  SNR @ P_opt           : %8.2f dB\n',                        SNR);
-fprintf('  LDR                   : %8.1f dB\n',                        LDR);
-fprintf('  Cj (geometry)         : %8.2f fF\n',                       Cj_geo*1e15);
-fprintf('  Rs (geometry+U-shape) : %8.2f Ohm\n',                      Rs_geo);
-fprintf('  Transit-time BW       : %8.1f GHz\n',                       f_tt/1e9);
-fprintf('  RC limit              : %8.1f GHz\n',                       fRC/1e9);
-fprintf('  Combined BW (model)   : %8.1f GHz\n',                       f3dB/1e9);
+fprintf('  Dark current          : 
+fprintf('  Photocurrent          : 
+fprintf('  Responsivity          : 
+fprintf('  EQE (FDTD absorption) : 
+fprintf('  EQE (CHARGE current)  : 
+fprintf('  IQE (CHARGE current)  : 
+fprintf('  NEP                   : 
+fprintf('  D*                    : 
+fprintf('  SNR @ P_opt           : 
+fprintf('  LDR                   : 
+fprintf('  Cj (geometry)         : 
+fprintf('  Rs (geometry+U-shape) : 
+fprintf('  Transit-time BW       : 
+fprintf('  RC limit              : 
+fprintf('  Combined BW (model)   : 
 
 [z_bd, Ec_z]  = extract_z_profile(y_band, z_band_v, squeeze_bias(Ec_data,  idx1V), y_center, y_window);
 [~,    Ev_z]  = extract_z_profile(y_band, z_band_v, squeeze_bias(Ev_data,  idx1V), y_center, y_window);
@@ -175,8 +175,8 @@ if isfield(F, 'f_fdtd') && isfield(F, 'T_after_Ge_data') && isfield(F, 'T_ref_da
     figure(1); clf;
     plot(lam_nm, A_spec*100, 'k-');
     xlabel('Wavelength (nm)');
-    ylabel('Optical Absorption (%)');
-    title('Absorption Spectrum -- O-band, TE mode');
+    ylabel('Optical Absorption (
+    title('Absorption Spectrum --Â O-band, TE mode');
     xlim([min(lam_nm) max(lam_nm)]); ylim([0 105]);
     grid on;
     save_thesis_figure(1, 'opt_absorption_spectrum', style);
@@ -188,7 +188,7 @@ axis xy; colormap(gray_r);
 cb = colorbar;
 cb.Label.String = 'log_{10}(G_{opt}) (m^{-3} s^{-1})';
 xlabel('y (\mum)'); ylabel('z (nm)');
-title('Optical Generation Rate -- V = -1 V');
+title('Optical Generation Rate --Â V = -1 V');
 hold on;
 yline(z_rib_top_d*1e9,  'w--', 'LineWidth', 1.2);
 yline(z_iGe_top_d*1e9, 'w--', 'LineWidth', 1.2);
@@ -207,7 +207,7 @@ if isfield(F, 'Ex_xz') && isfield(F, 'Ez_xz')
     cb2 = colorbar;
     cb2.Label.String = 'Normalised |E|^2 (dB)';
     xlabel('x (\mum)'); ylabel('z (nm)');
-    title(sprintf('E-field Profile (XZ) -- \\lambda = %d nm', round(lambda_c*1e9)));
+    title(sprintf('E-field Profile (XZ) --Â \\lambda = 
     caxis([-30 0]);
     save_thesis_figure(3, 'opt_efield_xz_profile', style);
 end
@@ -216,7 +216,7 @@ if isfield(F, 'Pabs_data') && isfield(F, 'Pabs_total_data')
     lam_arr = c0 ./ F.Pabs_f(:) * 1e9;
     [~, lc_idx] = min(abs(lam_arr - lambda_c*1e9));
     if ndims(F.Pabs_data) >= 4
-        Pabs_sl = squeeze(sum(F.Pabs_data(:, :, :, lc_idx), 2));  % sum over y
+        Pabs_sl = squeeze(sum(F.Pabs_data(:, :, :, lc_idx), 2));  
     else
         Pabs_sl = squeeze(F.Pabs_data(:, :, lc_idx));
     end
@@ -226,7 +226,7 @@ if isfield(F, 'Pabs_data') && isfield(F, 'Pabs_total_data')
     cb3 = colorbar;
     cb3.Label.String = 'log_{10}(P_{abs}) (normalized)';
     xlabel('x (\mum)'); ylabel('z (nm)');
-    title(sprintf('Power Absorption Distribution -- \\lambda = %d nm', round(lambda_c*1e9)));
+    title(sprintf('Power Absorption Distribution --Â \\lambda = 
     hold on;
     yline(z_rib_top_d*1e9,  'w--', 'LineWidth', 1.2);
     yline(z_iGe_top_d*1e9, 'w--', 'LineWidth', 1.2);
@@ -247,7 +247,7 @@ if isfield(F, 'G_data') && isfield(F, 'G_x') && isfield(F, 'G_z')
     cb_g = colorbar;
     cb_g.Label.String = 'log_{10}(G) (m^{-3} s^{-1})';
     xlabel('x (\mum)'); ylabel('z (nm)');
-    title(sprintf('FDTD Optical Generation Rate (XZ) - \\lambda = %d nm', round(lambda_c*1e9)));
+    title(sprintf('FDTD Optical Generation Rate (XZ) - \\lambda = 
     hold on;
     yline(z_rib_top_d*1e9,  'w--', 'LineWidth', 1.2);
     yline(z_iGe_top_d*1e9, 'w--', 'LineWidth', 1.2);
@@ -259,7 +259,7 @@ figure(5); clf;
 semilogy(abs(V_dk), abs(I_dk)*1e9, 'k-');
 xlabel('Reverse Bias |V| (V)');
 ylabel('|I_{dark}| (nA)');
-title(sprintf('Dark I--V -- Ge-on-Si PD (0 to -%d V)', V_stop));
+title(sprintf('Dark I--V --Â Ge-on-Si PD (0 to -
 grid on; grid minor;
 xlim([0 V_stop]);
 save_thesis_figure(5, 'elec_dark_iv', style);
@@ -268,7 +268,7 @@ figure(6); clf;
 semilogy(abs(V_dk), abs(I_dk)*1e9, 'k-', 'DisplayName', 'Dark');
 hold on;
 semilogy(abs(V_ill), abs(I_ill)*1e9, 'k--', 'DisplayName', ...
-    sprintf('Illuminated (P_{opt}=%g \\muW, \\lambda=%g nm)', ...
+    sprintf('Illuminated (P_{opt}=
     P_opt*1e6, round(lambda_c*1e9)));
 hold off;
 xlabel('Reverse Bias |V| (V)');
@@ -287,7 +287,7 @@ semilogy(abs(V_ill), abs(I_ill)*1e9,  'k:',  'DisplayName', 'I_{total}');
 hold off;
 xlabel('Reverse Bias |V| (V)');
 ylabel('Current (nA)');
-title(sprintf('Current Components -- Illuminated (\\lambda=%d nm)', round(lambda_c*1e9)));
+title(sprintf('Current Components --Â Illuminated (\\lambda=
 legend('Location', 'northwest');
 grid on;
 xlim([0 V_stop]);
@@ -299,7 +299,7 @@ figure(8); clf;
 plot(abs(V_ill), I_photo_vs_V*1e6, 'k-');
 xlabel('Reverse Bias |V| (V)');
 ylabel('Photocurrent I_{ph} (\muA)');
-title(sprintf('Photocurrent vs Bias -- P_{opt}=%g \\muW', P_opt*1e6));
+title(sprintf('Photocurrent vs Bias --Â P_{opt}=
 grid on;
 xlim([0 V_stop]);
 save_thesis_figure(8, 'elec_photocurrent_vs_bias', style);
@@ -307,7 +307,7 @@ save_thesis_figure(8, 'elec_photocurrent_vs_bias', style);
 R_vs_V = I_photo_vs_V / P_opt;
 figure(9); clf;
 plot(abs(V_ill), R_vs_V, 'k-');
-yline(R_AW, 'k--', sprintf('R @ -1V = %.2f A/W', R_AW), ...
+yline(R_AW, 'k--', sprintf('R @ -1V = 
     'LabelHorizontalAlignment', 'left');
 xlabel('Reverse Bias |V| (V)');
 ylabel('Responsivity (A/W)');
@@ -320,13 +320,13 @@ EQE_vs_V = (I_photo_vs_V / q) / max(Phi, 1e-30);
 figure(10); clf;
 plot(abs(V_ill), EQE_vs_V*100, 'k-');
 xlabel('Reverse Bias |V| (V)');
-ylabel('EQE (%)');
+ylabel('EQE (
 title('External Quantum Efficiency vs Bias');
 grid on;
 xlim([0 V_stop]);
 save_thesis_figure(10, 'elec_eqe_vs_bias', style);
 
-z_lbl = sprintf('z (nm)  [y = %.2f \\mum, x = %.2f \\mum]', y_center*1e6, Ge_L/2*1e6);
+z_lbl = sprintf('z (nm)  [y = 
 
 figure(11); clf; hold on;
 plot(z_bd*1e9, Ec_z,  'k-',  'DisplayName', 'E_c');
@@ -338,7 +338,7 @@ xline(z_rib_top_d*1e9,  'k-', 'Label', 'Si/Ge',      'LabelVerticalAlignment', '
 xline(z_iGe_top_d*1e9, 'k-', 'Label', 'Ge/N^{++}',  'LabelVerticalAlignment', 'bottom');
 hold off;
 xlabel(z_lbl); ylabel('Energy (eV)');
-title('Band Diagram -- V = -1 V');
+title('Band Diagram --Â V = -1 V');
 legend('Location', 'best'); grid on;
 save_thesis_figure(11, 'phys_band_diagram', style);
 
@@ -350,7 +350,7 @@ semilogy(z_dp*1e9, max(ND_z, 1e1), 'k-.', 'DisplayName', 'N_D');
 xline(z_rib_top_d*1e9, 'k-'); xline(z_iGe_top_d*1e9, 'k-');
 hold off;
 xlabel(z_lbl); ylabel('Carrier / Doping Density (cm^{-3})');
-title('Carrier Density and Doping Profile -- V = -1 V');
+title('Carrier Density and Doping Profile --Â V = -1 V');
 legend('Location', 'best'); grid on;
 save_thesis_figure(12, 'phys_carrier_density', style);
 
@@ -360,7 +360,7 @@ yyaxis left;  plot(z_fp*1e9, E_z/1e6,  'k-');  ylabel('|E| (MV m^{-1})');
 yyaxis right; plot(z_fp*1e9, Vp_z,     'k--'); ylabel('Potential V (V)');
 xline(z_rib_top_d*1e9, 'k-'); xline(z_iGe_top_d*1e9, 'k-');
 
-title('Electric Field and Electrostatic Potential -- V = -1 V');
+title('Electric Field and Electrostatic Potential --Â V = -1 V');
 grid on;
 save_thesis_figure(13, 'phys_field_potential', style);
 
@@ -371,7 +371,7 @@ if ~isempty(mun_z)
     xline(z_rib_top_d*1e9, 'k-'); xline(z_iGe_top_d*1e9, 'k-');
     hold off;
     xlabel(z_lbl); ylabel('Mobility (cm^2 V^{-1} s^{-1})');
-    title('Carrier Mobility -- V = -1 V');
+    title('Carrier Mobility --Â V = -1 V');
     legend('Location', 'best'); grid on;
     save_thesis_figure(14, 'phys_carrier_mobility', style);
 end
@@ -383,14 +383,14 @@ if ~isempty(Ropt_z) && ~isempty(Rsrh_z)
     xline(z_rib_top_d*1e9, 'k-'); xline(z_iGe_top_d*1e9, 'k-');
     hold off;
     xlabel(z_lbl); ylabel('Recombination Rate (cm^{-3} s^{-1})');
-    title('Recombination Rates -- V = -1 V');
+    title('Recombination Rates --Â V = -1 V');
     legend('Location', 'best'); grid on;
     save_thesis_figure(15, 'phys_recombination_rates', style);
 end
 
 
 f_mod = logspace(8, 11.2, 2000);
-H2_tt = (sinc(f_mod * tau_tt)).^2;   % sinc = sin(pi*x)/(pi*x) in MATLAB
+H2_tt = (sinc(f_mod * tau_tt)).^2;   
 H2_RC = 1 ./ (1 + (f_mod / fRC).^2);
 Htot  = 10*log10(max(H2_tt .* H2_RC, 1e-10));
 Htot  = Htot - max(Htot);
@@ -399,11 +399,11 @@ figure(16); clf;
 semilogx(f_mod/1e9, Htot, 'k-');
 yline(-3, 'k--', 'LineWidth', 1);
 text(0.15, -4.2, '-3 dB', 'FontName', style.font_name, 'FontSize', 10);
-xline(f3dB/1e9, 'k:', sprintf('f_{3dB} = %.0f GHz', f3dB/1e9), ...
+xline(f3dB/1e9, 'k:', sprintf('f_{3dB} = 
     'LabelHorizontalAlignment', 'left', 'LabelVerticalAlignment', 'bottom');
 xlabel('Frequency (GHz)');
 ylabel('Normalised S_{21} (dB)');
-title(sprintf('Frequency Response -- R_S = %.1f \\Omega, C_j = %.1f fF', ...
+title(sprintf('Frequency Response --Â R_S = 
     Rs_geo, Cj_geo*1e15));
 xlim([0.1 300]); ylim([-20 1]);
 grid on;
@@ -411,14 +411,14 @@ save_thesis_figure(16, 'freq_response_model', style);
 
 iGe_sweep = linspace(100e-9, 600e-9, 200);
 f_tt_sw   = 0.44 ./ (iGe_sweep / v_sat);
-f_rc_sw   = fRC * ones(size(iGe_sweep));   % RC fixed by geometry-derived Cj, Rs
+f_rc_sw   = fRC * ones(size(iGe_sweep));   
 f3dB_sw   = 1 ./ sqrt(1./f_tt_sw.^2 + 1./f_rc_sw.^2);
 
 figure(17); clf; hold on;
 plot(iGe_sweep*1e9, f_tt_sw/1e9,  'k-',  'DisplayName', 'Transit-time limit');
 plot(iGe_sweep*1e9, f_rc_sw/1e9,  'k--', 'DisplayName', 'RC limit');
 plot(iGe_sweep*1e9, f3dB_sw/1e9,  'k:',  'DisplayName', 'Combined f_{3dB}');
-xline(iGe_H*1e9, 'k-.',  sprintf('Nominal %.0f nm', iGe_H*1e9), ...
+xline(iGe_H*1e9, 'k-.',  sprintf('Nominal 
     'LabelVerticalAlignment', 'bottom');
 hold off;
 xlabel('i-Ge Thickness (nm)');
@@ -432,15 +432,15 @@ figure(18); clf;
 ax = axes;
 set(ax, 'Visible', 'off');
 tbl_data = {
-    'Dark current @ -1 V',  sprintf('%.2f nA',      Id_1V*1e9),  '1.3 nA';
-    'Photocurrent @ -1 V',  sprintf('%.3f \muA',    I_ph*1e6),   '--';
-    'Responsivity @ -1 V',  sprintf('%.3f A/W',     R_AW),       '0.95 A/W';
-    'EQE (FDTD)',           sprintf('%.1f %%',       EQE_f*100),  '--';
-    'EQE (CHARGE)',         sprintf('%.1f %%',       EQE_c*100),  '--';
-    'IQE (CHARGE)',         sprintf('%.1f %%',       IQE_c*100),  '--';
-    'NEP',                  sprintf('%.2e W/\surd{Hz}', NEP),    '--';
-    'D*',                   sprintf('%.2e cm\surdHz/W', Dstar),  '2.95e10';
-    'f_{3dB} (model)',      sprintf('%.0f GHz',      f3dB/1e9),  '103 GHz';
+    'Dark current @ -1 V',  sprintf('
+    'Photocurrent @ -1 V',  sprintf('
+    'Responsivity @ -1 V',  sprintf('
+    'EQE (FDTD)',           sprintf('
+    'EQE (CHARGE)',         sprintf('
+    'IQE (CHARGE)',         sprintf('
+    'NEP',                  sprintf('
+    'D*',                   sprintf('
+    'f_{3dB} (model)',      sprintf('
 };
 t = uitable(gcf, 'Data', tbl_data, ...
     'ColumnName', {'Metric', 'This Work', 'Paper'}, ...
@@ -499,7 +499,7 @@ if isfield(F, 'time_t') && isfield(F, 'time_Ex')
     plot(t_ps, Ex_norm, 'k-', 'LineWidth', 1.2);
     xlabel('Time (ps)');
     ylabel('Normalized |E_x|');
-    title(sprintf('Optical Impulse Response -- lambda = %d nm', round(lambda_c*1e9)));
+    title(sprintf('Optical Impulse Response -- lambda = 
     grid on;
     xlim([min(t_ps) max(t_ps)]);
     ylim([0 1.05]);
@@ -544,7 +544,7 @@ if isfield(F, 'Ex_xy') && isfield(F, 'Ey_xy')
     axis xy; colormap(gray_r);
     cb = colorbar; cb.Label.String = 'Normalized |E|^2 (dB)';
     xlabel('x (\mum)'); ylabel('y (\mum)');
-    title(sprintf('XY Power Distribution -- z = Ge mid-height, lambda = %d nm', round(lambda_c*1e9)));
+    title(sprintf('XY Power Distribution -- z = Ge mid-height, lambda = 
     caxis([-30 0]);
     save_thesis_figure(25, 'opt_power_xy_heatmap', style);
 end
@@ -608,9 +608,62 @@ grid on;
 xlim([0 V_stop]);
 save_thesis_figure(29, 'elec_bias_vs_R_Iph', style);
 
+
+
+
+N_dope = logspace(15, 20, 100); 
+tau0_n = 1.7e-5; tau0_p = 3.95e-4; Nref = 7.1e15;
+tau_SRH_n = tau0_n ./ (1 + N_dope./Nref);
+tau_SRH_p = tau0_p ./ (1 + N_dope./Nref);
+Cn_aug = 2.8e-31; Cp_aug = 9.9e-32;
+tau_Auger_n = 1 ./ (Cn_aug .* N_dope.^2);
+tau_Auger_p = 1 ./ (Cp_aug .* N_dope.^2);
+tau_n = 1 ./ (1./tau_SRH_n + 1./tau_Auger_n);
+tau_p = 1 ./ (1./tau_SRH_p + 1./tau_Auger_p);
+
+figure(30); clf;
+loglog(N_dope, tau_n, 'b-', 'LineWidth', 1.5, 'DisplayName', '\tau_n (electrons)');
+hold on;
+loglog(N_dope, tau_p, 'r-', 'LineWidth', 1.5, 'DisplayName', '\tau_p (holes)');
+grid on;
+xlabel('Carrier Concentration (cm^{-3})');
+ylabel('Effective Lifetime (s)');
+title('Carrier Lifetimes vs. Doping Concentration');
+legend('Location', 'southwest');
+ylim([1e-11, 1e-3]); xlim([1e15, 1e20]);
+save_thesis_figure(30, 'phys_carrier_lifetime', style);
+
+
+t_ps = linspace(0, 200, 500);
+tau_tt_ps = tau_tt * 1e12;
+tau_RC_ps = 1 / (2*pi*fRC) * 1e12;
+
+
+h_tt = (t_ps > 0) .* (t_ps < tau_tt_ps);
+h_RC = exp(-t_ps / tau_RC_ps);
+I_norm = conv(h_tt, h_RC, 'same');
+I_norm = I_norm / max(I_norm);
+I_total = I_norm * (I_ph * 1e6); 
+
+figure(31); clf;
+subplot(1,2,1);
+plot(t_ps, I_total, 'Color', [0.4660, 0.6740, 0.1880], 'LineWidth', 1.5);
+grid on;
+xlabel('Time (ps)'); ylabel('Photocurrent (\muA)');
+title('Transient Current Response');
+xlim([0 max(t_ps)]);
+
+subplot(1,2,2);
+plot(t_ps, I_norm, 'Color', [0.4940, 0.1840, 0.5560], 'LineWidth', 1.5);
+grid on;
+xlabel('Time (ps)'); ylabel('Normalized Amplitude');
+title('Electrical Impulse Response');
+xlim([0 max(t_ps)]);
+save_thesis_figure(31, 'elec_impulse_response', style);
+
 fprintf('\n--- Generating CML dataset ---\n');
 
-cml.description       = 'Ge-on-Si PD O-band U-shaped -- CML data for INTERCONNECT';
+cml.description       = 'Ge-on-Si PD O-band U-shaped --Â CML data for INTERCONNECT';
 cml.wavelength_m      = lambda_c;
 cml.geometry.lambda_c_m = lambda_c;
 cml.geometry.Ge_L_m   = Ge_L;
@@ -655,14 +708,14 @@ cml.saturation.Isc_A        = Isc_geo;
 cml.temperature.T_sim_K = T_sim;
 
 save(cml_mat, '-struct', 'cml');
-fprintf('CML .mat saved: %s\n', cml_mat);
+fprintf('CML .mat saved: 
 
 fid = fopen(cml_json, 'w');
-fprintf(fid, '%s', jsonencode(cml, 'PrettyPrint', true));
+fprintf(fid, '
 fclose(fid);
-fprintf('CML .json saved: %s\n', cml_json);
+fprintf('CML .json saved: 
 
-fprintf('\nSaved %d figures to %s\n', 29, figure_dir);
+fprintf('\nSaved 
 
 
 function val = squeeze_bias(A, idx)
@@ -778,5 +831,5 @@ end
 drawnow;
 out_path = fullfile(style.figure_dir, [base_name, '.png']);
 exportgraphics(fig, out_path, 'Resolution', style.dpi, 'BackgroundColor', 'white');
-fprintf('  Saved %s\n', out_path);
+fprintf('  Saved 
 end

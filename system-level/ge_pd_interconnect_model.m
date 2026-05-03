@@ -27,8 +27,8 @@ bandwidth_data = struct('voltage', bias_pts, 'bandwidth', [cfg.f3dB, cfg.f3dB]);
 Idark_data     = struct('voltage', bias_pts, 'current',   [cfg.Id,   cfg.Id]);
 
 lambda_min = 1260e-9;  lambda_max = 1360e-9;
-f_cml = [3e8/lambda_max, 3e8/lambda_min];  % ascending frequency
-R_cml = [responsivity, responsivity];       % flat across O-band
+f_cml = [3e8/lambda_max, 3e8/lambda_min];  
+R_cml = [responsivity, responsivity];       
 resp_data = struct('frequency', f_cml(:), 'responsivity', R_cml(:));
 
 elec_eq_ckt_data = struct('Rj', cfg.Rs, 'Cj_data', cfg.Cj, 'Rp', cfg.R_load, 'Cp', cfg.Cp);
@@ -78,8 +78,8 @@ ylabel('Optical-to-electrical gain |Z_t| (V/W)', 'FontSize', 12, 'FontWeight', '
 yyaxis right;
 semilogx(model.f_GHz, model.norm_dB, 'k--', 'LineWidth', 2);
 ylabel('Normalised response (dB)', 'FontSize', 12, 'FontWeight', 'bold');
-xline(model.f_rc / 1e9,  'k:',  sprintf('f_{RC}=%.0f GHz',  f_rc/1e9),  'LineWidth', 1.5);
-xline(model.f_pkg / 1e9, 'k-.', sprintf('f_{pkg}=%.0f GHz', f_pkg/1e9), 'LineWidth', 1.5);
+xline(model.f_rc / 1e9,  'k:',  sprintf('f_{RC}=
+xline(model.f_pkg / 1e9, 'k-.', sprintf('f_{pkg}=
 xlabel('Frequency (GHz)', 'FontSize', 12, 'FontWeight', 'bold');
 title('Ge-on-Si O-band VPD -- INTERCONNECT Compact Model', 'FontSize', 13, 'FontWeight', 'bold');
 legend({'|Z_t|', 'Normalised EO response', 'f_{RC}', 'f_{pkg}'}, 'Location', 'southwest');
@@ -87,7 +87,7 @@ grid on;
 set(gca, 'FontSize', 11, 'FontName', 'Times New Roman', 'LineWidth', 1.5, ...
     'GridAlpha', 0.15, 'TickDir', 'out', 'XMinorGrid', 'on', 'YMinorGrid', 'on');
 save_fig(fig, figDir, 'system_interconnect_compact_model', 300);
-fprintf('INTERCONNECT model data saved in %s\n', dataDir);
+fprintf('INTERCONNECT model data saved in 
 end
 
 function save_fig(fig, outDir, baseName, dpi)

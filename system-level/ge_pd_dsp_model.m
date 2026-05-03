@@ -3,7 +3,7 @@ figureDir = fullfile(fileparts(fileparts(mfilename('fullpath'))), 'thesis', 'fig
 cml_mat   = fullfile(fileparts(mfilename('fullpath')), 'ge_pd_cml_oband_ushaped.mat');
 
 assert(exist(cml_mat, 'file') == 2, ...
-    'CML data file not found: %s\nRun ge_pd_oband_ushaped_postprocess.m first.', cml_mat);
+    'CML data file not found: 
 cml_data = load(cml_mat);
 
 cfg = get_config(figureDir, cml_data);
@@ -34,30 +34,30 @@ metrics = calc_metrics(txBits, rxBits, txSymbols, rxSym, Iref, Irx);
 analytical = analytical_perf(cfg, pd, Pavg_W, Pmin_W, Pmax_W, bw);
 
 fprintf('\n=== PAM-4 DSP Transfer Model Results ===\n');
-fprintf('  Symbol rate         : %.3f GBd\n',  cfg.symbol_rate/1e9);
-fprintf('  Responsivity        : %.4f A/W\n',  pd.responsivity);
-fprintf('  P_avg               : %.1f dBm\n',  cfg.P_avg_dBm);
-fprintf('  SNR (simulated)     : %.2f dB\n',   metrics.SNR_dB);
-fprintf('  SNR (analytical)    : %.2f dB\n',   analytical.SNR_dB);
-fprintf('  Q-factor            : %.2f\n',       analytical.Q);
-fprintf('  BER (simulated)     : %.2e (%d/%d errors)\n', metrics.BER, metrics.bit_errors, metrics.total_bits);
-fprintf('  BER (analytical)    : %.2e\n',       analytical.BER);
-fprintf('  SER                 : %.2e\n',        metrics.SER);
-fprintf('  INTERCONNECT f_RC   : %.1f GHz\n',  compact.f_rc/1e9);
-fprintf('  INTERCONNECT f_pkg  : %.1f GHz\n',  compact.f_pkg/1e9);
-fprintf('  Sensitivity @1e-9   : %.2f dBm\n',  analytical.sensitivity_dBm);
+fprintf('  Symbol rate         : 
+fprintf('  Responsivity        : 
+fprintf('  P_avg               : 
+fprintf('  SNR (simulated)     : 
+fprintf('  SNR (analytical)    : 
+fprintf('  Q-factor            : 
+fprintf('  BER (simulated)     : 
+fprintf('  BER (analytical)    : 
+fprintf('  SER                 : 
+fprintf('  INTERCONNECT f_RC   : 
+fprintf('  INTERCONNECT f_pkg  : 
+fprintf('  Sensitivity @1e-9   : 
 
 fprintf('\n=== Wartak Photodetector Physics ===\n');
-fprintf('  Quantum efficiency    : %.4f\n',          pd.eta_physical);
-fprintf('  Absorption coeff.     : %.0f cm^-1\n',    cfg.alpha_abs*1e-2);
-fprintf('  Ge absorber length    : %.1f um\n',        cfg.L_absorber*1e6);
-fprintf('  Depletion width       : %.0f nm\n',        cfg.d_depletion*1e9);
-fprintf('  Transit-time BW f_tr  : %.1f GHz\n',      pd.f_transit/1e9);
-fprintf('  RC bandwidth f_RC     : %.1f GHz\n',       pd.f_RC/1e9);
-fprintf('  Combined BW f_3dB     : %.1f GHz\n',      pd.f3dB_total/1e9);
-fprintf('  Dark current          : %.3e A\n',          pd.Id_physical);
-fprintf('  NEP                   : %.3e W/sqrtHz\n',  analytical.NEP);
-fprintf('  Detectivity D*        : %.3e Jones\n',     analytical.Dstar);
+fprintf('  Quantum efficiency    : 
+fprintf('  Absorption coeff.     : 
+fprintf('  Ge absorber length    : 
+fprintf('  Depletion width       : 
+fprintf('  Transit-time BW f_tr  : 
+fprintf('  RC bandwidth f_RC     : 
+fprintf('  Combined BW f_3dB     : 
+fprintf('  Dark current          : 
+fprintf('  NEP                   : 
+fprintf('  Detectivity D*        : 
 
 plot_responsivity(cfg, pd, figureDir, 'system_responsivity_curve');
 plot_transfer(cfg, pd.responsivity, Isat, Pmin_W, Pmax_W, figureDir, 'system_transfer_function');
@@ -265,7 +265,7 @@ plot(lnm, R_ph, 'k--', 'LineWidth', 2,              'DisplayName','Wartak physic
 xline(cfg.lambda_min*1e9,'k:','LineWidth',1.5,'HandleVisibility','off');
 xline(cfg.lambda_max*1e9,'k:','LineWidth',1.5,'HandleVisibility','off');
 plot(cfg.lambda_center*1e9, pd.responsivity, 'ko', 'MarkerFaceColor','k','MarkerSize',8, ...
-    'DisplayName',sprintf('Op. point (%.4f A/W)',pd.responsivity));
+    'DisplayName',sprintf('Op. point (
 xlabel('Wavelength (nm)','FontSize',cfg.label_size,'FontWeight','bold');
 ylabel('Responsivity (A/W)','FontSize',cfg.label_size,'FontWeight','bold');
 title(sprintf('Photodiode Responsivity -- O-band (Wartak Ch.10)'),'FontSize',cfg.title_size,'FontWeight','bold');
@@ -304,8 +304,8 @@ tE   = (0:es-1)/(cfg.symbol_rate*cfg.sps)*1e12;
 fig  = figure('Color','w','Position',[120,120,1600,1000]);
 plot(tE, ed, 'k', 'LineWidth', 0.4, 'Color', [0.2 0.2 0.2]);
 xlabel('Time (ps)','FontSize',cfg.label_size,'FontWeight','bold');
-ylabel(sprintf('%s (\\muA)', sigType),'FontSize',cfg.label_size,'FontWeight','bold');
-title(sprintf('%s Eye Diagram (SNR = %.1f dB)', sigType, snrDb), ...
+ylabel(sprintf('
+title(sprintf('
     'FontSize',cfg.title_size,'FontWeight','bold');
 grid on; xlim([tE(1) tE(end)]);
 style_ax(cfg); save_fig_fn(fig, figDir, fname, cfg.export_dpi);
@@ -330,7 +330,7 @@ histogram(samp*1e6, 120,'FaceColor',[0.5 0.5 0.5],'EdgeColor','none');
 hold on; for tv=thr, xline(tv*1e6,'k--','LineWidth',1.5); end
 xlabel('Matched Filter Output (\muA)','FontSize',cfg.label_size,'FontWeight','bold');
 ylabel('Count','FontSize',cfg.label_size,'FontWeight','bold');
-title(sprintf('PAM-4 Level Histogram (SNR = %.1f dB)',snrDb), ...
+title(sprintf('PAM-4 Level Histogram (SNR = 
     'FontSize',cfg.title_size,'FontWeight','bold');
 grid on; style_ax(cfg); save_fig_fn(fig, figDir, fname, cfg.export_dpi);
 end
@@ -357,7 +357,7 @@ end
 xline(cfg.lambda_min*1e9,'k:','LineWidth',1,'HandleVisibility','off');
 xline(cfg.lambda_max*1e9,'k:','LineWidth',1,'HandleVisibility','off');
 plot(cfg.lambda_center*1e9, pd.eta_physical,'ko','MarkerFaceColor','k','MarkerSize',8, ...
-    'DisplayName',sprintf('\\eta=%.3f @ %.0fnm',pd.eta_physical,cfg.lambda_center*1e9));
+    'DisplayName',sprintf('\\eta=
 xlabel('Wavelength (nm)','FontSize',cfg.label_size,'FontWeight','bold');
 ylabel('Quantum Efficiency \eta','FontSize',cfg.label_size,'FontWeight','bold');
 title('\eta(\lambda)=(1-R_f)(1-e^{-\Gamma\alpha L}) -- Wartak Eq. 10.7', ...
@@ -375,10 +375,10 @@ f_rc = pd.f_RC*ones(size(dr));
 f_cb = 1./sqrt(1./f_tr.^2+1./f_rc.^2);
 subplot(1,2,1);
 plot(dr*1e9, f_tr/1e9,'k--','LineWidth',2,'DisplayName','f_{tr}'); hold on;
-plot(dr*1e9, f_rc/1e9,'k:','LineWidth',2,'DisplayName',sprintf('f_{RC}=%.0f GHz',pd.f_RC/1e9));
+plot(dr*1e9, f_rc/1e9,'k:','LineWidth',2,'DisplayName',sprintf('f_{RC}=
 plot(dr*1e9, f_cb/1e9,'k-','LineWidth',cfg.line_width,'DisplayName','f_{3dB}');
 plot(cfg.d_depletion*1e9, pd.f3dB_total/1e9,'ko','MarkerFaceColor','k','MarkerSize',10,'LineWidth',1.5, ...
-    'DisplayName',sprintf('Design (%.0f GHz)',pd.f3dB_total/1e9));
+    'DisplayName',sprintf('Design (
 xlabel('Depletion Width (nm)','FontSize',cfg.label_size,'FontWeight','bold');
 ylabel('Bandwidth (GHz)','FontSize',cfg.label_size,'FontWeight','bold');
 title('BW vs Depletion Width (Wartak Eq. 10.14--10.17)', ...
@@ -420,7 +420,7 @@ title('Thermal Noise Distribution','FontSize',cfg.title_size,'FontWeight','bold'
 legend({'Simulated','Gaussian'},'Location','northeast','FontSize',9,'Box','off'); grid on; style_ax(cfg);
 subplot(2,2,3);
 pie([nc.shot_variance, nc.thermal_variance], ...
-    {sprintf('Shot (%.1f%%)',100*nc.shot_fraction), sprintf('Thermal (%.1f%%)',100*(1-nc.shot_fraction))});
+    {sprintf('Shot (
 title('Noise Variance Breakdown','FontSize',cfg.title_size,'FontWeight','bold');
 subplot(2,2,4);
 bwr = logspace(8,12,500);
@@ -474,7 +474,7 @@ fig=figure('Color','w','Position',[190,190,1600,1000]);
 subplot(1,2,1);
 semilogy(cfg.P_sweep_dBm,BER_an,'k-','LineWidth',cfg.line_width,'DisplayName','Analytical (Wartak)'); hold on;
 semilogy(cfg.P_sweep_dBm,BER_mc,'ko','MarkerFaceColor','k','MarkerSize',5,'LineWidth',1.5,'DisplayName','Monte Carlo');
-yline(cfg.target_BER,'k--','LineWidth',1.5,'DisplayName',sprintf('Target BER=%.0e',cfg.target_BER));
+yline(cfg.target_BER,'k--','LineWidth',1.5,'DisplayName',sprintf('Target BER=
 yline(3.8e-3,'k:','LineWidth',1.5,'DisplayName','KP4 FEC');
 xlabel('Received Power (dBm)','FontSize',cfg.label_size,'FontWeight','bold');
 ylabel('Bit Error Rate','FontSize',cfg.label_size,'FontWeight','bold');
@@ -502,5 +502,5 @@ if ~exist(outDir,'dir'), mkdir(outDir); end
 set(fig,'Color','w','InvertHardcopy','off','Renderer','painters');
 drawnow;
 exportgraphics(fig, fullfile(outDir,[baseName,'.png']), 'Resolution',dpi,'BackgroundColor','white');
-fprintf('  Saved %s\n', fullfile(outDir,[baseName,'.png']));
+fprintf('  Saved 
 end

@@ -501,60 +501,19 @@ tension in the co-optimisation of bandwidth and noise performance.
 \subsubsection{Noise Spectral Densities and Noise-Equivalent Power}
 \label{subsubsec:pd_noise_psd}
 
+
 \paragraph{Physical origin of shot noise.}
-The currents that flow in a photodetector---whether photo-generated or
-thermally generated---are not smooth, continuous fluid flows but are composed
-of discrete charge quanta of magnitude $q$ arriving at the terminal at random
-times. For carrier arrivals that are statistically independent (i.e., Poissonian),
-the number of carriers $N_T$ collected in an observation interval $T$ satisfies:
-\begin{equation}
-    \mathbb{E}[N_T] = \frac{IT}{q}, \qquad
-    \mathrm{Var}[N_T] = \frac{IT}{q},
-    \label{eq:poisson_stats}
-\end{equation}
-where the mean and variance are equal, as is characteristic of the Poisson
-distribution. The collected charge $Q_T = qN_T$ therefore has variance:
-\begin{equation}
-    \mathrm{Var}[Q_T] = q I T,
-    \label{eq:var_charge_poisson}
-\end{equation}
-and converting from charge variance to the variance of the time-averaged current
-$\bar{I}_T = Q_T/T$:
-\begin{equation}
-    \mathrm{Var}\!\left[\bar{I}_T\right]
-    = \frac{qI}{T}.
-    \label{eq:var_current_poisson}
-\end{equation}
-Taking the limit $T \to \infty$ and equating the variance to the integral of the
-one-sided power spectral density (PSD) over the measurement bandwidth gives the
-standard Schottky result for shot noise:
+The shot noise PSD follows from the Poissonian statistics of discrete
+carrier arrivals at the terminal. Each photon-induced electron-hole pair
+is generated independently, giving a white (frequency-independent) PSD:
 \begin{equation}
     S_{\mathrm{shot}}(f) = 2q\!\left(I_d + I_{\mathrm{ph}}\right)
     \quad [\si{\ampere\squared\per\hertz}],
     \label{eq:shot}
 \end{equation}
-where the total current is the sum of dark and photocurrent contributions.
-The factor of two arises from the one-sided spectral density convention; the
-shot noise PSD is white (frequency-independent) because the Poissonian carrier
-arrival process has no intrinsic correlation time, and its spectral content is
-therefore flat across all frequencies of practical interest for photodetection.
+where the total current includes both dark and photocurrent contributions.
+The factor of two arises from the one-sided spectral density convention.
 
-\begin{figure}[H]
-    \centering
-    \missingfigure[figwidth=0.86\linewidth]{
-        Four-panel noise concept figure. Panel (a): time-domain representation
-        of discrete carrier arrivals as a random point process. Panel (b): the
-        Poisson counting histogram of $N_T$ showing the characteristic
-        $\sqrt{\bar{N}}$ width. Panel (c): resulting time-domain current
-        fluctuations around the mean $\bar{I}$. Panel (d): flat (white) shot
-        noise PSD $S_{\mathrm{shot}} = 2qI$ and the thermally dominated
-        $S_{\mathrm{thermal}} = 4kT/R_L$ on the same frequency axis.}
-    \caption{Physical origin of shot noise from carrier counting statistics.
-    Shot noise is the continuum manifestation of the Poissonian fluctuations
-    of discrete charge carriers arriving at the detector terminal; its flat
-    spectral density reflects the absence of any intrinsic correlation time
-    in the carrier arrival process.}
-    \label{fig:shot_noise_origin}
 \end{figure}
 
 \paragraph{Thermal noise.}

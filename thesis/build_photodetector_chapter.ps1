@@ -22,7 +22,7 @@ if (-not $biber) {
     throw "biber was not found. Install MiKTeX biber or add it to PATH."
 }
 
-$target = "chapter_photodetector_check"
+$target = "chapter_photodetector_combine"
 
 Push-Location $PSScriptRoot
 try {

@@ -65,6 +65,47 @@
 
 \begin{document}
 \pagenumbering{roman}
+
+\begin{titlepage}
+    \begin{minipage}[c]{0.3\textwidth}
+        \includegraphics[width=0.8\textwidth]{AU Logo Black.png}
+    \end{minipage}
+    \begin{minipage}[c]{0.65\textwidth}
+        \large\textbf{Department of Electronics and Communications Engineering}\\
+        \textbf{Faculty of Engineering}\\
+        \textbf{Alexandria University}
+    \end{minipage}
+    
+    \vspace*{3cm}
+    \begin{center}
+        \LARGE \textbf{Design of a 400 Gb/s Silicon Photonics Receiver for IEEE 802.3 DR4 Datacenter Interconnects}
+        
+        \vspace{2cm}
+        \large \textbf{Submitted by:}\\
+        \vspace{0.5cm}
+        Omar Mahfouz \qquad Farah Elsayed \qquad Mark Zakria \\
+        Mahmoud Magdy \qquad Islam Ibrahim \qquad Alyedeen Hassan \\
+        Khalid Khalil
+        
+        \vspace{2cm}
+        \textbf{Supervisor:}\\
+        Dr.\ Eslam El-fiky
+        
+        \vspace{1cm}
+        \textbf{Co-Supervisors:}\\
+        Dr.\ Eman A.\ Elzahaby \qquad Dr.\ Mai Banawan
+        
+        \vfill
+        \large \textbf{2026}
+    \end{center}
+\end{titlepage}
+
+\cleardoublepage
+\chapter*{Acknowledgments}
+\addcontentsline{toc}{chapter}{Acknowledgments}
+We would like to express our deepest gratitude to Prof.\ Dr.\ Ishac Kandas for his continuous support and dedicated efforts to build the photonics school inside Alexandria University. His vision and guidance have been instrumental in the completion of this work.
+
+\cleardoublepage
 \tableofcontents
 \cleardoublepage
 \listoffigures
@@ -111,36 +152,36 @@ WG & Waveguide \\
 \cleardoublepage
 \chapter*{List of Symbols}
 \addcontentsline{toc}{chapter}{List of Symbols}
-\begin{tabularx}{\textwidth}{L{0.18\textwidth} Y}
+\begin{tabularx}{\textwidth}{L{0.18\textwidth} Y L{0.2\textwidth}}
 \toprule
-Symbol & Meaning \\
+Symbol & Meaning & Unit \\
 \midrule
-$\alpha$ & Absorption coefficient \\
-$\tilde{n}$ & Complex refractive index \\
-$n$ & Real part of refractive index \\
-$\kappa$ & Extinction coefficient \\
-$\omega$ & Angular frequency \\
-$\mu_0$ & Permeability of free space \\
-$\varepsilon_0$ & Permittivity of free space \\
-$\tilde{\varepsilon}$ & Complex permittivity \\
-$\tilde{k}$ & Complex wave number \\
-$c$ & Speed of light in vacuum \\
-$\mathbf{E}$ & Electric field \\
-$\mathbf{H}$ & Magnetic field \\
-$\mathbf{S}$ & Poynting vector \\
-$G_{\mathrm{opt}}$ & Optical generation rate \\
-$\hbar$ & Reduced Planck constant \\
-$i_{\mathrm{ph}}$ & Photocurrent \\
-$\mathcal{R}$ & Responsivity \\
-$P$ & Optical power \\
-$\eta_0$ & Impedance of free space \\
-$\tilde{s}$ & Complex envelope \\
-$\omega_0$ & Carrier frequency \\
-$c$ & DC carrier amplitude \\
-$\tilde{u}$ & Modulated signal amplitude \\
-$CSPR$ & Carrier-to-signal power ratio \\
-$E_{g,\mathrm{ind}}$ & Indirect bandgap energy \\
-$E_{g,\mathrm{dir}}$ & Direct bandgap energy \\
+$\alpha$ & Absorption coefficient & \si{\per\centi\metre} \\
+$\tilde{n}$ & Complex refractive index & -- \\
+$n$ & Real part of refractive index & -- \\
+$\kappa$ & Extinction coefficient & -- \\
+$\omega$ & Angular frequency & \si{\radian\per\second} \\
+$\mu_0$ & Permeability of free space & \si{\henry\per\metre} \\
+$\varepsilon_0$ & Permittivity of free space & \si{\farad\per\metre} \\
+$\tilde{\varepsilon}$ & Complex permittivity & \si{\farad\per\metre} \\
+$\tilde{k}$ & Complex wave number & \si{\per\metre} \\
+$c$ & Speed of light in vacuum & \si{\metre\per\second} \\
+$\mathbf{E}$ & Electric field & \si{\volt\per\metre} \\
+$\mathbf{H}$ & Magnetic field & \si{\ampere\per\metre} \\
+$\mathbf{S}$ & Poynting vector & \si{\watt\per\metre\squared} \\
+$G_{\mathrm{opt}}$ & Optical generation rate & \si{\per\centi\metre\cubed\per\second} \\
+$\hbar$ & Reduced Planck constant & \si{\joule\second} \\
+$i_{\mathrm{ph}}$ & Photocurrent & \si{\ampere} \\
+$\mathcal{R}$ & Responsivity & \si{\ampere\per\watt} \\
+$P$ & Optical power & \si{\watt} \\
+$\eta_0$ & Impedance of free space & \si{\ohm} \\
+$\tilde{s}$ & Complex envelope & -- \\
+$\omega_0$ & Carrier frequency & \si{\radian\per\second} \\
+$c$ & DC carrier amplitude & -- \\
+$\tilde{u}$ & Modulated signal amplitude & -- \\
+$CSPR$ & Carrier-to-signal power ratio & \si{\decibel} \\
+$E_{g,\mathrm{ind}}$ & Indirect bandgap energy & \si{\electronvolt} \\
+$E_{g,\mathrm{dir}}$ & Direct bandgap energy & \si{\electronvolt} \\
 \end{tabularx}
 \cleardoublepage
 \pagenumbering{arabic}

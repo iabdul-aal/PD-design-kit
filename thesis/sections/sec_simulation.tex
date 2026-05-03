@@ -5,8 +5,8 @@ The device performance metrics established in \cref{sec:pd_metrics} are evaluate
 through a coupled optical-electrical simulation chain whose output is anchored to
 the experimental benchmark of Shi~\textit{et al.}~\cite{Shi2024}. This section
 specifies each solver, its numerical settings, the data flow connecting the
-stages, and the PINN-based validation approach that provides independent
-cross-verification of the drift-diffusion solution.
+stages, and the reduced-order checks used to compare the solver outputs with the
+geometry-derived bandwidth and noise models implemented in MATLAB.
 
 \subsection[Optical Simulation: FDTD]{Optical Simulation: Three-Dimensional FDTD}
 \label{subsec:pd_fdtd}
@@ -22,11 +22,12 @@ the algorithmic implementation of the Yee algorithm and absorbing boundary
 conditions, is detailed in the pedagogical treatment of Wartak~\cite{Wartak2013}.
 
 The complex permittivity is sampled at the material-dependent optical frequency
-through tabulated complex refractive indices: for germanium at \SI{1310}{\nano\metre},
-$n\approx4.27$ and $\kappa\approx0.22$, yielding
-$\alpha\approx\SI{2.1e3}{\per\centi\metre}$ from \cref{eq:alpha_kappa}.
+through tabulated complex refractive indices. The auxiliary MATLAB response
+model uses $\alpha\approx\SI{7e3}{\per\centi\metre}$ at
+\SI{1310}{\nano\metre} for analytical responsivity estimates, while the FDTD
+script evaluates absorption directly from the Palik material model.
 
-\paragraph{FDTD source field and the Îµ''-based generation rate.}
+\paragraph{FDTD source field and the $\varepsilon''$-based generation rate.}
 Following the convention of Hamadou~\textit{et al.}~\cite{Hamadou2023}, the
 monochromatic optical source in the FDTD domain is a Gaussian-modulated pulse:
 \begin{equation}
@@ -52,21 +53,20 @@ the plane-wave approximation, and reduces to \cref{eq:gen_rate} in the
 uniform-field limit; the FDTD solver evaluates it pointwise over the
 three-dimensional Ge volume before transferring the resulting
 $G(\mathbf{r})$ array to the CHARGE drift-diffusion solver.
-Frequency-domain power monitors record $T(\omega)$ and $R(\omega)$, from which:
+Frequency-domain power monitors record the input-normalised transmission before
+and after the Ge absorber, from which the script computes:
 \begin{equation}
-    \mathcal{A}(\omega) = 1 - |T(\omega)|^2 - |R(\omega)|^2
-    - \sum_i |T_{\mathrm{sub},i}(\omega)|^2.
+    \mathcal{A}(\omega)
+    = \max\!\left[\frac{T_{\mathrm{ref}}(\omega)-T_{\mathrm{after}}(\omega)}
+                        {T_{\mathrm{ref}}(\omega)},\,0\right].
     \label{eq:fdtd_abs}
 \end{equation}
 A \SI{20}{\nano\metre} isotropic mesh override within the germanium region
-resolves the exponential generation-rate gradient; convergence testing at
-\SI{10}{\nano\metre} and \SI{20}{\nano\metre} shows less than \SI{0.5}{\percent}
-deviation in $\mathcal{A}$.
+resolves the exponential generation-rate gradient.
 
 \paragraph{FDTD numerical stability and the 3D Courant condition.}
-The PML implementation employs sixteen absorbing cells on each domain boundary,
-determined by convergence of the reflected power to below $-60\,\mathrm{dB}$
-in a calibration run with a uniform germanium slab. The temporal stability
+The PML implementation employs eight absorbing layers on each domain boundary,
+matching the setting in \texttt{ge\_pd\_fdtd\_oband\_ushaped.lsf}. The temporal stability
 of the Yee algorithm requires the 3D Courant-Friedrichs-Lewy condition:
 \begin{equation}
     \Delta t < \frac{\Delta}{c\sqrt{3}},
@@ -75,11 +75,8 @@ of the Yee algorithm requires the 3D Courant-Friedrichs-Lewy condition:
 so the time step is set to $\Delta t=0.99\,\Delta/(c\sqrt{3})$. The spatial
 mesh size is independently constrained by the sampling requirement
 $\Delta<\lambda_{\min}/(10\sqrt{\varepsilon_{\max}})$, giving
-$\Delta<\SI{32}{\nano\metre}$ with a safety margin of 1.6 at the \SI{20}{\nano\metre}
-override. The combined optical and electrical simulation requires approximately
-\SI{11}{\hour} of wall-clock time on a shared-memory workstation: roughly
-\SI{3}{\hour} for the FDTD step and \SI{8}{\hour} for the steady-state and
-frequency-response electrical solves~\cite{Alasio2024}.
+$\Delta<\SI{32}{\nano\metre}$ with a safety margin of 1.6 at the
+\SI{20}{\nano\metre} override.
 
 \paragraph{FDTD electromagnetic solution and the square-law photocurrent.}
 A physically essential clarification connecting the FDTD solution to the
@@ -106,24 +103,28 @@ $10^{-\gamma_{\mathrm{wg}}\ell_{\mathrm{wg}}/10}$ to \cref{eq:responsivity}.
 \begin{figure}[H]
     \centering
     \missingfigure[figwidth=0.80\linewidth]{
-        Simulation flowchart connecting FDTD, CHARGE, and PINN solvers.
+        Simulation flowchart connecting FDTD, CHARGE, and MATLAB post-processing.
         Left: FDTD inputs and outputs.
         Centre: CHARGE inputs and outputs.
-        Right: PINN cross-validation.
+        Right: CML dataset, compact model, DSP model, and thesis figures.
         Arrows indicate data flow; the key coupling step is the
         $G_{\mathrm{opt}}$ file transfer.}
     \caption{Multi-physics simulation workflow. The FDTD-to-CHARGE coupling
     proceeds via the volumetric generation rate $G_{\mathrm{opt}}(\mathbf{r})$
-    of \cref{eq:gen_rate}, and the PINN provides independent cross-validation
-    of the drift-diffusion solution via automatic differentiation of the PDE
-    residuals of \cref{eq:pinn_pde_loss}.}
+    of \cref{eq:gen_rate}. Device-level and system-level MATLAB scripts then
+    convert the solver outputs into figures, compact-model data, and
+    geometry-derived bandwidth estimates.}
     \label{fig:sim_flowchart}
 \end{figure}
 
-\subsection[Electrical Simulation: CHARGE]{Electrical Simulation: Three-Dimensional Drift-Diffusion}
+\subsection[Electrical Simulation: CHARGE]{Electrical Simulation: Two-Dimensional Drift-Diffusion}
 \label{subsec:pd_charge}
 
-Carrier transport is simulated in Lumerical DEVICE CHARGE under two-dimensional steady-state conditions, solving the PDE system of
+Carrier transport is simulated in Lumerical DEVICE CHARGE under
+two-dimensional X-normal steady-state conditions with the norm length set to
+the Ge absorber length $L=\SI{8}{\micro\metre}$. The solver evaluates the
+vertical cross-section and scales currents by this longitudinal length, solving
+the PDE system of
 \cref{eq:poisson,eq:Jn,eq:Jp,eq:cont_n,eq:cont_p} on an adaptive
 finite-element mesh. Two complementary carrier mobility models are employed.
 The \emph{Caughey-Thomas} model accounts for impurity scattering through a
@@ -133,7 +134,7 @@ doping-concentration-dependent low-field mobility~\cite{Hamadou2023}:
     = \mu^{\min}_{n,p}
       + \frac{\mu^L_{n,p} - \mu^{\min}_{n,p}}
              {1 + \left(\dfrac{N_A+N_D}{N^0_{n,p}}\right)^{\!\alpha_{n,p}}},
-    \label{eq:caughey_thomas}
+    \label{eq:sim_caughey_thomas}
 \end{equation}
 where $\mu^L_{n,p}$ is the lattice-scattering-limited mobility, $\mu^{\min}_{n,p}$
 the ionised-impurity saturation floor, and $N^0_{n,p}$, $\alpha_{n,p}$ fitting
@@ -196,11 +197,13 @@ for future microstructure extensions.
     \label{eq:mobility_sat}
 \end{equation}
 SRH recombination is activated in the germanium absorber with calibrated
-lifetimes $\tau_n=\tau_p=\SI{5}{\nano\second}$ ($\tau_0=\SI{5}{\nano\second}$),
-chosen so that \cref{eq:jdark_srh,eq:idark_decomposed} reproduce the experimental
-dark current of \SI{1.3}{\nano\ampere} at \SI{-1}{\volt}~\cite{Shi2024}.
-Ohmic boundary conditions are imposed at the cathode (biased to the desired
-$V<0$) and anode contacts (grounded, $V=0$). All performance metrics are
+lifetimes $\tau_n=\tau_p=\SI{1}{\nano\second}$ in the current repository
+configuration. Ohmic boundary conditions are imposed at the cathode
+($V=0$) and the anode, which is swept from \SI{-2.5}{\volt} to
+\SI{0.5}{\volt} over 51 points. The dark sweep is run first; the FDTD
+generation-rate dataset is then imported and the illuminated sweep is repeated.
+The same CHARGE setup also runs an SSAC frequency sweep from \SI{1}{\mega\hertz}
+to \SI{200}{\giga\hertz}. All performance metrics are
 extracted directly from the CHARGE solution: $\mathcal{R}$ from
 \cref{eq:responsivity}; $\eta_{\mathrm{int}}$ and $\eta_{\mathrm{ext}}$ from
 \cref{eq:qe_full}; $C_j$ from the small-signal AC analysis; and
@@ -222,60 +225,295 @@ sweeps (absorber length and $W_i$ thickness) that produce the trade-off tables
 and design-space visualisations.
 
 \subsection[Validation Approach]{Validation Approach and Reference Design}
-\label{subsec:pd_pinns}
+\label{subsec:pd_validation}
 
-A Physics-Informed Neural Network (PINN) is employed as an independent
-cross-validation tool. A PINN approximates the solution fields
-$u=\{n,p,\phi\}$ by a deep neural network
-$\hat{u}(\mathbf{r};\boldsymbol{\theta})$, trained to minimise the composite
-loss functional:
+Validation is performed by comparing three levels of the same implemented
+pipeline. First, the FDTD absorption monitor is checked against the expected
+Beer-Lambert trend over the Ge-length sweep generated by
+\texttt{ge\_pd\_fdtd\_oband\_ushaped\_sweeps.lsf}. Second, the CHARGE dark and
+illuminated sweeps are reduced to $I_d$, $I_{\mathrm{ph}}$, $\mathcal{R}$,
+EQE, and IQE by \texttt{ge\_pd\_oband\_ushaped\_postprocess.m}. Third, the
+geometry-derived RC and transit-time model is evaluated from the same dimensions
+and compared with the optional SSAC response exported by CHARGE. This validation
+does not claim an implemented physics-informed neural-network surrogate; such a
+surrogate remains a future extension rather than part of the present repository.
+
+\subsection[Carrier Transport Physics]{Carrier Transport Physics in the Germanium Absorber}
+\label{subsec:pd_transport_physics}
+
+The electrical response of the Ge-on-Si photodetector is governed by the
+coupled transport of photogenerated electrons and holes through the germanium
+absorber under an applied reverse bias. Understanding the physical mechanisms
+that drive this transport---and the material parameters that control
+it---provides the physical foundation for interpreting the drift-diffusion
+simulation results of \cref{subsec:pd_charge} and for rationalising the
+bandwidth and responsivity trade-offs that emerge from the design-space sweeps
+of \cref{subsec:pd_matlab}.
+
+\subsubsection[Drift and Diffusion in a Reverse-Biased PIN Junction]%
+              {Drift and Diffusion in a Reverse-Biased PIN Junction}
+\label{subsubsec:drift_diffusion_physics}
+
+Carrier transport in the intrinsic germanium layer is described by the
+drift-diffusion formalism, in which each carrier species responds to both the
+macroscopic electric field $\mathbf{E}(\mathbf{r})$ and its own concentration
+gradient. The electron and hole current densities are, respectively:
 \begin{equation}
-    \mathcal{L}(\boldsymbol{\theta})
-    = \lambda_{\mathrm{PDE}}\,\mathcal{L}_{\mathrm{PDE}}
-    + \lambda_{\mathrm{BC}}\,\mathcal{L}_{\mathrm{BC}}
-    + \lambda_{\mathrm{data}}\,\mathcal{L}_{\mathrm{data}},
-    \label{eq:pinn_loss}
+    \mathbf{J}_n = q\mu_n n\,\mathbf{E} + qD_n\,\nabla n,
+    \qquad
+    \mathbf{J}_p = q\mu_p p\,\mathbf{E} - qD_p\,\nabla p,
+    \label{eq:jn_jp_full}
 \end{equation}
-where the PDE residual loss is evaluated at $N_c$ collocation points
-$\{\mathbf{r}_i\}$ sampled by quasi-random (Sobol) sequences:
+where $n$ and $p$ are the electron and hole concentrations, $\mu_{n,p}$ are
+the corresponding carrier mobilities, and $D_{n,p}$ are the ambipolar diffusion
+coefficients related to the mobility by the Einstein relation:
 \begin{equation}
-    \begin{aligned}
-    \mathcal{L}_{\mathrm{PDE}}
-    &= \frac{1}{N_c}\sum_{i=1}^{N_c}
-    \Bigl[
-      \bigl|\nabla\cdot(\varepsilon\nabla\hat{\phi})
-      + q(\hat{p} - \hat{n} + N_D^+ - N_A^-)\bigr|^2 \\
-    &\qquad
-      + \bigl|\tfrac{1}{q}\nabla\cdot\hat{\mathbf{J}}_n
-      - U_{\mathrm{net}}(\hat{n},\hat{p}) + G_{\mathrm{opt}}\bigr|^2 \\
-    &\qquad
-      + \bigl|\tfrac{1}{q}\nabla\cdot\hat{\mathbf{J}}_p
-      + U_{\mathrm{net}}(\hat{n},\hat{p}) - G_{\mathrm{opt}}\bigr|^2
-    \Bigr]_{\mathbf{r}_i}.
-    \end{aligned}
-    \label{eq:pinn_pde_loss}
+    D_{n,p} = \frac{\mu_{n,p}\,k_B T}{q},
+    \label{eq:sim_einstein}
 \end{equation}
-All spatial derivatives in \cref{eq:pinn_pde_loss} are computed via
-\emph{reverse-mode automatic differentiation} through the network's computational
-graph, eliminating the requirement for a structured mesh and the associated
-spatial discretisation error.
+with $k_B$ the Boltzmann constant, $T$ the lattice temperature, and $q$ the
+elementary charge. Under the strong reverse bias typical of high-speed
+operation ($|V| \gtrsim \SI{1}{\volt}$), the depletion approximation holds
+throughout the intrinsic Ge layer: the equilibrium carrier concentrations are
+negligibly small compared to the photogenerated densities, and the electric
+field is large enough that drift dominates over diffusion. Physically, this
+means photogenerated electron--hole pairs are swept apart by the built-in and
+applied field before they can recombine, a condition essential for both high
+quantum efficiency and fast temporal response.
 
-The network architecture consists of four fully connected hidden layers with 128
-neurons each, hyperbolic-tangent activations, and a two-dimensional spatial
-input $\mathbf{r}=(x,y,z)$ producing three outputs $(\hat{n},\hat{p},\hat{\phi})$.
-The total number of trainable parameters is approximately $49\,000$, small enough
-for training on a single GPU (NVIDIA A100) in approximately 4 hours. At selected
-bias voltages ($V=0,-0.5,-1.0$\,V), the PINN and CHARGE solutions for the band
-diagram, carrier density profiles, and electric field magnitude are compared;
-agreement provides cross-validation at the level of the governing equations
-rather than merely at the level of integral output quantities. The PINN is
-validated when three conditions are satisfied simultaneously: (i) band diagram
-agreement to within \SI{10}{\milli\electronvolt} RMS; (ii) carrier density
-agreement to within \SI{15}{\percent} RMS in the intrinsic layer; and
-(iii) integral dark current agreement to within \SI{5}{\percent}.
+The dominance of drift over diffusion can be quantified by comparing the drift
+length $\ell_{\mathrm{drift}} = \mu_{n,p}\tau_{n,p}|\mathbf{E}|$ to the
+diffusion length $L_{n,p} = \sqrt{D_{n,p}\tau_{n,p}}$, where $\tau_{n,p}$ are
+the minority carrier lifetimes. With $\tau_0 = \SI{1}{\nano\second}$, matching
+the Ge lifetime configured in \texttt{ge\_pd\_charge\_oband\_ushaped.lsf}, and
+$|\mathbf{E}| \sim \SI{e4}{\volt\per\centi\metre}$ across a
+$W_i = \SI{1}{\micro\metre}$ intrinsic layer at \SI{-1}{\volt}, the drift length
+is orders of magnitude larger than the absorber thickness for electron
+mobilities near
+$\mu_n^{(0)} = \SI{3900}{\centi\metre\squared\per\volt\per\second}$. This
+confirms that the photogenerated
+carriers transit the intrinsic layer on a timescale ($\sim \SI{10}{\pico\second}$)
+much shorter than their recombination lifetime, and that the drift-diffusion
+equations reduce, under these conditions, to a field-dominated transport problem
+well suited to the finite-element CHARGE solver.
 
-The validated PINN also serves as the computational vehicle for exploring the
-double U-shaped anode topology, which halves the maximum lateral current path
-to $\ell_a^{\mathrm{2U}}\approx W_m/8+d_{\mathrm{gap}}$. The predicted
-resistance and bandwidth of the double-U design are discussed as a future-work
-extension in \cref{sec:pd_summary}.
+\subsubsection[Velocity Saturation and High-Field Carrier Dynamics]%
+              {Velocity Saturation and High-Field Carrier Dynamics}
+\label{subsubsec:velocity_saturation}
+
+At the field magnitudes present inside a reverse-biased germanium absorber,
+carriers cannot be treated as low-field linear responders. As the electric
+field increases beyond a material-specific threshold, the carrier drift velocity
+departs from its ohmic limit $v = \mu_{n,p}^{(0)}|\mathbf{E}|$ and saturates
+at the material saturation velocity $v_{\mathrm{d,sat}}$, owing to the onset
+of optical phonon emission, intervalley scattering (in the conduction band),
+and momentum relaxation via high-energy phonon modes. In germanium, the
+saturation velocities for electrons and holes are
+$v_{\mathrm{d,sat},e} \approx \SI{6e6}{\centi\metre\per\second}$ and
+$v_{\mathrm{d,sat},h} \approx \SI{4e6}{\centi\metre\per\second}$, respectively,
+with the asymmetry arising from the differing effective masses and phonon
+scattering cross-sections of the two carrier species.
+
+The field-dependent mobility that captures this saturation behaviour is given
+by the empirical model of \cref{eq:mobility_sat}, restated here for clarity:
+\begin{equation}
+    \mu_{n,p}(|\mathbf{E}|)
+    = \frac{\mu_{n,p}^{(0)}}
+      {\!\left[1 + \!\left(
+          \dfrac{\mu_{n,p}^{(0)}\,|\mathbf{E}|}{v_{\mathrm{d,sat},n/h}}
+        \right)^{\!\beta}\right]^{\!1/\beta}},
+    \label{eq:mobility_sat_body}
+\end{equation}
+where $\beta$ is a fitting exponent that controls the sharpness of the
+transition from linear to saturated transport: $\beta = 1$ corresponds to a
+smooth asymptotic saturation, while $\beta \to \infty$ approaches the
+idealised piecewise-linear two-piece model. For germanium, values in the range
+$\beta \approx 1.6$--$2.0$ are typically adopted. The Canali model of
+\cref{eq:canali_full}, which reduces to \cref{eq:mobility_sat_body} with
+$\beta = 2$ and $\alpha_{\mathrm{C}} = 0$, is the formulation implemented in
+the CHARGE solver and is equivalent in physical content to
+\cref{eq:mobility_sat_body} within the parameter range of interest.
+
+The engineering consequence of velocity saturation is immediately apparent from
+the transit-time contribution to device bandwidth. The carrier transit time
+across an intrinsic layer of thickness $W_i$ is:
+\begin{equation}
+    \tau_{n,p}^{\mathrm{tr}} = \frac{W_i}{v_{n,p}(|\mathbf{E}|)},
+    \label{eq:tau_transit}
+\end{equation}
+where $v_{n,p}(|\mathbf{E}|) = \mu_{n,p}(|\mathbf{E}|)\,|\mathbf{E}|$ is the
+drift velocity at the field magnitude sustained across the layer. In the
+saturated regime, $v_{n,p} \to v_{\mathrm{d,sat},n/h}$ and the transit time
+becomes independent of the applied bias, reducing to
+$\tau_{n,p}^{\mathrm{tr}} \to W_i / v_{\mathrm{d,sat}}$. This saturation has
+a critical design implication: beyond a certain applied reverse voltage, further
+increasing the bias voltage does not meaningfully reduce the transit time, and
+the transit-time-limited bandwidth component
+\begin{equation}
+    f_{\mathrm{tt}} = \frac{0.45}{\tau_{\mathrm{tr,eff}}}
+    \approx \frac{0.45\,v_{\mathrm{d,sat,eff}}}{W_i}
+    \label{eq:sim_bw_tt}
+\end{equation}
+reaches a plateau governed solely by the material saturation velocity and the
+absorber thickness $W_i$. Here, $v_{\mathrm{d,sat,eff}}$ is an effective
+average accounting for the asymmetric electron and hole velocities: because
+electrons are faster in Ge ($v_{\mathrm{d,sat},e}/v_{\mathrm{d,sat},h} = 1.5$),
+the hole transit time is the bandwidth-limiting process, and the design is
+therefore sensitive to the choice of $W_i$ primarily through the hole dynamics.
+
+\subsubsection[Doping-Dependent Mobility and Impurity Scattering]%
+              {Doping-Dependent Mobility and Impurity Scattering}
+\label{subsubsec:impurity_scattering}
+
+While velocity saturation governs the high-field interior of the intrinsic
+layer, the doped contact regions of the PIN structure are dominated by a
+complementary mechanism: ionised impurity scattering. Each ionised dopant atom
+introduces a long-range Coulomb perturbation that deflects carrier trajectories,
+reducing the low-field mobility below its lattice-scattering limit. The
+Caughey--Thomas model of \cref{eq:caughey_thomas} captures this reduction
+through a smooth interpolation between the high-doping saturation floor
+$\mu_{n,p}^{\min}$ and the lattice-limited ceiling $\mu_{n,p}^L$:
+\begin{equation}
+    \mu_{n,p}(N_A + N_D)
+    = \mu_{n,p}^{\min}
+      + \frac{\mu_{n,p}^L - \mu_{n,p}^{\min}}
+             {1 + \left(\dfrac{N_A + N_D}{N_{n,p}^0}\right)^{\!\alpha_{n,p}}},
+    \label{eq:caughey_thomas_body}
+\end{equation}
+where $N_{n,p}^0$ is a reference doping concentration at which the mobility
+lies midway between its limits, and $\alpha_{n,p}$ is a dimensionless exponent
+characterising the sensitivity of scattering to doping level.
+
+Physically, \cref{eq:caughey_thomas_body} reflects the fact that at low doping
+concentrations, inter-impurity distances are large and carrier--impurity
+collisions are rare, so mobility approaches the lattice-phonon-limited value.
+At high doping ($N_A + N_D \gg N_{n,p}^0$), the density of scattering centres
+is sufficient to dominate over phonon scattering, and the mobility saturates
+at $\mu_{n,p}^{\min}$. In a practical Ge-on-Si PIN photodetector, the $p^+$ Ge
+anode contact is typically doped to $\sim\SI{e18}{\per\centi\metre\cubed}$ and
+the $n^+$ Si cathode to comparable levels; at these concentrations, the local
+mobility is reduced by roughly a factor of three to five relative to the
+intrinsic value.
+
+From an engineering perspective, this mobility reduction in the contact regions
+influences the series resistance $R_s$ of the device, which enters the RC-limited
+bandwidth component alongside the junction capacitance $C_j$:
+\begin{equation}
+    f_{\mathrm{RC}} = \frac{1}{2\pi\,R_s\,C_j}.
+    \label{eq:sim_bw_rc}
+\end{equation}
+Since $R_s$ is determined partly by the sheet resistance of the doped contact
+layers---and hence by the mobility at the relevant doping level---a
+self-consistent treatment of carrier mobility across the full doping range,
+as provided by \cref{eq:caughey_thomas_body}, is essential for accurate
+bandwidth prediction. Crucially, the high-field extension of
+\cref{eq:mobility_sat_body} is applied on top of the Caughey--Thomas
+low-field value, so the model transitions smoothly from impurity-dominated
+scattering near the contacts to phonon- and field-dominated transport in the
+intrinsic absorber, providing a physically complete description of carrier
+dynamics throughout the device.
+
+\subsubsection[Recombination Mechanisms and Dark Current Calibration]%
+              {Recombination Mechanisms and Dark Current Calibration}
+\label{subsubsec:recombination_dark}
+
+In any semiconductor photodetector, photogenerated carriers compete with
+recombination processes that act to annihilate electron--hole pairs before
+they contribute to the external photocurrent. The dominant bulk recombination
+mechanism in lightly doped germanium is Shockley--Read--Hall (SRH) recombination,
+mediated by trap states located near the midgap of the germanium band structure.
+These trap states arise from crystallographic defects---threading dislocations
+and misfit dislocations generated by the approximately \SI{4.2}{\percent} lattice
+mismatch between Ge and Si at the heteroepitaxial interface---and from residual
+point defects introduced during growth and thermal processing.
+
+The SRH net recombination rate is:
+\begin{equation}
+    U_{\mathrm{SRH}}
+    = \frac{np - n_i^2}
+      {\tau_p(n + n_1) + \tau_n(p + p_1)},
+    \label{eq:srh_body}
+\end{equation}
+where $n_i$ is the intrinsic carrier concentration, $n_1 = n_i\exp[(E_t - E_i)/k_BT]$
+and $p_1 = n_i\exp[(E_i - E_t)/k_BT]$ are the SRH reference concentrations
+evaluated at the trap energy $E_t$ relative to the intrinsic level $E_i$, and
+$\tau_n$, $\tau_p$ are the minority carrier lifetimes for electrons and holes
+respectively. In the depletion approximation, $n \ll n_1$ and $p \ll p_1$,
+so that \cref{eq:srh_body} reduces to:
+\begin{equation}
+    U_{\mathrm{SRH}}^{\mathrm{dep}}
+    \approx -\frac{n_i}{\tau_0},
+    \qquad
+    \tau_0 = \frac{\tau_n + \tau_p}{2},
+    \label{eq:sim_srh_dep}
+\end{equation}
+with the negative sign indicating net generation rather than recombination.
+This generation current constitutes the dominant contribution to the device
+dark current in reverse bias and is the quantity most directly affected by the
+minority-carrier lifetime configured in the CHARGE simulation.
+
+The current repository configures the Ge trap-assisted electron and hole
+lifetimes as $\tau_n=\tau_p=\SI{1}{\nano\second}$. The final dark-current value
+is therefore taken from the CHARGE output file rather than from an analytical
+calibration inserted by hand. This choice lies within the
+\SIrange{1}{10}{\nano\second} lifetime range commonly used for
+dislocation-limited Ge-on-Si material. Any future
+improvement in epitaxial quality---for example through a thicker graded buffer
+layer or a hydrogen anneal---would manifest as an increase in $\tau_0$, reducing
+the thermal generation component of the dark current per \cref{eq:srh_dep} and
+improving the receiver sensitivity margin via \cref{eq:sens_full}.
+
+\subsubsection[Physical Basis of the Bandwidth--Absorption Trade-off]%
+              {Physical Basis of the Bandwidth--Absorption Trade-off}
+\label{subsubsec:bw_absorption_tradeoff}
+
+The coupled optical and electrical physics described in the preceding
+subsections conspire to create the fundamental design tension that shapes all
+waveguide-integrated photodetector optimisation: the trade-off between absorption
+efficiency and bandwidth.
+
+Absorption efficiency in the germanium absorber is determined by the overlap
+of the evanescent optical mode with the Ge volume. For a waveguide-integrated
+vertical PIN structure, the fraction of incident optical power absorbed over
+an absorber length $L$ is:
+\begin{equation}
+    \mathcal{A}(L) = 1 - \exp(-\Gamma\alpha L),
+    \label{eq:absorption_efficiency}
+\end{equation}
+where $\Gamma$ is the optical confinement factor in the Ge layer and
+$\alpha \approx \SI{7e3}{\per\centi\metre}$ is the absorption coefficient used by
+the auxiliary MATLAB response model at \SI{1310}{\nano\metre}. The FDTD script
+computes absorption directly from the Palik material model. Increasing $L$
+monotonically improves
+$\mathcal{A}$; however, it simultaneously increases the junction area $A_j$
+and therefore the junction capacitance $C_j = \varepsilon_0\varepsilon_r A_j / W_i$.
+Through \cref{eq:bw_rc}, this reduces $f_{\mathrm{RC}}$, degrading the
+RC-limited bandwidth. Conversely, reducing $W_i$ to increase $|\mathbf{E}|$
+for a given bias voltage---and thereby push carriers deeper into velocity
+saturation---also raises $C_j$ through the inverse $W_i$ dependence. The
+total $3\,\mathrm{dB}$ bandwidth is obtained by combining the transit-time and
+RC contributions in quadrature:
+\begin{equation}
+    f_{3\,\mathrm{dB}}
+    = \left(\frac{1}{f_{\mathrm{tt}}^2} + \frac{1}{f_{\mathrm{RC}}^2}\right)^{\!-1/2},
+    \label{eq:sim_bw_total}
+\end{equation}
+which makes explicit the fact that both $W_i$ and $L$ influence the bandwidth
+through independent physical channels---$W_i$ through the transit time and
+$L$ through the capacitance---and that neither can be optimised in isolation.
+
+In the context of the O-band (\SI{1310}{\nano\metre}) target for
+400GBASE-DR4 interconnects, the minimum bandwidth requirement is
+$f_{3\,\mathrm{dB}} \geq \SI{50}{\giga\hertz}$ per lane, and the responsivity
+must remain above approximately $\SI{0.8}{\ampere\per\watt}$ to maintain a
+useful power budget. The parametric sweeps described in
+\cref{subsec:pd_matlab} navigate this two-dimensional design space, with the
+physical picture developed in the present section providing the interpretive
+framework for understanding why specific combinations of $(L, W_i)$ lie on or
+away from the Pareto frontier of the bandwidth--responsivity trade-off. The
+transit-time plateau identified in \cref{subsubsec:velocity_saturation}
+establishes the maximum achievable $f_{\mathrm{tt}}$ for a given absorber
+thickness, and the RC ceiling set by the U-shaped anode geometry---through
+its direct control of $R_s$ via \cref{eq:rs_anode}---determines how closely
+the total bandwidth of \cref{eq:bw_total} can approach that transit-time
+limit in the fabricated device.

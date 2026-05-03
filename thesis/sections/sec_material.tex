@@ -136,9 +136,10 @@ heteroepitaxy necessary also creates a residual defect population that cannot be
 completely eliminated by annealing. Threading dislocations at density
 TDD $\approx\SI{5e7}{\per\centi\metre\squared}$ act as Shockley-Read-Hall
 recombination centres in the Ge bulk, directly setting the SRH lifetime $\tau_0$
-and the dark current floor through \cref{eq:jdark_srh}. The calibrated
-$\tau_0=\SI{5}{\nano\second}$ used in the electrical simulation of
-\cref{subsec:pd_charge} implicitly encodes this threading-dislocation density.
+and the dark current floor through \cref{eq:jdark_srh}. The current CHARGE
+implementation uses $\tau_0=\SI{1}{\nano\second}$ for Ge, which represents a
+conservative nanosecond-scale recombination environment for defect-limited
+Ge-on-Si material.
 
 The interaction between Ge thickness, dislocation density, and device performance
 creates a three-way trade-off. Thicker Ge layers absorb more light, improving
@@ -157,3 +158,275 @@ selection argument: Ge is not chosen because it is universally superior to all
 alternatives, but because it is the only material in \cref{tab:material_compare}
 that simultaneously satisfies the optical, transport, and integration constraints
 of the present O-band receiver.
+
+\subsection[Carrier Transport and Dark Current Mechanisms]{Carrier Transport Physics and Dark Current Mechanisms in Ge-on-Si Photodiodes}
+\label{subsec:pd_transport_dark}
+
+The performance of a waveguide-integrated Ge-on-Si photodiode is governed not
+only by the optical absorption physics described in
+\cref{subsec:pd_bandstructure}, but equally by the dynamics of photogenerated
+carrier transport and the unavoidable generation of thermally excited carriers
+that constitute the device dark current. These two phenomena are deeply coupled:
+the same electric field that sweeps photogenerated carriers across the intrinsic
+germanium absorber with high velocity also governs the rate at which
+trap-mediated thermal generation replenishes the depletion region with
+spurious carriers. Understanding both mechanisms from first principles is
+essential before the geometric and doping trade-offs of the device design in
+\cref{sec:pd_design} can be motivated rigorously.
+
+\subsubsection[Drift, Diffusion, and Carrier Saturation Velocity]{Drift, Diffusion, and the Onset of Velocity Saturation}
+\label{subsubsec:transport_drift}
+
+Under the applied reverse bias $V_R$ that fully depletes the intrinsic
+germanium layer of thickness $w_i$, the internal electric field $\mathcal{E}$
+in the depletion region drives photogenerated electrons and holes toward the
+cathode and anode, respectively, by drift. At moderate fields, the mean drift
+velocity of a carrier species $s \in \{e, h\}$ is proportional to
+$\mathcal{E}$ through the low-field mobility $\mu_s$:
+\begin{equation}
+    v_{d,s} = \mu_s \mathcal{E}.
+    \label{eq:drift_lowfield}
+\end{equation}
+For bulk germanium at \SI{300}{\kelvin}, $\mu_e \approx \SI{3900}{\centi\metre\squared\per\volt\per\second}$
+and $\mu_h \approx \SI{1900}{\centi\metre\squared\per\volt\per\second}$,
+both substantially exceeding their silicon counterparts. The high hole mobility
+of Ge is of particular practical relevance in a $p$-$i$-$n$ structure where
+hole transit across the full intrinsic thickness can otherwise constitute the
+bandwidth-limiting transit-time contribution.
+
+As $\mathcal{E}$ increases beyond approximately
+\SI{10}{\kilo\volt\per\centi\metre} for electrons and
+\SI{5}{\kilo\volt\per\centi\metre} for holes in germanium, inter-valley and
+optical-phonon scattering rates grow faster than the energy gained from the
+field, causing the velocity to saturate asymptotically. The empirical
+Canali model provides a compact and physically consistent description of
+velocity saturation in semiconductor materials:
+\begin{equation}
+    v_{d,s}(\mathcal{E})
+    = \frac{\mu_s \mathcal{E}}
+      {\Bigl[1 + \bigl(\mu_s \mathcal{E} / v_{\mathrm{sat},s}\bigr)^{\beta_s}\Bigr]^{1/\beta_s}},
+    \label{eq:canali_velocity}
+\end{equation}
+where $v_{\mathrm{sat},s}$ is the saturation velocity of species $s$ and
+$\beta_s$ is a dimensionless exponent that interpolates the transition between
+the linear and saturated regimes. For holes in germanium,
+$v_{\mathrm{sat},h} \approx \SI{4e6}{\centi\metre\per\second}$ and
+$\beta_h \approx 1$, which reduces \cref{eq:canali_velocity} to the
+hyperbolic form familiar from standard textbook treatments. In the
+high-field limit relevant to a reverse-biased photodiode, \cref{eq:canali_velocity}
+collapses to $v_{d,s} \to v_{\mathrm{sat},s}$, independently of mobility.
+This saturation regime is precisely the operating point targeted by the
+present device, since a sufficiently large reverse bias ensures that carrier
+velocities are clamped at $v_{\mathrm{sat}}$ and are therefore independent
+of any spatial non-uniformity in $\mathcal{E}$ along the propagation axis of
+the optical mode.
+
+\paragraph{Transit-time limited bandwidth.}
+The direct device-level consequence of carrier velocity saturation is the
+transit-time contribution to the $3$\,dB bandwidth. If holes traverse the
+intrinsic germanium thickness $w_i$ at their saturated velocity, the
+transit-time-limited bandwidth is:
+\begin{equation}
+    f_{\mathrm{tt}}
+    = \frac{0.45\, v_{\mathrm{sat},h}}{w_i},
+    \label{eq:mat_bw_tt}
+\end{equation}
+where the numerical prefactor 0.45 follows from the Fourier analysis of the
+induced current waveform in the Shockley--Ramo framework for a uniformly
+distributed generation profile. \Cref{eq:bw_tt} establishes a direct
+inverse relationship between absorber thickness and transit-time bandwidth:
+halving $w_i$ doubles $f_{\mathrm{tt}}$, but at the cost of a proportional
+reduction in the absorbed fraction of the evanescently coupled optical power,
+as governed by the Beer-Lambert relation discussed in \cref{sec:pd_fundamentals}.
+This thickness trade-off is the central geometric tension of the design
+and motivates the use of waveguide-coupling geometry in preference to
+surface illumination: by distributing absorption along the propagation
+direction rather than the vertical direction, the coupling length $L_{\mathrm{pd}}$
+independently controls the absorbed fraction while $w_i$ remains free to be
+minimised for bandwidth.
+
+\subsubsection[Dark Current: Physical Origins and Analytical Decomposition]{Dark Current: Physical Origins and Analytical Decomposition}
+\label{subsubsec:dark_current}
+
+In the absence of illumination, a reverse-biased germanium photodiode passes a
+current $I_d$ that constitutes the fundamental noise floor of the receiver.
+Dark current enters the signal chain as a shot-noise source with
+single-sided power spectral density $S_I = 2q I_d$, which adds in quadrature
+with the signal shot noise and the amplifier noise floor. Minimising $I_d$
+is therefore not merely a power-efficiency consideration but a direct
+bandwidth-noise trade-off: at the data rates of 400GBASE-DR4, even
+moderate dark currents of order \SI{1}{\micro\ampere} can degrade the
+receiver sensitivity by several tenths of a decibel if the transimpedance
+amplifier noise is not sufficiently dominant.
+
+Three physically distinct mechanisms contribute to the total dark current
+density $J_d$ in a reverse-biased Ge-on-Si $p$-$i$-$n$ diode:
+diffusion of minority carriers from the quasi-neutral contact regions,
+Shockley--Read--Hall (SRH) thermal generation within the depletion region,
+and, at sufficiently large reverse bias, band-to-band tunnelling enhanced
+by the narrow direct gap of germanium. Each mechanism exhibits a characteristic
+bias and temperature dependence that allows them to be distinguished
+experimentally and that must be accounted for separately in the device model.
+
+\paragraph{Diffusion current.}
+Minority carriers generated thermally within one diffusion length of the
+edge of the depletion region drift across the junction under the action of
+the built-in and applied fields. For the $p^{++}$-Si anode contacting the
+$i$-Ge absorber of the present device, the analysis is modified by the
+Ge/Si heterojunction band alignment: the valence-band discontinuity
+$\Delta E_v \approx \SI{0.54}{\electronvolt}$ at the Si/Ge interface acts as
+a potential barrier that suppresses minority hole injection from the Si anode
+into the Ge absorber, substantially reducing the silicon contribution to
+diffusion dark current compared with a homojunction geometry. The residual
+diffusion current density arising from minority electrons in the $p^{++}$-Ge
+anode and minority holes in the $n^{++}$-Ge cathode takes the form:
+\begin{equation}
+    J_{\mathrm{diff}}
+    = q\, n_i^2 \left(
+        \frac{D_e}{L_e N_A} + \frac{D_h}{L_h N_D}
+      \right),
+    \label{eq:jdark_diff}
+\end{equation}
+where $n_i$ is the intrinsic carrier concentration of germanium,
+$D_{e,h}$ are the minority carrier diffusion coefficients,
+$L_{e,h} = \sqrt{D_{e,h}\tau_{e,h}}$ are the corresponding diffusion
+lengths, and $N_A$, $N_D$ are the acceptor and donor concentrations in the
+$p^{++}$ and $n^{++}$ contact regions, respectively. The strong exponential
+temperature dependence of $n_i^2 \propto \exp(-E_g / k_B T)$ combined with
+the relatively narrow gap of germanium ($E_g = \SI{0.66}{\electronvolt}$)
+makes $J_{\mathrm{diff}}$ significantly larger in Ge devices than in
+comparable Si junctions at the same temperature, and explains why Ge
+photodiodes typically exhibit dark currents in the range
+\SIrange{10}{100}{\nano\ampere} even at modest device areas.
+
+\paragraph{Shockley--Read--Hall generation current.}
+The dominant dark-current mechanism in the depletion region of a defect-rich
+Ge-on-Si device is trap-assisted thermal generation via mid-gap states. In the
+SRH framework~\cite{ShockleyRead1952,Hall1952}, a defect level at energy
+$E_t$ near the intrinsic Fermi level mediates a two-step process by which
+valence electrons are excited to the conduction band via the trap, generating
+an electron-hole pair without the need for a direct band-to-band phonon or
+photon interaction. The volumetric generation rate under full depletion
+approximation is maximised when $E_t = E_i$ and reduces to:
+\begin{equation}
+    G_{\mathrm{SRH}}
+    = \frac{n_i}{2\tau_0},
+    \label{eq:srh_gen_rate}
+\end{equation}
+where $\tau_0 = (\tau_e \tau_h)^{1/2}$ is the geometric-mean SRH lifetime,
+which encapsulates the product of the thermal capture cross-section $\sigma$,
+the trap density $N_t$, and the thermal velocity $v_{\mathrm{th}}$ through
+$\tau_0^{-1} = \sigma v_{\mathrm{th}} N_t$. Integrating $G_{\mathrm{SRH}}$
+over the depleted volume $V_{\mathrm{dep}} = A \cdot w_i$, where $A$ is
+the device cross-sectional area, yields the SRH dark current:
+\begin{equation}
+    I_{\mathrm{SRH}}
+    = q \, G_{\mathrm{SRH}} \, V_{\mathrm{dep}}
+    = \frac{q\, n_i\, A\, w_i}{2\tau_0}.
+    \label{eq:jdark_srh}
+\end{equation}
+
+The physical significance of \cref{eq:jdark_srh} in the Ge-on-Si context
+is immediate. Threading dislocations at density TDD $\approx \SI{5e7}{\per\centi\metre\squared}$,
+which persist after cyclic thermal annealing as discussed in
+\cref{subsec:pd_ge_tradeoffs}, introduce mid-gap states whose spatial
+density $N_t$ is directly proportional to the TDD. Effective SRH lifetimes in
+processed Ge-on-Si devices are commonly treated as nanosecond-scale rather than
+bulk-germanium values ($\tau_0 \sim \SI{1}{\micro\second}$). The repository
+therefore adopts $\tau_0=\SI{1}{\nano\second}$ as the Ge electrical boundary
+condition in the drift-diffusion simulations of \cref{subsec:pd_charge}.
+
+Three design implications follow directly from \cref{eq:jdark_srh}. First,
+$I_{\mathrm{SRH}}$ scales linearly with the depleted volume $w_i \cdot A$,
+providing a strong incentive to minimise both the absorber thickness and the
+device footprint. Second, the linear dependence on $n_i$ means that
+$I_{\mathrm{SRH}}$ is exponentially sensitive to temperature through
+$n_i \propto \exp(-E_g / 2k_B T)$; this temperature scaling is less severe
+than that of the diffusion component because it involves $n_i$ rather than
+$n_i^2$, making SRH generation the dominant mechanism at lower temperatures
+where the diffusion contribution collapses more rapidly. Third, because
+$I_{\mathrm{SRH}}$ is proportional to $w_i$ whereas the absorbed optical
+power scales as $1 - \exp(-\alpha w_i)$ for a surface-illuminated geometry,
+there exists an optimal absorber thickness that maximises the ratio of
+photocurrent to dark current; in the waveguide-coupled geometry this optimum
+shifts, since the absorption is accumulated along the propagation axis and
+$w_i$ can be reduced without sacrificing responsivity, as noted above.
+
+\paragraph{Band-to-band tunnelling.}
+At reverse biases beyond approximately \SIrange{2}{3}{\volt} for the doping
+concentrations considered here, the electric field in the depletion region
+becomes sufficiently large that quantum-mechanical tunnelling of valence
+electrons directly into conduction-band states across the narrow direct gap
+of germanium produces a field-dependent excess dark current. The
+Zener tunnelling current density scales as~\cite{Sze2021}:
+\begin{equation}
+    J_{\mathrm{BTBT}}
+    \propto \mathcal{E}^{1/2} \exp\!\left(
+        -\frac{4\sqrt{2m^*}\, E_{g,\mathrm{dir}}^{3/2}}{3 q \hbar \mathcal{E}}
+    \right),
+    \label{eq:btbt}
+\end{equation}
+where $m^*$ is the reduced tunnelling effective mass and $\hbar$ is the
+reduced Planck constant. The exponential dependence of $J_{\mathrm{BTBT}}$
+on $\mathcal{E}^{-1}$ and on $E_{g,\mathrm{dir}}^{3/2}$ means that, for
+the direct gap of $\SI{0.80}{\electronvolt}$ of germanium, tunnelling becomes
+non-negligible at fields accessible under practical reverse-bias conditions.
+Because the present device is intended to operate at reverse biases of
+\SIrange{1}{2}{\volt}, the field in the intrinsic region remains well below
+the Zener onset threshold and $J_{\mathrm{BTBT}}$ is negligible in the nominal
+operating regime. Nevertheless, the proximity of the germanium direct gap to
+the tunnelling onset motivates a careful upper bound on the reverse bias
+used during high-temperature burn-in or reliability qualification, where
+the thermally softened band structure and field crowding near device corners
+could locally activate the tunnelling mechanism.
+
+\subsubsection[Total Dark Current and the Shot Noise Floor]{Total Dark Current Budget and Its Consequence for Receiver Sensitivity}
+\label{subsubsec:dark_noise}
+
+Within the nominal operating regime, the total dark current is:
+\begin{equation}
+    I_d
+    = I_{\mathrm{diff}} + I_{\mathrm{SRH}},
+    \label{eq:total_idark}
+\end{equation}
+with $I_{\mathrm{diff}}$ governed by \cref{eq:jdark_diff} and $I_{\mathrm{SRH}}$
+by \cref{eq:jdark_srh}. For a device of cross-section
+$A \approx \SI{0.5}{\micro\metre} \times \SI{0.4}{\micro\metre}$
+and intrinsic thickness $w_i \approx \SI{400}{\nano\metre}$,
+evaluated at \SI{300}{\kelvin} with a nanosecond-scale $\tau_0$, the
+SRH component is of order tens of nanoamperes, consistent with the
+experimentally reported dark currents of \SIrange{5}{50}{\nano\ampere} for
+similarly sized Ge-on-Si waveguide photodetectors in the literature.
+
+The receiver-level impact is quantified through the dark-current shot noise
+contribution to the total input-referred noise current spectral density. In
+a transimpedance-amplifier front-end with bandwidth $B$, the root-mean-square
+dark current noise is:
+\begin{equation}
+    i_{n,d} = \sqrt{2 q I_d B},
+    \label{eq:shot_noise_dark}
+\end{equation}
+which for $I_d = \SI{20}{\nano\ampere}$ and $B = \SI{26.6}{\giga\hertz}$
+(corresponding to a single $100$\,Gb/s lane of 400GBASE-DR4 at a $4:1$
+PAM-4 symbol rate of $26.6$\,GBd) yields
+$i_{n,d} \approx \SI{14}{\nano\ampere\per\sqrt{\hertz}} \times \sqrt{B}
+\approx \SI{2.3}{\micro\ampere}_{\mathrm{rms}}$.
+This figure is typically sub-dominant relative to the transimpedance amplifier
+input-referred noise current in practical receivers, confirming that the dark
+current of a well-optimised Ge-on-Si photodiode does not constitute the
+sensitivity-limiting noise source at the data rates of interest. However, any
+degradation of $\tau_0$ due to process variation or elevated operating
+temperature will increase $I_{\mathrm{SRH}}$ and can shift this balance,
+providing the physical rationale for the tight thermal-budget control and
+cyclic annealing protocol discussed in \cref{subsec:pd_ge_integration}.
+
+The analytical decomposition of \cref{eq:total_idark} thus closes the argument
+connecting material defect physics, device geometry, and receiver noise
+performance: the SRH lifetime $\tau_0$ set by the threading dislocation density
+of the Ge-on-Si heteroepitaxial process propagates directly into a dark current
+floor, which in turn determines the minimum shot-noise pedestal against which
+optical signals must be detected. The design choices of absorber thickness,
+contact doping concentration, and reverse bias voltage explored in
+\cref{sec:pd_design} are all conditioned on minimising \cref{eq:total_idark}
+subject to the competing constraints on absorption efficiency and bandwidth
+established by \cref{eq:bw_tt} and the Beer-Lambert absorption analysis.

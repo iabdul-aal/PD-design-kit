@@ -1,3 +1,8 @@
+% ============================================================
+%  Expanded Section: Fundamentals of Photodetection
+%  Ge-on-Si Waveguide Photodiode Thesis
+% ============================================================
+
 \section[Fundamentals of Photodetection]{Fundamentals of Photodetection}
 \label{sec:pd_fundamentals}
 
@@ -8,6 +13,7 @@ rational device design, because every performance metric defined in
 how the resulting carriers are transported, and what fraction is lost to
 recombination before reaching the device terminals.
 
+% ============================================================
 \subsection[Optical Absorption in Semiconductors]{Optical Absorption in Semiconductors}
 \label{subsec:pd_maxwell}
 
@@ -155,6 +161,301 @@ absorbed fraction:
     \label{fig:alpha_kappa}
 \end{figure}
 
+% ============================================================
+\subsection[Photodetector Figures of Merit]{Photodetector Figures of Merit}
+\label{subsec:pd_fom}
+
+Photodetector performance is characterised by a small set of figures of merit
+that translate the underlying physics of absorption, transport, and
+recombination into engineering-relevant quantities. This section defines these
+metrics rigorously and establishes the inter-dependence that governs the
+principal design trade-offs encountered in a high-speed Ge-on-Si device
+targeting the O-band.
+
+\subsubsection[Quantum Efficiency and Responsivity]{Quantum Efficiency and Responsivity}
+\label{subsubsec:pd_qe}
+
+The \emph{external quantum efficiency} $\eta_{\mathrm{ext}}$ is the most
+fundamental measure of a photodetector's optical-to-electrical conversion
+fidelity. It is defined as the ratio of the number of electron-hole pairs
+collected at the device terminals per unit time to the number of photons
+incident on the detector per unit time:
+\begin{equation}
+    \eta_{\mathrm{ext}}
+    = \frac{I_{\mathrm{ph}}/q}{P_{\mathrm{opt}}/(\hbar\omega)}
+    = \frac{\hbar\omega}{q}\,\mathcal{R},
+    \label{eq:eta_ext}
+\end{equation}
+where $I_{\mathrm{ph}}$ is the photocurrent, $q$ the elementary charge,
+$P_{\mathrm{opt}}$ the incident optical power, and $\mathcal{R}$ the
+\emph{responsivity} expressed in amperes per watt. The responsivity is a
+particularly convenient engineering figure because it is directly measurable
+from the slope of a photocurrent-versus-power curve in the linear regime
+established by \cref{eq:square_law}:
+\begin{equation}
+    \mathcal{R} = \frac{I_{\mathrm{ph}}}{P_{\mathrm{opt}}}
+    = \frac{\eta_{\mathrm{ext}}\,q}{\hbar\omega}
+    = \frac{\eta_{\mathrm{ext}}\,\lambda\,q}{hc}
+    \quad [\si{\ampere\per\watt}].
+    \label{eq:responsivity_def}
+\end{equation}
+At the O-band centre wavelength of \SI{1310}{\nano\metre}, the photon energy
+is $\hbar\omega = hc/\lambda \approx \SI{0.947}{\electronvolt}$, and the
+theoretical upper bound on responsivity, achieved when $\eta_{\mathrm{ext}}=1$,
+is:
+\begin{equation}
+    \mathcal{R}_{\max}
+    = \frac{q\lambda}{hc}
+    \approx \SI{1.057}{\ampere\per\watt} \quad (\lambda = \SI{1310}{\nano\metre}).
+    \label{eq:R_max}
+\end{equation}
+The external quantum efficiency can be factored into contributions from
+coupling, absorption, and collection:
+\begin{equation}
+    \eta_{\mathrm{ext}}
+    = \eta_{\mathrm{coup}}\,\eta_{\mathrm{abs}}\,\eta_{\mathrm{coll}},
+    \label{eq:eta_product}
+\end{equation}
+where $\eta_{\mathrm{coup}}$ accounts for optical coupling losses at the
+silicon-waveguide-to-germanium interface (mode mismatch, reflection),
+$\eta_{\mathrm{abs}} = \mathcal{A}(L) = 1-e^{-\alpha L}$ is the absorbed
+fraction derived in \cref{eq:abs_fraction}, and $\eta_{\mathrm{coll}}$
+captures the fraction of photogenerated carriers that reach the contacts
+without recombining. In a well-depleted PIN structure operated at sufficient
+reverse bias, $\eta_{\mathrm{coll}}\rightarrow 1$ because field-driven drift
+removes carriers on a timescale $\tau_{\mathrm{tr}} \ll \tau_{\mathrm{SRH}}$.
+The product $\eta_{\mathrm{coup}}\,\eta_{\mathrm{abs}}$ is therefore the
+dominant lever in device design: the former is addressed through taper geometry
+and modal overlap engineering, while the latter dictates the minimum absorber
+length. The auxiliary MATLAB model used in this repository takes
+$\alpha\approx\SI{7e3}{\per\centi\metre}$ at
+\SI{1310}{\nano\metre}, corresponding to a bulk absorption length of
+$\alpha^{-1}\approx\SI{1.4}{\micro\metre}$ before waveguide-confinement and
+mode-overlap factors are applied. The final absorber length is therefore not
+selected from the bulk Beer-Lambert estimate alone; it is selected from the
+FDTD taper-coupled length sweep.
+
+\paragraph{Internal quantum efficiency and the collection efficiency limit.}
+It is instructive to distinguish the \emph{internal} quantum efficiency
+$\eta_{\mathrm{int}}$, which excludes coupling and reflection losses and
+characterises solely the conversion of absorbed photons to collected
+charge~\cite{SzeNg2006}. In the limit where all photogeneration is confined to
+the fully depleted intrinsic region of length $W_i$ and drift transport is
+complete, $\eta_{\mathrm{int}} = 1$. Departures from this ideal arise when
+photogeneration extends into quasi-neutral regions outside the depletion zone,
+where diffusion is the dominant transport mechanism. The diffusion minority
+carrier lifetime $\tau_n$ in the $p$-doped anode sets a characteristic
+diffusion length $L_n = \sqrt{D_n\tau_n}$; only carriers generated within $L_n$
+of the depletion boundary contribute to the photocurrent. Carriers generated
+beyond this distance recombine before reaching the junction. This mechanism is
+especially pertinent in the O-band context, where the large absorption depth
+at wavelengths approaching the indirect-gap edge can push a fraction of the
+generation profile into the quasi-neutral region if the intrinsic layer is not
+sufficiently thick or the reverse bias is insufficient to extend the depletion
+width. The trade-off is explicit: increasing $W_i$ increases $\eta_{\mathrm{int}}$
+but simultaneously increases the transit time $\tau_{\mathrm{tr}} = W_i / v_{\mathrm{d,sat}}$
+and the junction capacitance $C_j = \varepsilon_{\mathrm{Ge}}\,A_j / W_i$, both
+of which degrade bandwidth as formalised in \cref{subsec:pd_bw}.
+
+\subsubsection[Bandwidth and Speed Limitations]{Bandwidth and Speed Limitations}
+\label{subsubsec:pd_bw}
+
+The small-signal \SI{3}{dB} bandwidth $f_{3\mathrm{dB}}$ of a photodetector is
+the electrical frequency at which the detector's photocurrent response is
+attenuated by \SI{3}{dB} relative to its low-frequency value. Two fundamentally
+distinct physical mechanisms limit this bandwidth and must be engineered
+simultaneously for high-speed operation.
+
+\paragraph{Transit-time bandwidth.}
+When an electron-hole pair is generated inside the intrinsic region and swept
+towards the contacts by the applied field, the terminal current induced via the
+Ramo-Shockley theorem is non-zero for the duration of transit. A pair
+generated at depth $z$ contributes a rectangular current pulse of duration
+$\tau_e(z) = z/v_{\mathrm{d,sat},e}$ for the electron and
+$\tau_h(z) = (W_i - z)/v_{\mathrm{d,sat},h}$ for the hole, as expressed in
+\cref{eq:tau_depth,eq:hz_local}. The frequency response of a single pair
+follows from the Fourier transform of this pulse pair, \cref{eq:hz_freq},
+and upon averaging uniformly over all generation depths within $[0,W_i]$
+via \cref{eq:htt_integral}, the transit-time transfer function takes the form
+of a weighted sinc envelope. In the practically relevant limit where the hole
+branch---slower due to $v_{\mathrm{d,sat},h} < v_{\mathrm{d,sat},e}$ in
+germanium---dominates the roll-off, the \SI{3}{dB} transit-time bandwidth is
+well approximated by:
+\begin{equation}
+    f_{\mathrm{tt}}
+    \approx \frac{0.443\,v_{\mathrm{d,sat},h}}{W_i},
+    \label{eq:bw_tt}
+\end{equation}
+where $v_{\mathrm{d,sat},h} \approx \SI{6.0e6}{\centi\metre\per\second}$ for
+holes in germanium at fields exceeding approximately
+\SI{10}{\kilo\volt\per\centi\metre}~\cite{SzeNg2006}. The numerical prefactor
+0.443 arises from the sinc-function roll-off $|\mathrm{sinc}(\omega\tau/2)|=1/\sqrt{2}$
+at $\omega\tau_{\mathrm{tr}} = 2.78$. \Cref{eq:bw_tt} immediately establishes
+that transit-time bandwidth is inversely proportional to the intrinsic-layer
+thickness: halving $W_i$ doubles $f_{\mathrm{tt}}$.
+
+\paragraph{RC-limited bandwidth.}
+The second mechanism is purely electrical in origin. The detector junction
+presents a capacitance $C_j$ to the external circuit, whose total load
+resistance is $R_{\mathrm{tot}} = R_s + R_L$, where $R_s$ is the device
+series resistance (contact and spreading resistance) and $R_L = \SI{50}{\ohm}$
+is the standard termination impedance in high-speed link applications. The
+resulting single-pole low-pass response, \cref{eq:hrc_transfer}, gives the
+RC-limited bandwidth:
+\begin{equation}
+    f_{\mathrm{RC}}
+    = \frac{1}{2\pi\,R_{\mathrm{tot}}\,C_j}.
+    \label{eq:bw_rc}
+\end{equation}
+For a planar junction of area $A_j = W_j \times L$ and intrinsic thickness
+$W_i$, the depletion capacitance is:
+\begin{equation}
+    C_j = \frac{\varepsilon_0\,\varepsilon_{\mathrm{Ge}}\,A_j}{W_i},
+    \label{eq:cj_planar}
+\end{equation}
+where $\varepsilon_{\mathrm{Ge}} \approx 16.0$ is the static relative
+permittivity of germanium. Substituting into \cref{eq:bw_rc} makes the
+competing roles of $W_i$ explicit: increasing $W_i$ reduces $C_j$ and raises
+$f_{\mathrm{RC}}$, but simultaneously reduces $f_{\mathrm{tt}}$ via
+\cref{eq:bw_tt}. This \emph{transit-time/RC trade-off} is the central design
+tension in the intrinsic-layer thickness optimisation.
+
+\paragraph{Combined bandwidth.}
+Because the transit-time and RC contributions to bandwidth act as independent
+roll-off mechanisms in cascade, the total \SI{3}{dB} bandwidth of the device
+is:
+\begin{equation}
+    \frac{1}{f_{3\mathrm{dB}}^2}
+    \approx \frac{1}{f_{\mathrm{tt}}^2} + \frac{1}{f_{\mathrm{RC}}^2},
+    \label{eq:bw_combined}
+\end{equation}
+where the quadrature sum is an approximation that is exact when both
+sub-responses are first-order Butterworth poles and remains accurate to within
+a few percent for the sinc-envelope transit-time case~\cite{Beling2014}.
+The full factorised transfer function is given by \cref{eq:hpd_factorised}.
+Optimising $W_i$ to maximise $f_{3\mathrm{dB}}$ subject to a fixed device
+footprint then reduces to finding the value of $W_i$ satisfying
+$\partial f_{3\mathrm{dB}} / \partial W_i = 0$, which for $R_{\mathrm{tot}} =
+\SI{50}{\ohm}$ typically places the optimum in the range
+$W_i\in[\SI{0.5}{\micro\metre},\,\SI{1.5}{\micro\metre}]$ for a
+waveguide-integrated Ge-on-Si detector with a junction width of order
+\SI{1}{\micro\metre} targeting bandwidths in the range \SIrange{50}{70}{\giga\hertz}.
+
+\begin{figure}[H]
+    \centering
+    \missingfigure[figwidth=0.80\linewidth]{
+        Combined bandwidth as a function of intrinsic-layer thickness $W_i$
+        from \cref{eq:bw_combined}, showing the transit-time limit
+        $f_{\mathrm{tt}}(W_i)$ and RC limit $f_{\mathrm{RC}}(W_i)$ as
+        individual curves and their quadrature combination. The optimal
+        $W_i^*$ is identified at the peak of $f_{3\mathrm{dB}}$.}
+    \caption{Transit-time and RC bandwidth components as a function of the
+    intrinsic-layer thickness $W_i$ for a Ge-on-Si waveguide detector with
+    $A_j = \SI{1}{\micro\metre}\times\SI{15}{\micro\metre}$ and
+    $R_{\mathrm{tot}} = \SI{50}{\ohm}$. The optimal thickness $W_i^*$ yields
+    the maximum combined bandwidth, illustrating the fundamental transit-time/RC
+    trade-off.}
+    \label{fig:bw_vs_wi}
+\end{figure}
+
+\subsubsection[Noise Mechanisms and Signal-to-Noise Ratio]{Noise Mechanisms and Signal-to-Noise Ratio}
+\label{subsubsec:pd_noise}
+
+Noise ultimately determines the minimum detectable optical power and, in
+conjunction with bandwidth, the achievable bit-error rate (BER) in a digital
+link. Three noise sources are relevant in a reverse-biased PIN
+photodetector~\cite{SzeNg2006}: shot noise from both signal and dark
+photocurrents, and thermal noise from the load resistance.
+
+\paragraph{Shot noise.}
+Shot noise originates from the quantum-mechanical discreteness of the
+photodetection process: each photon-induced electron-hole pair is generated at a
+statistically independent random instant, following Poisson statistics. The
+two-sided power spectral density (PSD) of the resulting current fluctuation
+$\delta i_{\mathrm{sh}}$ is flat (white) up to the detector bandwidth and is
+given by:
+\begin{equation}
+    S_{\mathrm{sh}}(f) = 2q\,(I_{\mathrm{ph}} + I_d),
+    \label{eq:shot_psd}
+\end{equation}
+where $I_{\mathrm{ph}} = \mathcal{R}\,P_{\mathrm{opt}}$ is the signal
+photocurrent and $I_d$ is the dark current. The mean-square shot-noise current
+within a measurement bandwidth $B$ is therefore:
+\begin{equation}
+    \langle i_{\mathrm{sh}}^2 \rangle = 2q\,(I_{\mathrm{ph}} + I_d)\,B.
+    \label{eq:shot_noise_var}
+\end{equation}
+In the context of a Ge-on-Si detector, the dark current $I_d$ is substantially
+larger than in silicon counterparts because of the high density of SRH trap
+centres introduced by threading dislocations during heteroepitaxial growth. A
+representative dark current of order \SIrange{10}{100}{\nano\ampere} at
+$V_{\mathrm{bias}} = \SI{-1}{\volt}$ for a device of area
+$A_j\approx\SI{15}{\micro\metre\squared}$ implies a dark-current shot-noise PSD
+that can rival the signal shot noise at low received powers. Minimising $I_d$
+through lifetime engineering and careful epitaxial quality control is therefore
+not merely a static power concern but directly impacts the receiver noise floor.
+
+\paragraph{Thermal (Johnson) noise.}
+The load resistor $R_L$ at temperature $T$ introduces a Johnson noise current
+with PSD:
+\begin{equation}
+    S_{\mathrm{th}}(f) = \frac{4k_B T}{R_L},
+    \label{eq:thermal_psd}
+\end{equation}
+which is also white within the bandwidth of interest. The mean-square thermal
+noise current in bandwidth $B$ is:
+\begin{equation}
+    \langle i_{\mathrm{th}}^2 \rangle = \frac{4k_B T}{R_L}\,B.
+    \label{eq:thermal_noise_var}
+\end{equation}
+At room temperature ($T = \SI{300}{\kelvin}$) and standard termination
+$R_L = \SI{50}{\ohm}$, the thermal noise current density is
+$\sqrt{S_{\mathrm{th}}} \approx \SI{18}{\pico\ampere\per\hertz^{1/2}}$, which
+is typically the dominant noise source at low optical power levels in a
+direct-detection receiver without optical preamplification.
+
+\paragraph{Signal-to-noise ratio and noise-equivalent power.}
+The electrical signal-to-noise ratio (SNR) for a direct-detection receiver
+combining shot noise and thermal noise is:
+\begin{equation}
+    \mathrm{SNR}
+    = \frac{I_{\mathrm{ph}}^2}
+           {\langle i_{\mathrm{sh}}^2 \rangle + \langle i_{\mathrm{th}}^2 \rangle}
+    = \frac{(\mathcal{R}\,P_{\mathrm{opt}})^2}
+           {2q(\mathcal{R}\,P_{\mathrm{opt}} + I_d)B + 4k_BT B/R_L}.
+    \label{eq:snr}
+\end{equation}
+The \emph{noise-equivalent power} (NEP) is defined as the optical input power
+at which SNR $= 1$ in a bandwidth $B = \SI{1}{\hertz}$, providing a bandwidth-
+independent figure of merit for detector sensitivity:
+\begin{equation}
+    \mathrm{NEP} = \frac{\sqrt{2q\,I_d + 4k_BT/R_L}}{\mathcal{R}}
+    \quad [\si{\watt\per\hertz^{1/2}}].
+    \label{eq:nep}
+\end{equation}
+\Cref{eq:nep} explicitly couples the dark-current magnitude, the responsivity,
+and the load impedance into a single sensitivity figure. For the Ge-on-Si
+device characterised in this work, the dark-current term dominates at room
+temperature and typical bias conditions, so that reducing $I_d$ and increasing
+$\mathcal{R}$ are the two principal levers for sensitivity improvement. In the
+shot-noise-limited regime, where $I_d\rightarrow0$ and $R_L\rightarrow\infty$
+(achieved in practice with a transimpedance amplifier of very large
+input impedance), the NEP reduces to the quantum-limited floor:
+\begin{equation}
+    \mathrm{NEP}_{\mathrm{shot}} = \frac{\sqrt{2q\,I_{\mathrm{ph}}}}{\mathcal{R}}
+    \Big|_{I_{\mathrm{ph}}\,\rightarrow\,0}
+    \xrightarrow{\eta_{\mathrm{ext}}\rightarrow 1}
+    \sqrt{2\hbar\omega}\,.
+    \label{eq:nep_shot_limit}
+\end{equation}
+For the O-band, this evaluates to $\mathrm{NEP}_{\mathrm{shot}} \approx
+\SI{5.5e-19}{\watt\per\hertz^{1/2}}$, a value that practical devices approach
+asymptotically as dark current and excess noise are suppressed. The derivation
+of the dark-current model $I_d(V_{\mathrm{bias}})$ used in \cref{eq:nep} is
+presented in \cref{subsec:pd_charge}, where the surface and bulk SRH components
+are separated and independently calibrated.
+
+% ============================================================
 \subsection[Carrier Photogeneration and Transport]{Carrier Photogeneration and Transport}
 \label{subsec:pd_generation}
 
@@ -174,9 +475,9 @@ the number of electron-hole pairs created per unit volume per unit time:
 \end{equation}
 Because $I(\mathbf{r})$ decays exponentially along the propagation direction via
 \cref{eq:beer_lambert}, $G_{\mathrm{opt}}$ is spatially non-uniform: it is
-concentrated near the input facet of the absorber and falls off with a
-characteristic length $\alpha^{-1}\approx\SI{4.8}{\micro\metre}$ at
-\SI{1310}{\nano\metre}.
+concentrated near the input facet of the absorber and falls off with an
+effective length set by the Ge material absorption, the optical confinement
+factor, and the simulated taper-to-Ge mode overlap.
 
 \paragraph{Drift--diffusion transport.}
 The self-consistent carrier distribution and electrostatic field are governed
@@ -220,9 +521,9 @@ Under \emph{steady-state} CW illumination, $\partial/\partial t\equiv0$:
         \label{eq:cont_p}
 \end{align}
 The complete self-consistent system, from \cref{eq:poisson} through
-\cref{eq:cont_p}, is the foundational PDE set solved numerically in both the
-commercial finite-element solver and the PINN framework discussed in
-\cref{subsec:pd_pinns}.
+\cref{eq:cont_p}, is the foundational PDE set solved numerically by the
+commercial finite-element CHARGE solver and reduced in MATLAB for the
+geometry-derived bandwidth and noise models.
 
 The central design consequence of the drift-diffusion picture is the distinction
 between drift-dominated and diffusion-dominated carrier motion.
@@ -231,10 +532,43 @@ reverse-bias field to sweep carriers across the intrinsic region before they
 can recombine. Diffusion transport, which is concentration-gradient-driven and
 inherently slower, dominates in the quasi-neutral regions outside the depletion
 zone and is the primary cause of slow response tails in devices with incomplete
-or absent depletion. A reverse-biased PIN
-junction suppresses diffusion by confining photogeneration to the depleted
-region, making drift the dominant transport mechanism and the carrier transit
-time the key speed parameter.
+or absent depletion. A reverse-biased PIN junction suppresses diffusion by
+confining photogeneration to the depleted region, making drift the dominant
+transport mechanism and the carrier transit time the key speed parameter.
+
+\paragraph{Velocity saturation and field-dependent mobility.}
+An important refinement to the linear drift picture arises at the field
+magnitudes present in a reverse-biased Ge PIN junction. The carrier drift
+velocity does not increase indefinitely with electric field but saturates at
+$v_{\mathrm{d,sat}}$ when the field exceeds a critical value
+$\mathcal{E}_c$. A widely adopted empirical model for the field-dependent
+drift velocity is the Caughey-Thomas expression~\cite{SzeNg2006}:
+\begin{equation}
+    v_{n,p}(\mathcal{E})
+    = \frac{\mu_{n,p}^{(0)}\,\mathcal{E}}
+           {\left[1 + \left(\mu_{n,p}^{(0)}\mathcal{E}/v_{\mathrm{d,sat},n/p}
+           \right)^{\beta_{n,p}}\right]^{1/\beta_{n,p}}},
+    \label{eq:caughey_thomas}
+\end{equation}
+where $\mu_{n,p}^{(0)}$ is the low-field mobility, $v_{\mathrm{d,sat},n/p}$
+is the saturation velocity, and $\beta_{n,p}$ is an empirical shape parameter.
+For germanium at \SI{300}{\kelvin}, representative values are
+$\mu_n^{(0)} \approx \SI{3900}{\centi\metre\squared\per\volt\per\second}$,
+$\mu_p^{(0)} \approx \SI{1900}{\centi\metre\squared\per\volt\per\second}$,
+$v_{\mathrm{d,sat},e} \approx \SI{6.0e6}{\centi\metre\per\second}$, and
+$v_{\mathrm{d,sat},h} \approx \SI{6.0e6}{\centi\metre\per\second}$, with
+$\beta\approx 2$ for electrons and $\beta\approx 1$ for holes~\cite{SzeNg2006}.
+At a reverse bias of \SI{2}{\volt} across a \SI{1}{\micro\metre} intrinsic
+layer, the mean field is \SI{20}{\kilo\volt\per\centi\metre}, which
+substantially exceeds the critical field
+$\mathcal{E}_c = v_{\mathrm{d,sat}}/\mu^{(0)}
+\approx \SIrange{1}{3}{\kilo\volt\per\centi\metre}$ and places the device
+firmly in the velocity-saturated regime. The constant velocity assumption
+adopted in \cref{eq:bw_tt} and the analytical transfer function of
+\cref{eq:jt_analytical} is therefore well justified at standard operating
+bias, and the transit time is accurately estimated as
+$\tau_{\mathrm{tr}} = W_i/v_{\mathrm{d,sat}}$ rather than the low-field
+value $W_i^2/(\mu V)$.
 
 \paragraph{Analytical photocurrent transfer function.}
 In the frequency domain, neglecting diffusion and assuming a uniform electric
@@ -358,6 +692,111 @@ upstream weighting for $|u|\gg1$ (high-field), providing second-order accuracy
 and unconditional positivity across the \SI{30}{\kilo\volt\per\centi\metre}
 field regime of the present device.
 
+% ============================================================
+\subsection[The PIN Junction: Electrostatics and Operating Regime]%
+           {The PIN Junction: Electrostatics and Operating Regime}
+\label{subsec:pd_pin}
+
+The vertical PIN architecture---a lightly doped or nominally intrinsic
+germanium absorber sandwiched between heavily doped $p^{++}$ and $n^{++}$ contact
+layers---is the canonical structure for high-speed photodetection. Its
+central merit is the ability to sustain a large, spatially uniform electric
+field across the entire absorber volume under modest reverse bias, simultaneously
+achieving full depletion, velocity-saturated carrier transport, and minimal
+free-carrier absorption.
+
+\subsubsection[Depletion Approximation and Built-in Potential]{Depletion Approximation and Built-in Potential}
+\label{subsubsec:pd_depletion}
+
+In the absence of applied bias, the Fermi levels of the $p^{++}$ and $n^{++}$
+regions equilibrate by charge redistribution, establishing a built-in potential:
+\begin{equation}
+    V_{\mathrm{bi}}
+    = \frac{k_B T}{q}\ln\!\left(\frac{N_A\,N_D}{n_i^2}\right),
+    \label{eq:vbi}
+\end{equation}
+where $N_A$ and $N_D$ are the acceptor and donor concentrations on the $p$ and
+$n$ sides respectively, and $n_i$ is the intrinsic carrier concentration of
+germanium. At \SI{300}{\kelvin}, $n_i^{\mathrm{Ge}} \approx
+\SI{2.4e13}{\per\centi\metre\cubed}$, approximately three orders of magnitude
+larger than in silicon, which has important consequences for dark current as
+discussed in \cref{subsec:pd_recombination}. For typical contact doping levels
+of $N_{A,D} \approx \SI{e19}{\per\centi\metre\cubed}$, \cref{eq:vbi} gives
+$V_{\mathrm{bi}} \approx \SI{0.51}{\volt}$.
+
+Under the depletion approximation, the space charge in the $p^{++}$ and
+$n^{++}$ layers is assumed to be that of fully ionised impurities with sharp
+depletion edges. In the ideal case where the intrinsic layer is fully depleted
+at zero bias by the built-in field, the charge neutrality condition reads:
+\begin{equation}
+    N_A\,x_p = N_D\,x_n,
+    \label{eq:charge_neutral}
+\end{equation}
+where $x_p$ and $x_n$ are the partial penetrations of the depletion region
+into the $p^{++}$ and $n^{++}$ layers, respectively. Since
+$N_{A,D} \gg n_i$, the depletion extension into the heavily doped contact
+layers is negligible ($x_p, x_n \ll W_i$), and the electric field profile
+is approximately uniform across the intrinsic layer with peak value:
+\begin{equation}
+    \mathcal{E}_{\max}
+    = \frac{q N_A x_p}{\varepsilon_0 \varepsilon_{\mathrm{Ge}}}
+    \approx \frac{V_{\mathrm{bi}} + |V_{\mathrm{bias}}|}{W_i},
+    \label{eq:E_max}
+\end{equation}
+where the second equality applies in the fully depleted regime. For
+$V_{\mathrm{bias}} = \SI{-2}{\volt}$ and $W_i = \SI{1}{\micro\metre}$,
+\cref{eq:E_max} gives $\mathcal{E}_{\max} \approx \SI{25}{\kilo\volt\per\centi\metre}$,
+confirming velocity saturation. The flatness of the field profile is a key
+advantage of the PIN geometry over a simple $pn$ junction: it ensures that
+every photogenerated carrier, regardless of its generation depth within $[0,W_i]$,
+experiences the same drift force and therefore the same transit time, making
+\cref{eq:tau_depth} well-conditioned for all $z$.
+
+\subsubsection[Dark Current Mechanisms and Decomposition]{Dark Current Mechanisms and Decomposition}
+\label{subsubsec:pd_idark}
+
+The dark current $I_d$ under reverse bias is the primary figure of merit for
+detector noise and static power dissipation. In a Ge-on-Si PIN device, it
+receives contributions from both the junction bulk volume and the mesa
+perimeter, and it is important to distinguish these because they scale
+differently with device geometry:
+\begin{equation}
+    I_d = J_{\mathrm{bulk}}\,A_j + J_{\mathrm{surf}}\,P_j,
+    \label{eq:idark_decomposed}
+\end{equation}
+where $J_{\mathrm{bulk}}$ is the bulk dark-current density, $J_{\mathrm{surf}}$
+is an effective surface dark-current line density, and $P_j$ is the mesa
+perimeter~\cite{SzeNg2006}. The bulk component in the fully depleted intrinsic
+region is dominated by SRH thermal generation (as established in
+\cref{subsec:pd_recombination}) and is given by:
+\begin{equation}
+    J_{\mathrm{bulk}}
+    = q\,U_{\mathrm{SRH,dep}}\,W_i
+    = \frac{q\,n_i\,W_i}{2\tau_0},
+    \label{eq:jdark_bulk}
+\end{equation}
+which scales linearly with $W_i$ and inversely with the effective SRH lifetime
+$\tau_0$. The surface component arises from interface states at the Ge/SiO$_2$
+sidewall and Ge/Si heterointerface and is written as:
+\begin{equation}
+    J_{\mathrm{surf}}
+    = q\,v_s\,n_i,
+    \label{eq:jdark_surf}
+\end{equation}
+where $v_s$ is the effective surface recombination velocity. Because $n_i$ of
+germanium is orders of magnitude larger than that of silicon, both
+$J_{\mathrm{bulk}}$ and $J_{\mathrm{surf}}$ in Ge-on-Si are intrinsically
+larger than in silicon-only detectors by the same factor, placing a fundamental
+material constraint on achievable dark current density. As device dimensions
+are scaled to improve bandwidth---reducing $A_j$ and $P_j$ together but with
+$A_j/P_j \propto W_j$ decreasing---the surface term becomes proportionally
+more important, and surface passivation through dielectric encapsulants such as
+Al$_2$O$_3$ or GeO$_x$ becomes critical. The decomposition of \cref{eq:idark_decomposed}
+is exploited in the calibration procedure of \cref{subsec:pd_charge}, where
+measurements on devices of varying junction width $W_j$ are used to extract
+$J_{\mathrm{bulk}}$ and $J_{\mathrm{surf}}$ independently.
+
+% ============================================================
 \subsection[Recombination and Loss Mechanisms]{Recombination and Loss Mechanisms}
 \label{subsec:pd_recombination}
 
@@ -473,3 +912,77 @@ through Ge$_x$O$_y$ or Al$_2$O$_3$, must address.
     the device primarily through the lifetime parameter $\tau_0$.}
     \label{fig:generation_recombination}
 \end{figure}
+
+% ============================================================
+\subsection[Design Synthesis: Linking Physics to Device Targets]%
+           {Design Synthesis: Linking Physics to Device Targets}
+\label{subsec:pd_synthesis}
+
+The preceding sections have developed the physical foundations of photodetection
+from first principles, and it is instructive at this point to consolidate the
+key parameter interdependencies into a coherent engineering picture before
+proceeding to the numerical device models of subsequent chapters.
+
+\paragraph{The absorber-length/bandwidth Pareto front.}
+For a waveguide-integrated detector, optical absorption and bandwidth are in
+direct tension through the absorber length $L$. Responsivity benefits from
+long $L$ via $\mathcal{A}(L) = 1 - e^{-\alpha L}$, while bandwidth degrades
+primarily through the junction capacitance $C_j \propto A_j = W_j \cdot L$,
+which enters the RC bandwidth \cref{eq:bw_rc}. Differentiating
+$f_{3\mathrm{dB}}$ with respect to $L$ at fixed $W_i$ and $W_j$ yields the
+responsivity-bandwidth product as the relevant composite figure of merit:
+\begin{equation}
+    \mathcal{R}\cdot f_{3\mathrm{dB}}
+    \approx \frac{q\lambda}{hc}\!\left(1-e^{-\alpha L}\right)
+    \cdot\left[\frac{1}{f_{\mathrm{tt}}^2}
+    + \frac{(2\pi R_{\mathrm{tot}}\varepsilon_0\varepsilon_{\mathrm{Ge}}W_j L)^2}
+           {W_i^2}\right]^{-1/2},
+    \label{eq:R_BW_product}
+\end{equation}
+which is maximised by selecting $L$ such that the RC pole is pushed to roughly
+the transit-time pole, i.e.\ $f_{\mathrm{RC}} \approx f_{\mathrm{tt}}$. For the
+400GBASE-DR4 target requiring a per-lane bandwidth of \SI{53}{\giga\hertz} at
+$\mathrm{PAM4}$ signalling, and a responsivity floor of
+$\mathcal{R} \geq \SI{0.8}{\ampere\per\watt}$, \cref{eq:R_BW_product} constrains
+the design space to approximately $L\in[\SI{10}{\micro\metre},\,\SI{20}{\micro\metre}]$
+and $W_i\in[\SI{0.5}{\micro\metre},\,\SI{1.0}{\micro\metre}]$ for
+$W_j = \SI{1}{\micro\metre}$ in the vertical PIN geometry.
+
+\paragraph{Bias voltage and depletion completeness.}
+The applied reverse bias $V_{\mathrm{bias}}$ must be large enough to fully
+deplete the intrinsic layer and drive the carriers into velocity saturation.
+The full-depletion voltage in the ideal PIN approximation is~\cite{SzeNg2006}:
+\begin{equation}
+    V_{\mathrm{FD}}
+    = \frac{q\,N_{\mathrm{bg}}\,W_i^2}{2\varepsilon_0\varepsilon_{\mathrm{Ge}}} - V_{\mathrm{bi}},
+    \label{eq:vfd}
+\end{equation}
+where $N_{\mathrm{bg}}$ is the unintentional background doping of the nominally
+intrinsic layer, which is never zero in practice due to incorporation of boron or
+phosphorus during epitaxial growth. For $N_{\mathrm{bg}} \approx
+\SI{e16}{\per\centi\metre\cubed}$ and $W_i = \SI{1}{\micro\metre}$,
+\cref{eq:vfd} gives $V_{\mathrm{FD}} \approx \SI{0.27}{\volt}$, well below
+the standard operating voltage of \SI{1}{\volt}, confirming that full depletion
+is achieved at low bias for realistic material quality. Above $V_{\mathrm{FD}}$,
+the capacitance becomes approximately voltage-independent at the geometric value
+of \cref{eq:cj_planar}, which simplifies RC bandwidth analysis. Operation below
+$V_{\mathrm{FD}}$ should be avoided as it introduces a bias-dependent capacitance
+and incomplete carrier collection, degrading both bandwidth and responsivity in a
+non-linear, difficult-to-model manner.
+
+\paragraph{Temperature dependence and thermal stability.}
+The intrinsic carrier concentration of germanium follows
+$n_i \propto T^{3/2}\exp(-E_g/2k_BT)$, where $E_g(T)$ itself decreases with
+temperature according to the Varshni relation. Because $n_i^{\mathrm{Ge}}$ at
+room temperature is already large, even modest self-heating in a high-power
+optical link can substantially elevate the dark current through
+\cref{eq:jdark_bulk}, degrading the SNR floor of \cref{eq:snr}. In a
+\SI{400}{\giga\bit\per\second} DR4 transceiver module, thermal management
+of the receiver die is therefore a system-level co-design requirement, not
+merely a device-level footnote. The temperature coefficient of $I_d$ in
+Ge-on-Si is typically measured to be in the range \SIrange{5}{8}{\percent\per\kelvin}
+near room temperature, significantly steeper than silicon photodiodes, and this
+sensitivity motivates both the careful thermal modelling performed alongside
+the electrical characterisation of \cref{subsec:pd_charge} and the use of
+bias-point tuning to compensate for operating-temperature drift in deployed
+link hardware.

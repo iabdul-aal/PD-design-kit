@@ -17,6 +17,16 @@
 \usepackage{amsmath}
 \usepackage{tikz}
 
+\newcommand{\resultfigure}[2][]{%
+  \IfFileExists{#2}{%
+    \includegraphics[#1]{#2}%
+  }{%
+    \fbox{\begin{minipage}[c][0.48\textheight][c]{0.9\linewidth}
+    \centering\scriptsize Generated figure pending\\\texttt{\detokenize{#2}}
+    \end{minipage}}%
+  }%
+}
+
 \setbeamertemplate{navigation symbols}{}
 \setbeamertemplate{footline}[frame number]
 
@@ -56,7 +66,7 @@
 
 \begin{frame}{Motivation and Targets}
 \begin{itemize}
-\item Intra-datacenter PAM-4 receivers need \textbf{high responsivity}, \textbf{very low dark current}, and \textbf{bandwidth above \SI{100}{\giga\hertz}}.
+\item Intra-datacenter PAM-4 receivers need \textbf{high responsivity}, \textbf{very low dark current}, and enough bandwidth for \SI{53.125}{\giga\baud} PAM-4 lanes.
 \item A \textbf{Ge-on-Si vertical n-i-p photodiode} offers a strong fit with standard SOI photonics.
 \item The chapter benchmarks the design against Yang Shi et al., \textit{Photonics Research} 12(1), 2024.
 \end{itemize}
@@ -119,7 +129,7 @@ BOX & \SI{2}{\micro\metre} \\
 \end{column}
 \begin{column}{0.4\textwidth}
 \centering
-\includegraphics[width=\linewidth,height=0.6\textheight,keepaspectratio]{figures/opt_generation_rate_map.png}
+\resultfigure[width=\linewidth,height=0.6\textheight,keepaspectratio]{figures/opt_generation_rate_map.png}
 \end{column}
 \end{columns}
 \end{frame}
@@ -129,7 +139,7 @@ BOX & \SI{2}{\micro\metre} \\
 \begin{column}{0.55\textwidth}
 \begin{itemize}
 \item \textbf{Lumerical DEVICE CHARGE} solves carrier transport under reverse bias.
-\item SRH recombination enabled with $\tau_n = \tau_p$ (calibrated to match dark current target).
+\item SRH recombination enabled with the implemented Ge lifetime $\tau_n=\tau_p=\SI{1}{\nano\second}$.
 \item Fine mesh override: \SI{20}{\nano\metre} max edge length over the Ge active region.
 \item Extracted quantities include:
 \begin{itemize}
@@ -142,7 +152,7 @@ BOX & \SI{2}{\micro\metre} \\
 \end{column}
 \begin{column}{0.4\textwidth}
 \centering
-\includegraphics[width=\linewidth,height=0.6\textheight,keepaspectratio]{figures/phys_carrier_density.png}
+\resultfigure[width=\linewidth,height=0.6\textheight,keepaspectratio]{figures/phys_carrier_density.png}
 \end{column}
 \end{columns}
 \end{frame}
@@ -151,7 +161,7 @@ BOX & \SI{2}{\micro\metre} \\
 \begin{columns}[T]
 \begin{column}{0.55\textwidth}
 \begin{itemize}
-\item All parameters flow from solvers---no hardcoded paper values.
+\item Solver outputs drive the device metrics; literature values are used only as benchmarks.
 \item Low dark current is essential for:
 \begin{itemize}
 \item Receiver sensitivity
@@ -162,7 +172,7 @@ BOX & \SI{2}{\micro\metre} \\
 \end{column}
 \begin{column}{0.4\textwidth}
 \centering
-\includegraphics[width=\linewidth,height=0.6\textheight,keepaspectratio]{figures/dark_iv.png}
+\resultfigure[width=\linewidth,height=0.6\textheight,keepaspectratio]{figures/elec_dark_iv.png}
 \end{column}
 \end{columns}
 \end{frame}
@@ -171,11 +181,11 @@ BOX & \SI{2}{\micro\metre} \\
 \begin{columns}[T]
 \begin{column}{0.48\textwidth}
 \centering
-\includegraphics[width=\linewidth,height=0.6\textheight,keepaspectratio]{figures/phys_band_diagram.png}
+\resultfigure[width=\linewidth,height=0.6\textheight,keepaspectratio]{figures/phys_band_diagram.png}
 \end{column}
 \begin{column}{0.48\textwidth}
 \centering
-\includegraphics[width=\linewidth,height=0.6\textheight,keepaspectratio]{figures/phys_carrier_density.png}
+\resultfigure[width=\linewidth,height=0.6\textheight,keepaspectratio]{figures/phys_carrier_density.png}
 \end{column}
 \end{columns}
 \vspace{0.3em}
@@ -186,11 +196,11 @@ BOX & \SI{2}{\micro\metre} \\
 \begin{columns}[T]
 \begin{column}{0.48\textwidth}
 \centering
-\includegraphics[width=\linewidth,height=0.6\textheight,keepaspectratio]{figures/phys_field_potential.png}
+\resultfigure[width=\linewidth,height=0.6\textheight,keepaspectratio]{figures/phys_field_potential.png}
 \end{column}
 \begin{column}{0.48\textwidth}
 \centering
-\includegraphics[width=\linewidth,height=0.6\textheight,keepaspectratio]{figures/freq_response_model.png}
+\resultfigure[width=\linewidth,height=0.6\textheight,keepaspectratio]{figures/freq_response_model.png}
 \end{column}
 \end{columns}
 \vspace{0.3em}
@@ -204,11 +214,11 @@ BOX & \SI{2}{\micro\metre} \\
 \begin{columns}[T]
 \begin{column}{0.48\textwidth}
 \centering
-\includegraphics[width=\linewidth,height=0.6\textheight,keepaspectratio]{figures/system_transfer_function.png}
+\resultfigure[width=\linewidth,height=0.6\textheight,keepaspectratio]{figures/system_transfer_function.png}
 \end{column}
 \begin{column}{0.48\textwidth}
 \centering
-\includegraphics[width=\linewidth,height=0.6\textheight,keepaspectratio]{figures/system_photocurrent_eye.png}
+\resultfigure[width=\linewidth,height=0.6\textheight,keepaspectratio]{figures/system_photocurrent_eye.png}
 \end{column}
 \end{columns}
 \vspace{0.3em}
@@ -222,7 +232,7 @@ BOX & \SI{2}{\micro\metre} \\
 \begin{columns}[T]
 \begin{column}{0.45\textwidth}
 \centering
-\includegraphics[width=\linewidth,height=0.6\textheight,keepaspectratio]{figures/system_pam4_histogram.png}
+\resultfigure[width=\linewidth,height=0.6\textheight,keepaspectratio]{figures/system_pam4_histogram.png}
 \end{column}
 \begin{column}{0.5\textwidth}
 \begin{itemize}
@@ -248,7 +258,7 @@ BOX & \SI{2}{\micro\metre} \\
 \end{itemize}
 \end{itemize}
 \centering
-\includegraphics[width=0.6\linewidth,height=0.6\textheight,keepaspectratio]{figures/system_interconnect_compact_model.png}
+\resultfigure[width=0.6\linewidth,height=0.6\textheight,keepaspectratio]{figures/system_interconnect_compact_model.png}
 \end{frame}
 
 \begin{frame}{Data Pipeline Overview}

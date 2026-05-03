@@ -4,9 +4,10 @@
 The electrode topology analysis, including the equivalent circuit derivation
 and the quantitative comparison between the parallel-electrode and U-shaped
 anode architectures, was developed in \cref{subsec:pd_electrode}. The
-validated single-U topology and its benchmark-calibrated bandwidth of
-\SI{103}{\giga\hertz} serve as the starting point for the O-band performance
-evaluation that follows.
+\SI{103}{\giga\hertz} result of Shi~\textit{et al.}~\cite{Shi2024} serves as
+the literature benchmark; the O-band repository implementation evaluates its
+own geometry-derived optical, electrical, and system-level quantities from the
+FDTD, CHARGE, and MATLAB data cascade.
 
 \subsection[Benchmark Reproduction]{Benchmark Reproduction and O-band Adaptation Path}
 \label{subsec:pd_benchmark_oband}
@@ -37,7 +38,7 @@ electrode concept.
         Four-panel workflow figure. Benchmark reproduction at C-band, O-band
         adaptation from \SI{1550}{\nano\metre} to \SI{1310}{\nano\metre},
         dependency map linking optical and electrical variables, and the
-        simulation-cost ladder motivating reduced-order and surrogate models.}
+        simulation-cost ladder motivating reduced-order compact models.}
     \caption{Design flow adopted in this chapter. The literature benchmark fixes
     the high-speed electrical reference, while the O-band adaptation re-optimises
     the wavelength-dependent optical and geometrical variables needed for
@@ -63,17 +64,14 @@ more comfortable RC budget without abandoning the validated single-U topology.
 \label{subsec:pd_optical_results}
 
 The optical generation rate map $G_{\mathrm{opt}}(\mathbf{r})$ extracted from
-the FDTD simulation is presented in \cref{fig:gen_rate_map}. The exponential
-spatial attenuation along $\hat{z}$ is fully consistent with the Beer-Lambert
-prediction of \cref{eq:beer_lambert,eq:gen_rate}: the profile decays from its
-peak value at the taper exit with a characteristic length
-$\alpha^{-1}\approx\SI{4.8}{\micro\metre}$, in agreement with the independently
-tabulated Ge absorption coefficient at \SI{1310}{\nano\metre}. The spatial
-non-uniformity of $G_{\mathrm{opt}}$ implies that the photogenerated carrier
-distribution is weighted toward the input facet of the absorber, which increases
-the fraction of carriers that must drift through a substantial portion of $W_i$
-before reaching the collecting electrodes. This spatial bias slightly reduces
-$\eta_{\mathrm{int}}$ relative to the uniform-generation ideal.
+the FDTD simulation is presented in \cref{fig:gen_rate_map}. The profile is
+expected to decay from its peak value at the taper exit according to the local
+mode overlap and the Palik Ge material absorption used by the FDTD script. The
+auxiliary MATLAB response model uses
+$\alpha\approx\SI{7e3}{\per\centi\metre}$ at \SI{1310}{\nano\metre}; final
+profile and absorption values are extracted from the solver-generated
+\texttt{ge\_pd\_fdtd\_results\_oband\_ushaped.mat} file rather than inserted as
+static thesis constants.
 
 \begin{figure}[H]
     \centering
@@ -82,11 +80,11 @@ $\eta_{\mathrm{int}}$ relative to the uniform-generation ideal.
         $G_{\mathrm{opt}}(x,z)$ at mid-height ($y=W_i/2$) on a logarithmic
         colour scale (\si{\per\centi\metre\cubed\per\second}), showing
         exponential decay from taper exit ($z=0$) toward end of absorber
-        ($z=L=\SI{6}{\micro\metre}$). Bottom panel: line plot of
+        ($z=L=\SI{8}{\micro\metre}$). Bottom panel: line plot of
         $G_{\mathrm{opt}}(z)$ integrated over the $x$-$y$ cross-section
         versus propagation distance $z$, overlaid with the Beer-Lambert
         prediction $G_0\exp(-\alpha z)$ from \cref{eq:gen_rate} with
-        $\alpha=\SI{2.1e3}{\per\centi\metre}$.}
+        $\alpha=\SI{7e3}{\per\centi\metre}$ for the auxiliary MATLAB model.}
     \caption{FDTD-computed volumetric optical generation rate
     $G_{\mathrm{opt}}(\mathbf{r})$ in the germanium absorber at
     \SI{1310}{\nano\metre}. The cross-sectional map and integrated axial
@@ -104,17 +102,19 @@ $\eta_{\mathrm{int}}$ relative to the uniform-generation ideal.
         $\mathcal{A}(L)$ (left axis, solid blue) and responsivity
         $\mathcal{R}(L)$ (right axis, dashed red) versus absorber length $L$
         from \SIrange{2}{8}{\micro\metre}, computed from FDTD via
-        \cref{eq:fdtd_abs} and \cref{eq:responsivity}. Both curves saturate
-        beyond $L\approx\SI{6}{\micro\metre}$. Right panel: junction
+        \cref{eq:fdtd_abs} and \cref{eq:responsivity}. The sweep shows the
+        approach toward the nominal $L=\SI{8}{\micro\metre}$ design point.
+        Right panel: junction
         capacitance $C_j(L)$ and the corresponding $f_{\mathrm{RC}}(L)$
         from \cref{eq:cj,eq:bw_rc} versus $L$, showing the linear capacitance
         growth and the resulting $f_{\mathrm{RC}}$ reduction. Mark the
-        selected design point $L=\SI{6}{\micro\metre}$ with a vertical
+        selected design point $L=\SI{8}{\micro\metre}$ with a vertical
         dashed line in both panels and annotate the EQE at that point.}
     \caption{Absorber length sweep from \SIrange{2}{8}{\micro\metre}.
-    The design point $L=\SI{6}{\micro\metre}$ is the knee of the $\mathcal{A}(L)$
-    curve: further length increases $\mathcal{A}$ by less than \SI{1}{\percent}
-    per micrometre while increasing $C_j$ linearly, degrading $f_{\mathrm{RC}}$.}
+    The nominal design point in the current scripts is
+    $L=\SI{8}{\micro\metre}$; the sweep quantifies the point at which additional
+    absorber length yields diminishing optical return while increasing $C_j$
+    linearly and degrading $f_{\mathrm{RC}}$.}
     \label{fig:length_sweep}
 \end{figure}
 
@@ -127,42 +127,34 @@ $W_i=\SI{350}{\nano\metre}$.
 
 \begin{table}[H]
 \centering
-\caption{Baseline bandwidth-responsivity-energy trade-off as a function of intrinsic-layer
-thickness $W_i$ at fixed $A_j=\SI{1}{\micro\metre}\times\SI{6}{\micro\metre}$,
-$V=-\SI{1}{\volt}$, and $R_{\mathrm{tot}}=\SI{60}{\ohm}$ (U-shaped anode).
-Values of $\mathcal{R}$ are computed via \cref{eq:qe_full} with $\eta_{\mathrm{int}}=0.99$;
-$e_c$ is estimated at symbol rate $f_s=\SI{100}{\giga\baud}$. The bandwidth
-column is the conservative no-peaking estimate from \cref{eq:bw_total}, used
-for geometry ranking before the full peaked transfer function is reinstated.
-The bold row is the chosen design point.}
+\caption{Geometry-derived bandwidth trade-off as a function of intrinsic-layer
+thickness $W_i$ for the implemented \SI{8}{\micro\metre}$\times$
+\SI{5}{\micro\metre} absorber. The values follow the MATLAB equations in
+\texttt{ge\_pd\_oband\_ushaped\_sweeps\_postprocess.m}: harmonic-mean carrier
+saturation velocity, parallel-plate $C_j$, \SI{10}{\femto\farad} stray
+capacitance, \SI{50}{\ohm} load, and the U-shaped anode resistance model.}
 \label{tab:wi_sweep}
 \footnotesize
-\begin{tabular*}{\linewidth}{@{\extracolsep{\fill}}ccccccc@{}}
+\begin{tabular*}{\linewidth}{@{\extracolsep{\fill}}ccccc@{}}
 \toprule
 $W_i$ [nm] & $f_{\mathrm{tt}}$ [GHz] & $C_j$ [fF] & $f_{\mathrm{RC}}$ [GHz] &
-$f_{3\,\mathrm{dB,base}}$ [GHz] & $\mathcal{R}$ [A/W] & $e_c$ [fJ/bit] \\
+$f_{3\,\mathrm{dB,base}}$ [GHz] \\
 \midrule
-200 & 90.0 & 3.16 & 84.1 & 61.5 & 0.98 & 22 \\
-250 & 72.0 & 2.53 & 105.1 & 59.9 & 0.97 & 27 \\
-300 & 60.0 & 2.11 & 126.1 & 51.5 & 0.96 & 31 \\
-\textbf{350} & \textbf{51.4} & \textbf{1.81} & \textbf{147.0} & \textbf{44.5} & \textbf{0.95} & \textbf{35} \\
-400 & 45.0 & 1.58 & 168.5 & 38.9 & 0.94 & 40 \\
-500 & 36.0 & 1.26 & 210.6 & 32.1 & 0.93 & 50 \\
-600 & 30.0 & 1.05 & 253.0 & 26.9 & 0.91 & 60 \\
+200 & 116.0 & 28.33 & 59.3 & 52.8 \\
+250 & 92.8 & 22.67 & 69.6 & 55.7 \\
+300 & 77.3 & 18.89 & 78.7 & 55.2 \\
+\textbf{350} & \textbf{66.3} & \textbf{16.19} & \textbf{86.8} & \textbf{52.7} \\
+400 & 58.0 & 14.17 & 94.1 & 49.4 \\
 \bottomrule
 \end{tabular*}
 \end{table}
 
-\Cref{tab:wi_sweep} shows that the $f_{3\,\mathrm{dB,base}}$ column
-shows a monotonic decrease with increasing $W_i$ for the U-shaped design
-because $f_{\mathrm{RC}}\gg f_{\mathrm{tt}}$ throughout; the device is
-transit-time limited in the conservative lower-bound sense, not RC-limited, at
-the U-shaped $R_s$ value. The table is therefore best interpreted as a
-geometry-screening tool: it ranks the thickness choices before the
-benchmark-calibrated peaking network of \cref{eq:H_pd_pk} is superimposed. The
-trade-off rate is approximately \SI{2.8}{\giga\hertz} per
-\SI{1}{\percent} of responsivity sacrificed in this baseline model, a
-device-specific constant of the vertical O-band architecture.
+\Cref{tab:wi_sweep} shows the implemented RC-versus-transit compromise. Thinner
+intrinsic Ge improves the transit-time limit but increases the junction
+capacitance; thicker Ge reduces $C_j$ but slows carrier transit. The selected
+$W_i=\SI{350}{\nano\metre}$ point is therefore a conservative geometry choice
+near the broad baseline-bandwidth plateau, while responsivity and dark-current
+values are left to the coupled FDTD-CHARGE solver outputs.
 
 \begin{figure}[H]
     \centering
@@ -233,13 +225,14 @@ of \cref{eq:jdark_srh}.
 \subsection[Current-Voltage Characteristics]{Current-Voltage Characteristics and Responsivity}
 \label{subsec:pd_iv_results}
 
-The simulated dark current $I_d=\SI{1.3}{\nano\ampere}$ at \SI{-1}{\volt}
-reproduces the experimental benchmark~\cite{Shi2024}, anchoring the SRH
-lifetime calibration at $\tau_0=\SI{5}{\nano\second}$. Substituting
-$n_i=\SI{2.4e13}{\per\centi\metre\cubed}$, $W_i=\SI{350}{\nano\metre}$,
-and $\tau_0=\SI{5}{\nano\second}$ into \cref{eq:jdark_srh} yields
-$J_{\mathrm{SRH}}\approx\SI{27}{\milli\ampere\per\metre\squared}$, reproducing
-$I_d$ for $A_j=\SI{6}{\micro\metre\squared}$.
+The post-processing script extracts the dark current at \SI{-1}{\volt} from
+\texttt{Id\_1V}, the photocurrent from \texttt{I\_ph}, and responsivity from
+\texttt{R\_AW} in the CHARGE result file. The cited
+$I_d=\SI{1.3}{\nano\ampere}$ value is the Shi~\textit{et al.} benchmark used for
+comparison; the repository does not hard-code this value as a simulated result.
+The implemented Ge SRH lifetime is $\tau_0=\SI{1}{\nano\second}$, so the final
+dark-current number must come from the CHARGE sweep after optical generation is
+imported.
 
 \begin{figure}[H]
     \centering
@@ -249,36 +242,34 @@ $I_d$ for $A_j=\SI{6}{\micro\metre\squared}$.
         \SI{300}{\kelvin}. Show CHARGE simulation (solid), experimental
         benchmark of Shi \textit{et al.}~(2024) as filled circles at
         $V=-1,-2$\,V, and the SRH analytical prediction from \cref{eq:jdark_srh}
-        (dashed). Mark $I_d=\SI{1.3}{\nano\ampere}$ at $V=\SI{-1}{\volt}$
-        with a crosshair. Right panel: dark (dashed) and illuminated (solid)
+        (dashed). Mark the solver-extracted $I_d$ at $V=\SI{-1}{\volt}$ with a
+        crosshair. Right panel: dark (dashed) and illuminated (solid)
         $|I|$ vs $|V|$ at $\lambda=\SI{1310}{\nano\metre}$ and
         $P_{\mathrm{opt}}=\SI{100}{\micro\watt}$ on linear scale from 0 to
         \SI{-2}{\volt}. Shade the photocurrent difference
         $I_{\mathrm{ph}}=I_{\mathrm{ill}}-I_d$ at $V=\SI{-1}{\volt}$ and
         annotate $\mathcal{R}=I_{\mathrm{ph}}/P_{\mathrm{opt}}$.}
     \caption{Simulated dark (left) and illuminated (right) $I$-$V$ characteristics
-    at \SI{300}{\kelvin}. The SRH-dominated dark current is reproduced by the
-    calibrated $\tau_0=\SI{5}{\nano\second}$; the extracted photocurrent yields
-    $\mathcal{R}\geq\SI{0.95}{\ampere\per\watt}$ and
-    $\eta_{\mathrm{ext}}\approx\SI{90.8}{\percent}$ via \cref{eq:eqe}.}
+    at \SI{300}{\kelvin}. The SRH-dominated dark current and photocurrent are
+    extracted directly from CHARGE, after which
+    $\mathcal{R}=I_{\mathrm{ph}}/P_{\mathrm{opt}}$ and
+    $\eta_{\mathrm{ext}}$ follow from \cref{eq:eqe}.}
     \label{fig:iv_results}
 \end{figure}
 
-\subsection{Bandwidth Estimation and PINN Validation}
+\subsection{Bandwidth Estimation and Model Validation}
 \label{subsec:pd_bw_results}
 
 With the conservative lower-bound transport estimate
-$f_{\mathrm{tt}}\approx\SI{51}{\giga\hertz}$ from \cref{eq:bw_tt} and
-$f_{\mathrm{RC}}\approx\SI{147}{\giga\hertz}$ extracted from the CHARGE
-small-signal capacitance and the modelled anode series resistance of the
-small-area O-band design, the no-peaking baseline gives
-$f_{3\,\mathrm{dB,base}}\approx\SI{44.5}{\giga\hertz}$, already above the
-\SI{39.8}{\giga\hertz} receiver requirement of 400GBASE-DR4. This lower-bound
-result is intentionally pessimistic. Reinstating the full two-carrier transport
-response of \cref{eq:jt_analytical} together with the benchmark-calibrated
-peaking network of \cref{eq:H_pd_pk} places the validated single-U response in
-the \SI{103}{\giga\hertz} class at \SI{-1}{\volt}, which is the figure used in
-the later high-speed system projection.
+$f_{\mathrm{tt}}\approx\SI{66.3}{\giga\hertz}$ from \cref{eq:bw_tt} and
+$f_{\mathrm{RC}}\approx\SI{86.8}{\giga\hertz}$ from the geometry-derived
+parallel-plate capacitance and U-shaped anode resistance, the no-peaking
+baseline gives
+$f_{3\,\mathrm{dB,base}}\approx\SI{52.7}{\giga\hertz}$. This implemented
+baseline is the bandwidth exported to the MATLAB compact model. The
+\SI{103}{\giga\hertz} value remains the cited benchmark response of the
+experimental single-U device and is not claimed here as a newly simulated O-band
+result.
 
 \begin{figure}[H]
     \centering
@@ -287,57 +278,52 @@ the later high-speed system projection.
         response $|H(f)|^2/|H(0)|^2$ (dB) from 1 to \SI{200}{\giga\hertz}
         on log-frequency axis. Show three curves: transit-time roll-off alone
         (dash-dot), RC roll-off alone (dashed), and combined from
-        \cref{eq:bw_total} (solid). Overlay the benchmark-calibrated peaked
-        response from \cref{eq:H_pd_pk} as a dotted curve. Mark the baseline
-        $-3$\,dB point near \SI{44.5}{\giga\hertz} and the peaked response near
-        \SI{103}{\giga\hertz}. Right panel: CHARGE small-signal
+        \cref{eq:bw_total} (solid). Mark the baseline $-3$\,dB point near
+        \SI{52.7}{\giga\hertz}. Right panel: CHARGE small-signal
         capacitance $C_j(V)$ versus reverse bias from 0 to \SI{3}{\volt},
         showing saturation of $C_j$ at $V\geq V_{\mathrm{dep}}\approx\SI{0.2}{\volt}$
         confirming full depletion.}
     \caption{Estimated frequency response (left) from the lower-bound model of
     \cref{eq:bw_total} and small-signal capacitance (right) from CHARGE. The
-    left panel should distinguish the conservative baseline from the
-    benchmark-calibrated peaked response: the former is used for thickness
-    screening, whereas the latter supports the \SI{103}{\giga\hertz}-class
-    sensitivity estimate discussed later in the chapter.}
+    left panel is the conservative baseline used for thickness screening and
+    for the compact-model export consumed by the system-level MATLAB scripts.}
     \label{fig:freq_response}
 \end{figure}
 
 \begin{table}[H]
 \centering
-\caption{Complete simulated device performance at \SI{-1}{\volt}, \SI{300}{\kelvin},
-and \SI{1310}{\nano\metre}, compared with the experimental benchmark of
-Shi~\textit{et al.}~\cite{Shi2024}. Each metric is defined by the equation
-reference listed. The $D^*$ value is computed from \cref{eq:dstar} with
-$A_j=\SI{1}{\micro\metre}\times\SI{6}{\micro\metre}$.}
+\caption{Repository performance quantities at \SI{-1}{\volt},
+\SI{300}{\kelvin}, and \SI{1310}{\nano\metre}. Solver-dependent values are
+read from the generated \texttt{.mat} files by
+\texttt{ge\_pd\_oband\_ushaped\_postprocess.m}; geometry-derived bandwidth
+values are computed directly from the implemented \SI{8}{\micro\metre}$\times$
+\SI{5}{\micro\metre} absorber.}
 \label{tab:results}
 \footnotesize
-\begin{tabular*}{\linewidth}{@{\extracolsep{\fill}}L{3.0cm}C{1.8cm}C{1.6cm}C{1.6cm}C{1.4cm}L{3.5cm}@{}}
+\begin{tabular*}{\linewidth}{@{\extracolsep{\fill}}L{3.0cm}L{3.0cm}C{2.0cm}L{4.2cm}@{}}
 \toprule
-Metric & Governing Eq. & Simulated & Benchmark & Unit & Notes \\
+Metric & Repository source & Nominal value & Notes \\
 \midrule
 Dark current $I_d$
-    & \eqref{eq:idark_decomposed} & 1.3 & 1.3 & nA & SRH-dominated \\
+    & CHARGE \texttt{Id\_1V} & Solver output & Compared with \SI{1.3}{\nano\ampere} benchmark \\
 Responsivity $\mathcal{R}$
-    & \eqref{eq:responsivity} & $\geq0.95$ & 0.95 & A\,W$^{-1}$ & At \SI{-1}{\volt} \\
+    & CHARGE \texttt{R\_AW} & Solver output & At \SI{-1}{\volt} \\
 EQE $\eta_{\mathrm{ext}}$
-    & \eqref{eq:qe_full} & $\geq90.8$ & N/A & \% & Via $\eta_c\cdot\mathcal{A}$ \\
+    & FDTD \texttt{A\_TE}; CHARGE current & Solver output & Via \cref{eq:eqe} \\
 IQE $\eta_{\mathrm{int}}$
-    & \eqref{eq:iqe} & $\geq99$ & N/A & \% & Negligible recomb. loss \\
+    & CHARGE current / FDTD absorption & Solver output & Collection-efficiency check \\
 Baseline bandwidth $f_{3\,\mathrm{dB,base}}$
-    & \eqref{eq:bw_total} & 44.5 & N/A & GHz & No peaking; lower-bound screen \\
-Projected peaked bandwidth $f_{3\,\mathrm{dB,pk}}$
-    & \eqref{eq:H_pd_pk} & $\geq103$ & 103 & GHz & Benchmark-calibrated single-U \\
+    & MATLAB geometry model & \SI{52.7}{\giga\hertz} & No peaking; compact-model export \\
 $C_j$ (at \SI{-1}{\volt})
-    & \eqref{eq:cj} & $\sim1.8$ & N/A & fF & Small-signal AC \\
+    & Parallel-plate model & \SI{16.2}{\femto\farad} & Nominal \SI{8}{\micro\metre}$\times$\SI{5}{\micro\metre} area \\
 $R_{s,\mathrm{an}}$ (U-shape)
-    & \eqref{eq:rs_u} & $\sim5$ & N/A & $\Omega$ & vs $\sim8\,\Omega$ parallel \\
+    & Sheet-resistance model & \SI{20}{\ohm} & \SI{36}{\percent} reduction from parallel model \\
 Shot noise $S_{\mathrm{shot}}$
-    & \eqref{eq:shot} & $4.2\times10^{-28}$ & N/A & A$^2$\,Hz$^{-1}$ & Dark condition \\
+    & Postprocess from $I_d$ & Solver-derived & Depends on CHARGE dark current \\
 $D^*$
-    & \eqref{eq:dstar} & $\geq2.95\times10^{10}$ & N/A & Jones & \\
+    & Postprocess from NEP & Solver-derived & Compared with literature table \\
 $P_{\mathrm{sens}}$ (shot-noise limited)
-    & \eqref{eq:sens_full} & $-17.1$ & N/A & dBm & Using $f_{3\,\mathrm{dB,pk}}$ \\
+    & MATLAB system model & Solver-derived & Uses exported CML data \\
 \bottomrule
 \end{tabular*}
 \end{table}
@@ -348,31 +334,29 @@ $P_{\mathrm{sens}}$ (shot-noise limited)
 \paragraph{Absorption profile and the optical-to-electrical coupling chain.}
 The exponential spatial decay of $G_{\mathrm{opt}}(\mathbf{r})$ in
 \cref{fig:gen_rate_map} is a direct consequence of Beer-Lambert attenuation
-at the Ge absorption coefficient derived from \cref{eq:alpha_kappa}. The
-saturation of $\mathcal{A}$ beyond \SI{6}{\micro\metre} establishes the design
-point at which further length increase does not improve EQE through
-\cref{eq:qe_full} but does increase $C_j\propto A_j\propto L$ through
-\cref{eq:cj}. The near-unity IQE of $\geq\SI{99}{\percent}$ confirms that the
-electric field of \cref{fig:band_carrier_field} is sufficient to sweep
-photogenerated carriers to their respective contacts before SRH recombination
-occurs with the calibrated lifetime $\tau_0=\SI{5}{\nano\second}$.
+modified by waveguide confinement and taper coupling. The sweep up to
+\SI{8}{\micro\metre} establishes the design point at which further length
+increase must be justified against the linear capacitance penalty
+$C_j\propto A_j\propto L$ through \cref{eq:cj}. The IQE check exported by the
+post-processing script verifies whether the electric field of
+\cref{fig:band_carrier_field} is sufficient to sweep photogenerated carriers to
+their respective contacts before SRH recombination occurs with the implemented
+$\tau_0=\SI{1}{\nano\second}$ lifetime.
 
 \paragraph{Dark current mechanisms and temperature sensitivity.}
-The \SI{1.3}{\nano\ampere} dark current is dominated by SRH generation.
-The strong exponential temperature dependence $n_i\propto\exp(-E_g/2kT)$
+The CHARGE dark current is expected to be dominated by SRH generation under the
+implemented trap-assisted lifetime settings. The strong exponential temperature
+dependence $n_i\propto\exp(-E_g/2kT)$
 in germanium, where $E_{g,\mathrm{ind}}=\SI{0.66}{\electronvolt}$ is
 substantially smaller than silicon's \SI{1.12}{\electronvolt}, implies that
 $I_d$ approximately doubles for every $\Delta T\approx\SI{10}{\kelvin}$
 increase in junction temperature. In a data-centre transceiver operating at
 \SIrange{40}{70}{\celsius} junction temperature, this implies
-$I_d(70\,^\circ\mathrm{C})\approx4\times I_d(25\,^\circ\mathrm{C})\approx\SI{5}{\nano\ampere}$,
-raising $S_{\mathrm{shot}}$ from
-$\SI{4.2e-28}{\ampere\squared\per\hertz}$ to
-$\SI{1.6e-27}{\ampere\squared\per\hertz}$, which remains far below the
-load-defined thermal-noise floor from \cref{eq:thermal} at
-\SI{103}{\giga\hertz}. Elevated temperature therefore changes the dark current
-appreciably without altering the conclusion that the intrinsic device noise
-remains low.
+$I_d(70\,^\circ\mathrm{C})\approx4\times I_d(25\,^\circ\mathrm{C})$ before
+high-field leakage mechanisms are considered. The corresponding shot-noise
+increase must be evaluated from the exported CHARGE current and the
+geometry-derived bandwidth; this avoids inserting an unsupported static
+dark-current value into the thesis.
 
 \paragraph{Electric field screening under strong optical injection.}
 The analysis of \cref{sec:pd_results} is conducted at \SI{100}{\micro\watt},
@@ -541,16 +525,16 @@ and in the dark-current-dominated limit:
     P_{\mathrm{sens}} \approx \frac{Q}{\mathcal{R}}\sqrt{2qI_dB_e}.
     \label{eq:sens_dark}
 \end{equation}
-Substituting the simulated values $\mathcal{R}=\SI{0.95}{\ampere\per\watt}$,
-$I_d=\SI{1.3}{\nano\ampere}$, and $B_e=\SI{103}{\giga\hertz}$ into
-\cref{eq:sens_full} at $Q=7.03$:
+Substituting solver-exported $\mathcal{R}$ and $I_d$ with the implemented
+geometry-derived bandwidth into \cref{eq:sens_full} at $Q=7.03$ gives the
+receiver sensitivity reported by the MATLAB system model:
 \begin{equation}
-    P_{\mathrm{sens}} \approx \SI{-17.1}{\dBm}.
+    P_{\mathrm{sens}} = P_{\mathrm{sens}}(\mathcal{R}, I_d, B_e).
     \label{eq:sens_result}
 \end{equation}
-This detector-level sensitivity estimate remains consistent with the lower end
-of the DR4 receive-power window introduced in \cref{subsec:pd_gaps},
-while the screening analysis developed in the preceding discussion identifies
-the upper-power constraint that remains to be managed in practical deployment.
+This detector-level sensitivity estimate is generated after the CML dataset is
+created, while the screening analysis developed in the preceding discussion
+identifies the upper-power constraint that remains to be managed in practical
+deployment.
 
 

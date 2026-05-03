@@ -23,8 +23,17 @@ if (-not $biber) {
 }
 
 $target = "chapter_photodetector_combine"
+$sourceRoot = $PSScriptRoot
+$buildRoot = $sourceRoot
+$junctionToRemove = $null
 
-Push-Location $PSScriptRoot
+if ($sourceRoot -match "\s") {
+    $junctionToRemove = Join-Path $env:TEMP ("pd_thesis_build_" + [guid]::NewGuid().ToString("N"))
+    New-Item -ItemType Junction -Path $junctionToRemove -Target $sourceRoot | Out-Null
+    $buildRoot = $junctionToRemove
+}
+
+Push-Location $buildRoot
 try {
     & $pdflatex.Source -interaction=nonstopmode "$target.tex"
     if ($LASTEXITCODE -ne 0) {
@@ -56,12 +65,19 @@ try {
         ".out", ".run.xml", ".synctex.gz", ".toc", ".lof", ".lot", ".nav", ".snm", ".vrb"
     )
     
-    Get-ChildItem -Path $PSScriptRoot -File | Where-Object { $_.Extension -in $extsToRemove } | Remove-Item -Force
+    Get-ChildItem -Path $sourceRoot -File | Where-Object {
+        $_.Extension -in $extsToRemove -or $_.Name -like "*.run.xml"
+    } | Remove-Item -Force
     
-    if (Test-Path -LiteralPath "$PSScriptRoot\sections") {
-        Get-ChildItem -Path "$PSScriptRoot\sections" -File | Where-Object { $_.Extension -in $extsToRemove } | Remove-Item -Force
+    if (Test-Path -LiteralPath "$sourceRoot\sections") {
+        Get-ChildItem -Path "$sourceRoot\sections" -File | Where-Object {
+            $_.Extension -in $extsToRemove -or $_.Name -like "*.run.xml"
+        } | Remove-Item -Force
     }
 }
 finally {
     Pop-Location
+    if ($junctionToRemove -and (Test-Path -LiteralPath $junctionToRemove)) {
+        [System.IO.Directory]::Delete($junctionToRemove)
+    }
 }

@@ -7,7 +7,7 @@
 
 > **Reference:** Yang Shi _et al._, "103 GHz germanium-on-silicon photodiode enabled by an optimized U-shaped electrode," _Photonics Research_ **12**(1), 1–6 (2024). DOI: [10.1364/PRJ.495958](https://doi.org/10.1364/PRJ.495958)
 
-A complete, cascaded multiphysics simulation pipeline for a waveguide-integrated Ge-on-Si vertical n-i-p photodiode operating at O-band (1310 nm). The project spans from Maxwell's equations (FDTD optical absorption) through carrier transport (CHARGE drift-diffusion) to system-level PAM-4 receiver performance (MATLAB DSP + Lumerical INTERCONNECT compact model), producing a self-contained thesis chapter with all figures generated directly from solver outputs — **zero hardcoded paper values in the pipeline**.
+A complete, cascaded multiphysics simulation pipeline for a waveguide-integrated Ge-on-Si vertical n-i-p photodiode operating at O-band (1310 nm). The project spans from Maxwell's equations (FDTD optical absorption) through carrier transport (CHARGE drift-diffusion) to system-level PAM-4 receiver performance (MATLAB DSP + Lumerical INTERCONNECT compact model). Solver-derived metrics flow through the generated `.mat` files; literature values are retained only as benchmarks for comparison.
 
 ---
 
@@ -19,7 +19,7 @@ A complete, cascaded multiphysics simulation pipeline for a waveguide-integrated
 | Waveguide platform | 220 nm SOI, 90 nm slab | Geometry |
 | Optical coupling | Adiabatic taper, 500 nm → 5 µm × 40 µm | Geometry |
 | i-Ge absorber | 350 nm × 8 µm × 5 µm | Geometry |
-| N++ Ge cathode | 50 nm, Nᴅ = 1×10¹⁹ cm⁻³ | Geometry |
+| N++ Ge cathode | 50 nm, ND = 1e20 cm^-3 | Geometry |
 | P++ Si anode | 220 nm, Nᴬ = 1×10²⁰ cm⁻³ | Geometry |
 | Operating wavelength | 1310 nm (O-band) | IEEE 802.3 DR4 |
 | Responsivity | Extracted from FDTD absorption + CHARGE I-V | Solver |
@@ -62,9 +62,9 @@ PD-Design-Kit/
 │   ├── ge_pd_fdtd_oband_ushaped.lsf            FDTD: optical absorption + generation rate
 │   ├── ge_pd_charge_oband_ushaped.lsf           CHARGE: carrier transport, I-V, profiles
 │   ├── ge_pd_fdtd_oband_ushaped_sweeps.lsf      FDTD sweeps: Ge length, polarisation, taper
-│   ├── ge_pd_charge_oband_ushaped_sweeps.lsf     CHARGE sweeps: i-Ge thickness, T, SRV, τ, electrode
-│   ├── ge_pd_oband_ushaped_postprocess.m         Base postprocess → 26 figures + CML dataset
-│   └── ge_pd_oband_ushaped_sweeps_postprocess.m  Sweep postprocess → 20 figures: trade-offs, octagon, contours
+│   ├── ge_pd_charge_oband_ushaped_sweeps.lsf     CHARGE sweeps: i-Ge thickness, temperature, electrode
+│   ├── ge_pd_oband_ushaped_postprocess.m         Base postprocess: core figures + CML dataset
+│   └── ge_pd_oband_ushaped_sweeps_postprocess.m  Sweep postprocess: trade-offs, octagon, contours
 ├── system-level/
 │   ├── ge_pd_dsp_model.m                         PAM-4 Wartak-based receiver transfer model
 │   ├── ge_pd_interconnect_model.m                INTERCONNECT CML compact model generator
@@ -105,7 +105,7 @@ PD-Design-Kit/
 |:----:|--------|--------|--------|
 | 1 | `ge_pd_fdtd_oband_ushaped.lsf` | Lumerical FDTD | `ge_pd_fdtd_results_oband_ushaped.mat` |
 | 2 | `ge_pd_charge_oband_ushaped.lsf` | Lumerical CHARGE | `ge_pd_charge_results_oband_ushaped.mat` |
-| 3 | `ge_pd_oband_ushaped_postprocess.m` | MATLAB | 26 thesis figures + `ge_pd_cml_oband_ushaped.mat` |
+| 3 | `ge_pd_oband_ushaped_postprocess.m` | MATLAB | Core thesis figures + `ge_pd_cml_oband_ushaped.mat` |
 | 4 | `ge_pd_fdtd_oband_ushaped_sweeps.lsf` | Lumerical FDTD | `ge_pd_fdtd_sweeps_oband_ushaped.mat` |
 | 5 | `ge_pd_charge_oband_ushaped_sweeps.lsf` | Lumerical CHARGE | `ge_pd_charge_sweeps_oband_ushaped.mat` |
 | 6 | `ge_pd_oband_ushaped_sweeps_postprocess.m` | MATLAB | Design octagon, contours, tornado, literature table |
@@ -123,7 +123,7 @@ PD-Design-Kit/
 
 ## Key Figures Generated
 
-### Device-Level Base (26 figures)
+### Device-Level Base
 - Dark/illuminated I-V curves, photocurrent components
 - Optical generation rate map, absorption spectrum
 - Band diagram, carrier density, electric field profiles (at V = −1 V)
@@ -139,13 +139,13 @@ PD-Design-Kit/
 - **XY power heatmap** — full device from taper to Ge end
 - **Resistance vs bias** — dV/dI from dark I-V
 
-### Sweep Analysis (20 figures)
+### Sweep Analysis
 - **PD Design Octagon** — Razavi-equivalent radar chart: R, BW, D*, EQE, 1/Iᵈ, R×BW, NEP⁻¹, LDR across 5 published designs
 - **2D Design-Space Contour Maps** — iGe_H × Ge_L: bandwidth, responsivity, R×BW product with 100 GHz isoline
 - **Sensitivity Tornado Chart** — ±20% perturbation ranking of 7 design parameters on bandwidth
 - **Literature Benchmarking Table** — state-of-the-art comparison (8 devices, 2012–2024)
 - **Resistance vs Ge length** — R_s for parallel vs U-shaped electrodes
-- Dark current vs i-Ge thickness, temperature (Arrhenius), SRV, carrier lifetime
+- Dark current vs i-Ge thickness, temperature (Arrhenius), and electrode geometry
 - U-shaped vs parallel electrode comparison
 - Absorption vs Ge length, spectral responsivity, PDL
 

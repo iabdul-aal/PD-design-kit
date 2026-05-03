@@ -1,0 +1,213 @@
+\section[Simulation Methodology]{Multiphysics Simulation Methodology}
+\label{sec:pd_simulation}
+
+The device performance metrics established in \cref{sec:pd_metrics} are evaluated
+through a coupled optical-electrical simulation chain whose output is anchored to
+the experimental benchmark of Shi~\textit{et al.}~\cite{Shi2024}. This section
+specifies each solver, its numerical settings, the data flow connecting the
+stages, and the PINN-based validation approach that provides independent
+cross-verification of the drift-diffusion solution.
+
+\subsection[Optical Simulation: FDTD]{Optical Simulation: Three-Dimensional FDTD}
+\label{subsec:pd_fdtd}
+
+The optical simulation solves the time-domain Maxwell's equations of
+\cref{eq:maxwell_curl_e,eq:maxwell_curl_h} throughout a domain encompassing
+the silicon input waveguide, the \SI{40}{\micro\metre} adiabatic taper, the
+complete germanium absorber, and the surrounding SiO$_2$ cladding. The solver
+(Lumerical FDTD Solutions 2020~R2) discretises the electromagnetic field on a
+Yee staggered grid using the second-order Courant-stable leapfrog scheme.
+Computational photonics methodology for FDTD-based device simulation, including
+the algorithmic implementation of the Yee algorithm and absorbing boundary
+conditions, is detailed in the pedagogical treatment of Wartak~\cite{Wartak2013}.
+
+The complex permittivity is sampled at the material-dependent optical frequency
+through tabulated complex refractive indices: for germanium at \SI{1310}{\nano\metre},
+$n\approx4.27$ and $\kappa\approx0.22$, yielding
+$\alpha\approx\SI{2.1e3}{\per\centi\metre}$ from \cref{eq:alpha_kappa}.
+Frequency-domain power monitors record $T(\omega)$ and $R(\omega)$, from which:
+\begin{equation}
+    \mathcal{A}(\omega) = 1 - |T(\omega)|^2 - |R(\omega)|^2
+    - \sum_i |T_{\mathrm{sub},i}(\omega)|^2.
+    \label{eq:fdtd_abs}
+\end{equation}
+A \SI{20}{\nano\metre} isotropic mesh override within the germanium region
+resolves the exponential generation-rate gradient; convergence testing at
+\SI{10}{\nano\metre} and \SI{20}{\nano\metre} shows less than \SI{0.5}{\percent}
+deviation in $\mathcal{A}$.
+
+\paragraph{FDTD numerical stability and the 3D Courant condition.}
+The PML implementation employs sixteen absorbing cells on each domain boundary,
+determined by convergence of the reflected power to below $-60\,\mathrm{dB}$
+in a calibration run with a uniform germanium slab. The temporal stability
+of the Yee algorithm requires the 3D Courant-Friedrichs-Lewy condition:
+\begin{equation}
+    \Delta t < \frac{\Delta}{c\sqrt{3}},
+    \label{eq:cfl_3d}
+\end{equation}
+so the time step is set to $\Delta t=0.99\,\Delta/(c\sqrt{3})$. The spatial
+mesh size is independently constrained by the sampling requirement
+$\Delta<\lambda_{\min}/(10\sqrt{\varepsilon_{\max}})$, giving
+$\Delta<\SI{32}{\nano\metre}$ with a safety margin of 1.6 at the \SI{20}{\nano\metre}
+override. The combined optical and electrical simulation requires approximately
+\SI{11}{\hour} of wall-clock time on a shared-memory workstation: roughly
+\SI{3}{\hour} for the FDTD step and \SI{8}{\hour} for the steady-state and
+frequency-response electrical solves~\cite{Alasio2024}.
+
+\paragraph{FDTD electromagnetic solution and the square-law photocurrent.}
+A physically essential clarification connecting the FDTD solution to the
+photocurrent calculation concerns what the power monitors extract. The
+frequency-domain power recorded is the time-averaged Poynting vector
+$\mathbf{S}(\mathbf{r},\omega)=\tfrac{1}{2}\mathrm{Re}[\tilde{\mathbf{E}}\times\tilde{\mathbf{H}}^*]$,
+which is quadratic in the field amplitudes, consistent with the square-law
+mechanism of \cref{eq:square_law}. The optical generation rate
+$G_{\mathrm{opt}}(\mathbf{r})=\mathcal{P}_{\mathrm{abs}}(\mathbf{r})/\hbar\omega$
+of \cref{eq:gen_rate} is thus already expressed in the power-quadratic form that
+maps directly to the photocurrent via $I_{\mathrm{ph}}=q\int_\Omega G_{\mathrm{opt}}\,\mathrm{d}V$~\cite{Pilori2019}.
+
+\paragraph{Waveguide insertion loss and chip-level responsivity correction.}
+The saturation of $\mathcal{A}(L)$ identified in the length sweep is not
+smooth when waveguide routing loss is accounted for. For a Si ridge waveguide
+with propagation loss $\gamma_{\mathrm{wg}}\approx\SI{3.6}{\decibel\per\centi\metre}$
+at \SI{1310}{\nano\metre}, a routing length of $\ell_{\mathrm{wg}}=\SI{1}{\milli\metre}$
+introduces an approximately \SI{0.36}{\decibel} correction equivalent to a
+\SI{4}{\percent} responsivity reduction relative to the taper-input
+value~\cite{Wang2024}. The FDTD domain of the present work terminates at the
+taper entry; any comparison with chip-level measurements must apply the factor
+$10^{-\gamma_{\mathrm{wg}}\ell_{\mathrm{wg}}/10}$ to \cref{eq:responsivity}.
+
+\begin{figure}[H]
+    \centering
+    \missingfigure[figwidth=0.80\linewidth]{
+        Simulation flowchart connecting FDTD, CHARGE, and PINN solvers.
+        Left: FDTD inputs and outputs.
+        Centre: CHARGE inputs and outputs.
+        Right: PINN cross-validation.
+        Arrows indicate data flow; the key coupling step is the
+        $G_{\mathrm{opt}}$ file transfer.}
+    \caption{Multi-physics simulation workflow. The FDTD-to-CHARGE coupling
+    proceeds via the volumetric generation rate $G_{\mathrm{opt}}(\mathbf{r})$
+    of \cref{eq:gen_rate}, and the PINN provides independent cross-validation
+    of the drift-diffusion solution via automatic differentiation of the PDE
+    residuals of \cref{eq:pinn_pde_loss}.}
+    \label{fig:sim_flowchart}
+\end{figure}
+
+\subsection[Electrical Simulation: CHARGE]{Electrical Simulation: Three-Dimensional Drift-Diffusion}
+\label{subsec:pd_charge}
+
+Carrier transport is simulated in Lumerical DEVICE CHARGE under three-dimensional
+steady-state conditions, solving the PDE system of
+\cref{eq:poisson,eq:Jn,eq:Jp,eq:cont_n,eq:cont_p} on an adaptive
+finite-element mesh. Carrier mobilities in germanium follow the Canali
+velocity-saturation model~\cite{Alasio2024}:
+\begin{equation}
+    \mu_{n,p}(|\mathbf{E}|)
+    = \frac{(\alpha_{\mathrm{C}}+1)\,\mu_{n,p}^{(0)}}
+      {\left[\alpha_{\mathrm{C}}
+        + \!\left(1 + \!\left(\frac{(\alpha_{\mathrm{C}}+1)\,
+          \mu_{n,p}^{(0)}\,|\mathbf{E}|}{v_{\mathrm{d,sat}}}\right)^{\!\beta}
+        \right)^{1/\beta}\right]},
+    \label{eq:canali_full}
+\end{equation}
+which reduces to the saturation model of \cref{eq:mobility_sat} with $\beta=2$
+and $\alpha_{\mathrm{C}}=0$. The low-field mobilities adopted are
+$\mu_n^{(0)}=\SI{3900}{\centi\metre\squared\per\volt\per\second}$ and
+$\mu_p^{(0)}=\SI{1900}{\centi\metre\squared\per\volt\per\second}$; the
+saturation velocities
+$v_{\mathrm{d,sat},e}=\SI{6e6}{\centi\metre\per\second}$ and
+$v_{\mathrm{d,sat},h}=\SI{4e6}{\centi\metre\per\second}$ enter
+\cref{eq:canali_full} as asymptotic limits. A $\pm20\%$ variation in
+$\mu_p^{(0)}$ changes $f_{\mathrm{tt}}$ by less than \SI{1}{\percent},
+confirming the robustness of the transit-time estimate in \cref{eq:bw_tt}
+to low-field mobility uncertainty~\cite{Alasio2024}.
+
+\begin{equation}
+    \mu_{n,p}(|\mathbf{E}|) = \frac{\mu_{n,p}^{(0)}}
+    {\left[1 + \left(\mu_{n,p}^{(0)}|\mathbf{E}|/v_{\mathrm{d,sat},{n,h}}\right)^{\beta}\right]^{1/\beta}},
+    \label{eq:mobility_sat}
+\end{equation}
+SRH recombination is activated in the germanium absorber with calibrated
+lifetimes $\tau_n=\tau_p=\SI{5}{\nano\second}$ ($\tau_0=\SI{5}{\nano\second}$),
+chosen so that \cref{eq:jdark_srh,eq:idark_decomposed} reproduce the experimental
+dark current of \SI{1.3}{\nano\ampere} at \SI{-1}{\volt}~\cite{Shi2024}.
+Ohmic boundary conditions are imposed at the cathode (biased to the desired
+$V<0$) and anode contacts (grounded, $V=0$). All performance metrics are
+extracted directly from the CHARGE solution: $\mathcal{R}$ from
+\cref{eq:responsivity}; $\eta_{\mathrm{int}}$ and $\eta_{\mathrm{ext}}$ from
+\cref{eq:qe_full}; $C_j$ from the small-signal AC analysis; and
+$f_{3\,\mathrm{dB}}$ from \cref{eq:bw_total} using the extracted $C_j$ and
+modelled $R_s$ from \cref{eq:rs_anode}.
+
+\subsection[System-Level Post-Processing: MATLAB]{System-Level Post-Processing: MATLAB}
+\label{subsec:pd_matlab}
+
+The MATLAB post-processing pipeline
+(\texttt{system-level/ge\_pd\_dsp\_model.m} and
+\texttt{device-level/ge\_pd\_oband\_ushaped\_postprocess.m}) consumes the CHARGE
+output to compute the system-level performance projections. The key computations
+are: (i) the combined transfer function from \cref{eq:bw_total,eq:H_pd_pk}
+applied to the extracted $C_j$, modelled $R_s$, and the benchmark-calibrated
+peaking parameters $(L_p,C_p)$; (ii) the sensitivity estimate from
+\cref{eq:sens_full} at the projected bandwidth; and (iii) the parametric design
+sweeps (absorber length and $W_i$ thickness) that produce the trade-off tables
+and design-space visualisations.
+
+\subsection[Validation Approach]{Validation Approach and Reference Design}
+\label{subsec:pd_pinns}
+
+A Physics-Informed Neural Network (PINN) is employed as an independent
+cross-validation tool. A PINN approximates the solution fields
+$u=\{n,p,\phi\}$ by a deep neural network
+$\hat{u}(\mathbf{r};\boldsymbol{\theta})$, trained to minimise the composite
+loss functional:
+\begin{equation}
+    \mathcal{L}(\boldsymbol{\theta})
+    = \lambda_{\mathrm{PDE}}\,\mathcal{L}_{\mathrm{PDE}}
+    + \lambda_{\mathrm{BC}}\,\mathcal{L}_{\mathrm{BC}}
+    + \lambda_{\mathrm{data}}\,\mathcal{L}_{\mathrm{data}},
+    \label{eq:pinn_loss}
+\end{equation}
+where the PDE residual loss is evaluated at $N_c$ collocation points
+$\{\mathbf{r}_i\}$ sampled by quasi-random (Sobol) sequences:
+\begin{equation}
+    \begin{aligned}
+    \mathcal{L}_{\mathrm{PDE}}
+    &= \frac{1}{N_c}\sum_{i=1}^{N_c}
+    \Bigl[
+      \bigl|\nabla\cdot(\varepsilon\nabla\hat{\phi})
+      + q(\hat{p} - \hat{n} + N_D^+ - N_A^-)\bigr|^2 \\
+    &\qquad
+      + \bigl|\tfrac{1}{q}\nabla\cdot\hat{\mathbf{J}}_n
+      - U_{\mathrm{net}}(\hat{n},\hat{p}) + G_{\mathrm{opt}}\bigr|^2 \\
+    &\qquad
+      + \bigl|\tfrac{1}{q}\nabla\cdot\hat{\mathbf{J}}_p
+      + U_{\mathrm{net}}(\hat{n},\hat{p}) - G_{\mathrm{opt}}\bigr|^2
+    \Bigr]_{\mathbf{r}_i}.
+    \end{aligned}
+    \label{eq:pinn_pde_loss}
+\end{equation}
+All spatial derivatives in \cref{eq:pinn_pde_loss} are computed via
+\emph{reverse-mode automatic differentiation} through the network's computational
+graph, eliminating the requirement for a structured mesh and the associated
+spatial discretisation error.
+
+The network architecture consists of four fully connected hidden layers with 128
+neurons each, hyperbolic-tangent activations, and a three-dimensional spatial
+input $\mathbf{r}=(x,y,z)$ producing three outputs $(\hat{n},\hat{p},\hat{\phi})$.
+The total number of trainable parameters is approximately $49\,000$, small enough
+for training on a single GPU (NVIDIA A100) in approximately 4 hours. At selected
+bias voltages ($V=0,-0.5,-1.0$\,V), the PINN and CHARGE solutions for the band
+diagram, carrier density profiles, and electric field magnitude are compared;
+agreement provides cross-validation at the level of the governing equations
+rather than merely at the level of integral output quantities. The PINN is
+validated when three conditions are satisfied simultaneously: (i) band diagram
+agreement to within \SI{10}{\milli\electronvolt} RMS; (ii) carrier density
+agreement to within \SI{15}{\percent} RMS in the intrinsic layer; and
+(iii) integral dark current agreement to within \SI{5}{\percent}.
+
+The validated PINN also serves as the computational vehicle for exploring the
+double U-shaped anode topology, which halves the maximum lateral current path
+to $\ell_a^{\mathrm{2U}}\approx W_m/8+d_{\mathrm{gap}}$. The predicted
+resistance and bandwidth of the double-U design are discussed as a future-work
+extension in \cref{sec:pd_summary}.

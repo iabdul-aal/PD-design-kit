@@ -1,0 +1,146 @@
+load("ge_pd_charge_oband_ushaped.ldev");
+
+switchtolayout;
+run;
+names = splitstring(getresult, endl);
+n = length(names);
+?"Total results/monitors: "+num2str(n);
+for (k = 1; k <= n; k = k+1) {
+    ?" "+num2str(k)+" "+names{k};
+}
+
+switchtolayout;
+
+wg_H      = 220e-9;
+z_rib_top = wg_H;
+iGe_H_nom = 350e-9;
+Npp_H     = 50e-9;
+Al_ind_H  = 300e-9;
+clad_margin = 2e-6;
+T_sim     = 300;
+
+function find_V_idx(V_arr, V_target) {
+    d = abs(V_arr - V_target);
+    best = 1;
+    for (k = 1; k <= length(V_arr); k = k+1) {
+        if (d(k) < d(best)) { best = k; }
+    }
+    return best;
+}
+
+?"i-Ge thickness sweep";
+
+iGe_arr = [200, 250, 300, 350, 400] * 1e-9;
+nI = length(iGe_arr);
+Id_iGe = matrix(1, nI);
+
+for (iI = 1; iI <= nI; iI = iI+1) {
+    zt  = z_rib_top + iGe_arr(iI);
+    znb = zt - Npp_H;
+    znt = zt;
+    zcb = znb;
+    zct = znt + 200e-9;
+    zib = zct;
+    zat = zib + Al_ind_H;
+
+    switchtolayout;
+    select("iGe");                                    set("z max", zt);
+    select("Npp_Ge");                                 set("z min", znb);  set("z max", znt);
+    select("CHARGE::iGe_background");                 set("z max", znb);
+    select("CHARGE::Npp_diff");                       set("z min", znb);  set("z max", znt);
+    select("Al_cath_group::Al_cath_taper");           set("z min", zcb);  set("z max", zib);
+    select("Al_cath_group::Al_cath_ind");             set("z min", zib);  set("z max", zat);
+    select("Al_anode_group::Al_anode_left_taper");    set("z max", zib);
+    select("Al_anode_group::Al_anode_right_taper");   set("z max", zib);
+    select("Al_anode_group::Al_anode_back_taper");    set("z max", zib);
+    select("Al_anode_group::Al_anode_left_ind");      set("z min", zib);  set("z max", zat);
+    select("Al_anode_group::Al_anode_right_ind");     set("z min", zib);  set("z max", zat);
+    select("Al_anode_group::Al_anode_back_ind");      set("z min", zib);  set("z max", zat);
+    select("SiO2_clad");                              set("z max", zat + clad_margin);
+
+    run;
+    res = getresult("CHARGE","anode");
+    i1 = find_V_idx(res.V_anode, -1);
+    Id_iGe(iI) = abs(res.I(i1));
+    ?" i-Ge="+num2str(iGe_arr(iI)*1e9,"%.0f")+" nm Id@-1V="+num2str(Id_iGe(iI)*1e9,"%.4f")+" nA";
+}
+
+zt_nom  = z_rib_top + iGe_H_nom;
+znb_nom = zt_nom - Npp_H;
+znt_nom = zt_nom;
+zcb_nom = znb_nom;
+zct_nom = znt_nom + 200e-9;
+zib_nom = zct_nom;
+zat_nom = zib_nom + Al_ind_H;
+
+switchtolayout;
+select("iGe");                                    set("z max", zt_nom);
+select("Npp_Ge");                                 set("z min", znb_nom);  set("z max", znt_nom);
+select("CHARGE::iGe_background");                 set("z max", znb_nom);
+select("CHARGE::Npp_diff");                       set("z min", znb_nom);  set("z max", znt_nom);
+select("Al_cath_group::Al_cath_taper");           set("z min", zcb_nom);  set("z max", zib_nom);
+select("Al_cath_group::Al_cath_ind");             set("z min", zib_nom);  set("z max", zat_nom);
+select("Al_anode_group::Al_anode_left_taper");    set("z max", zib_nom);
+select("Al_anode_group::Al_anode_right_taper");   set("z max", zib_nom);
+select("Al_anode_group::Al_anode_back_taper");    set("z max", zib_nom);
+select("Al_anode_group::Al_anode_left_ind");      set("z min", zib_nom);  set("z max", zat_nom);
+select("Al_anode_group::Al_anode_right_ind");     set("z min", zib_nom);  set("z max", zat_nom);
+select("Al_anode_group::Al_anode_back_ind");      set("z min", zib_nom);  set("z max", zat_nom);
+select("SiO2_clad");                              set("z max", zat_nom + clad_margin);
+
+?"Temperature sweep Arrhenius";
+
+T_arr = [250, 273, 300, 325, 350, 375, 400];
+nT = length(T_arr);
+Id_T  = matrix(1, nT);
+invT  = matrix(1, nT);
+logId = matrix(1, nT);
+
+for (iT = 1; iT <= nT; iT = iT+1) {
+    switchtolayout;
+    select("CHARGE"); set("simulation temperature", T_arr(iT));
+    run;
+    res = getresult("CHARGE","anode");
+    i1 = find_V_idx(res.V_anode, -1);
+    Id_T(iT) = abs(res.I(i1));
+    invT(iT) = 1.0 / T_arr(iT);
+    val = Id_T(iT)*1e9; if (val < 1e-30) { val = 1e-30; }
+    logId(iT) = log10(val);
+    ?" T="+num2str(T_arr(iT))+" K Id@-1V="+num2str(Id_T(iT)*1e9,"%.4f")+" nA";
+}
+
+switchtolayout;
+select("CHARGE"); set("simulation temperature", T_sim);
+
+?"U-shaped vs Parallel electrode";
+
+switchtolayout;
+run;
+res_U = getresult("CHARGE","anode");
+V_u = res_U.V_anode;
+I_u = abs(res_U.I);
+Id_U = I_u(find_V_idx(V_u, -1));
+
+switchtolayout;
+select("Al_anode_group::Al_anode_back_taper"); set("enabled", 0);
+select("Al_anode_group::Al_anode_back_ind");   set("enabled", 0);
+run;
+res_P = getresult("CHARGE","anode");
+V_p = res_P.V_anode;
+I_p = abs(res_P.I);
+Id_P = I_p(find_V_idx(V_p, -1));
+
+switchtolayout;
+select("Al_anode_group::Al_anode_back_taper"); set("enabled", 1);
+select("Al_anode_group::Al_anode_back_ind");   set("enabled", 1);
+
+?" U-shaped Id@-1V="+num2str(Id_U*1e9,"%.4f")+" nA";
+?" Parallel  Id@-1V="+num2str(Id_P*1e9,"%.4f")+" nA";
+
+matlabsave("ge_pd_charge_sweeps_oband_ushaped.mat",
+    iGe_arr, Id_iGe,
+    T_arr, Id_T, invT, logId,
+    V_u, I_u, Id_U,
+    V_p, I_p, Id_P);
+?"Saved ge_pd_charge_sweeps_oband_ushaped.mat";
+?"Next: run ge_pd_oband_ushaped_sweeps_postprocess.m in MATLAB.";

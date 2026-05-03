@@ -1,0 +1,173 @@
+\section[Photodetector Architectures]{Photodetector Architectures}
+\label{sec:pd_architectures}
+
+With the metrics of \cref{sec:pd_metrics} as the evaluation framework, the
+landscape of photodetector device classes can be surveyed systematically. Each
+architecture is assessed against responsivity, bandwidth, and noise, and each
+is found to resolve one specific limitation of its predecessor, until the
+waveguide-integrated PIN junction emerges not as a historical preference but as
+the consequence of removing every identified obstacle in sequence.
+
+\subsection[PN and PIN Junctions]{PN and PIN Junctions: Depletion Engineering}
+\label{subsec:pd_pn_pin}
+
+\paragraph{Photoconductive Detection.}
+The photoconductor is the simplest optical transducer because it requires no
+junction and no depletion engineering. Its apparent advantage is internal gain:
+\begin{equation}
+    G_{\mathrm{PC}} = \frac{\tau_r}{\tau_{\mathrm{tr}}},
+    \qquad
+    \tau_{\mathrm{tr}} = \frac{L^2}{\mu_n V_b},
+    \label{eq:pc_gain}
+\end{equation}
+where $\tau_r$ is the recombination lifetime and $\tau_{\mathrm{tr}}$ is the
+carrier transit time between the ohmic contacts. The problem is that the same
+lifetime that enables gain also fixes the bandwidth:
+\begin{equation}
+    f_{3\,\mathrm{dB,PC}} = \frac{1}{2\pi\tau_r}.
+    \label{eq:pc_bw}
+\end{equation}
+For germanium, a lifetime in the microsecond class implies a bandwidth in the
+kilohertz-to-megahertz regime, which is many orders of magnitude below the
+\SI{100}{\giga\baud}-class target of the present work. The photoconductor is
+therefore rejected by the gain-bandwidth product before any detailed geometry
+optimisation is attempted.
+
+\paragraph{PN Junction Photodiodes.}
+The PN junction fixes the most serious weakness of the photoconductor by creating
+an internal electric field that sweeps carriers rather than waiting for them to
+diffuse across a biased resistor. Yet the PN device still retains a slow
+component because photocarriers generated in the quasi-neutral regions must
+diffuse back to the depletion edge. The resulting response can be written as:
+\begin{equation}
+    H_{\mathrm{PN}}(f) =
+    H_{\mathrm{drift}}(f)\,
+    \frac{1}{1+j2\pi f\tau_D},
+    \label{eq:hpn}
+\end{equation}
+where $\tau_D$ is the diffusion-tail time constant. At moderate symbol rates this
+penalty is manageable; at the \SIrange{50}{100}{\giga\hertz} electrical bandwidth
+class it is not. The PN device therefore solves the photoconductor's speed
+mechanism only partially.
+
+\paragraph{PIN Photodiodes.}
+The PIN structure removes that residual limitation by inserting an intrinsic layer
+and forcing the useful optical generation to occur inside a fully depleted region.
+Once the full intrinsic thickness is depleted, the electric field is approximately
+uniform:
+\begin{equation}
+    E(x) \approx \frac{|V_{\mathrm{bias}}|+V_{\mathrm{bi}}}{W_i},
+    \qquad x\in[0,W_i].
+    \label{eq:pin_efield_uniform}
+\end{equation}
+The diffusion tail of \cref{eq:hpn} is then suppressed and the bandwidth is
+reduced to the competition already formalised through
+\cref{eq:bw_tt,eq:bw_rc}: transit time improves when $W_i$ shrinks, whereas the
+RC penalty worsens when the junction footprint grows. The PIN structure also
+provides independent control of the depletion width via the i-layer thickness,
+decoupling it from the doping levels used to define the ohmic contacts.
+That is the key structural reason the PIN, rather than the photoconductor or
+the simple PN diode, remains the default high-speed receiver device.
+
+\subsection[Avalanche Photodiodes]{Avalanche Photodiodes: Gain versus Noise}
+\label{subsec:pd_apd}
+
+An avalanche photodiode appears attractive because it multiplies the responsivity:
+\begin{equation}
+    \mathcal{R}_{\mathrm{APD}} = M\,\mathcal{R}_{\mathrm{PIN}},
+    \label{eq:r_apd}
+\end{equation}
+but that gain is not free. The avalanche build-up time lowers the usable
+bandwidth as $M$ increases, introducing the gain-bandwidth product (GBP)
+$M \times f_{3\,\mathrm{dB}} = \mathrm{const}$ as a fundamental constraint.
+The excess noise factor $F(M)$ additionally penalises the SNR: while ideal
+multiplication with $F=1$ adds no extra noise, realistic semiconductor avalanche
+with near-equal ionisation coefficients for electrons and holes (as in Ge) drives
+$F\rightarrow 2M$, rapidly erasing the gain advantage in the shot-noise-limited
+sensitivity formula of \cref{eq:sens_full}. At the present operating point, the
+receiver needs the bandwidth headroom more urgently than it needs internal gain,
+which is why the low-bias PIN remains preferable to the higher-voltage APD.
+
+\subsection[Waveguide-Integrated Photodetectors]{Waveguide-Integrated Photodetectors: Interaction Length Advantage}
+\label{subsec:pd_waveguide}
+
+The PIN junction resolves the device-level bandwidth problem but does not, by
+itself, resolve the geometric conflict between absorption and transit time.
+In a surface-illuminated PIN, the same dimension, namely the absorber thickness
+$W_i$, must satisfy both the Beer-Lambert absorption requirement
+($W_i\gtrsim\alpha^{-1}$ for high $\mathcal{A}$) and the transit-time
+requirement ($W_i$ small for high $f_{\mathrm{tt}}$ via \cref{eq:bw_tt}). At
+\SI{1310}{\nano\metre}, where $\alpha^{-1}\approx\SI{4.8}{\micro\metre}$ in Ge,
+these two requirements are directly contradictory. Waveguide integration resolves
+this conflict by changing the geometry.
+
+In a waveguide-integrated photodetector, the optical mode is confined laterally
+by the waveguide structure and propagates longitudinally along the device.
+The relevant dimension for absorption is the longitudinal length $L$ rather than
+the vertical thickness $W_i$. The Beer-Lambert law along the propagation direction
+gives:
+\begin{equation}
+    P(z) = P_0\,e^{-\Gamma\alpha z},
+    \label{eq:wg_beer_lambert}
+\end{equation}
+where $\Gamma$ is the mode confinement factor, defined as the fraction of
+optical power confined within the absorbing Ge region. The total absorption efficiency
+approaches:
+\begin{equation}
+    \eta_{\mathrm{abs}} = 1 - e^{-\Gamma\alpha L},
+    \label{eq:wg_abs_efficiency}
+\end{equation}
+which can approach unity by increasing $L$, entirely independently of the
+vertical thickness $W_i$. This geometric orthogonality is the decisive
+architectural advantage: $L$ controls $\mathcal{R}$ through
+\cref{eq:wg_abs_efficiency}, while $W_i$ controls $f_{\mathrm{tt}}$ through
+\cref{eq:bw_tt}, and the two parameters can be optimised separately.
+
+\begin{figure}[H]
+    \centering
+    \missingfigure[figwidth=0.88\linewidth]{
+        Comparative schematic of surface-normal illumination and waveguide
+        coupling, highlighting the distinction between optical propagation
+        length $L$ and depletion thickness $W_i$ and the design freedom gained
+        when these two dimensions are separated.
+    }
+    \caption{Waveguide coupling is the decisive architectural refinement because
+    it decouples the absorption dimension from the transit-time dimension. That
+    geometric change turns an overconstrained surface-normal problem into a
+    two-parameter design space.}
+\label{fig:wg_vs_sni}
+\end{figure}
+
+\subsection[Selection Rationale]{Selection Rationale: Why PIN for High-Speed Integrated Links}
+\label{subsec:pd_arch_compare}
+
+\Cref{fig:pd_evolution_ladder} condenses the selection logic from photoconductor
+through to the final architecture. Each row resolves a specific limitation of its
+predecessor while introducing a new design degree of freedom.
+
+\begin{figure}[H]
+    \centering
+    \missingfigure[figwidth=0.88\linewidth]{
+        Comparative schematic linking the photoconductor, PN photodiode, PIN
+        photodiode, and APD to the governing physical arguments that motivate
+        the final waveguide-integrated Ge-on-Si PIN architecture.
+    }
+    \caption{Architectural justification of the waveguide-integrated Ge-on-Si
+    PIN photodetector. Each comparison resolves a specific limitation of the
+    preceding alternative, leaving the waveguide-integrated Ge-on-Si PIN as the
+    architecture compatible with the O-band, low-voltage, high-bandwidth target
+    of this chapter.}
+\label{fig:pd_evolution_ladder}
+\end{figure}
+
+The PIN is chosen because it eliminates the gain-bandwidth constraint of the APD,
+removes the diffusion tail of the PN junction, imposes no inherent bandwidth
+ceiling from gain mechanisms, and pairs naturally with an external transimpedance
+amplifier (TIA) whose thermal noise is the dominant system noise source in
+high-speed receivers. Waveguide integration restores geometric orthogonality
+between the absorption dimension and the carrier collection dimension. The
+remaining design problem, namely achieving both high responsivity and high
+bandwidth simultaneously within the waveguide-integrated PIN framework, is the
+tension addressed by the material choice of \cref{sec:pd_material}, the electrode
+engineering of \cref{sec:pd_design}, and the literature context of
+\cref{sec:pd_literature}.

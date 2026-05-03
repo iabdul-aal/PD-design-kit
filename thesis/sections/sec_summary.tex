@@ -1,0 +1,43 @@
+\section[Chapter Summary]{Chapter Summary and Transition}
+\label{sec:pd_summary}
+
+This chapter established a physics-based framework for the design of a vertical
+n-i-p Ge-on-Si waveguide photodetector targeted at O-band reception near
+\SI{1310}{\nano\metre}. The discussion progressed from electromagnetic absorption
+and the germanium band structure, through drift-diffusion carrier transport and
+recombination, to the performance metrics that govern receiver-chain design.
+Within this analytical framework, a literature-grounded comparison of detector
+architectures identified the waveguide-integrated Ge-on-Si PIN with a U-shaped
+anode as the most suitable topology: it preserves process compatibility while
+addressing the dominant parasitic-resistance bottleneck that limits conventional
+parallel-electrode designs.
+
+The proposed device architecture, specified in \cref{sec:pd_design}, positions
+the vertical stack near the transit-time/RC bandwidth knee at
+$W_i=\SI{350}{\nano\metre}$. The U-shaped electrode reduces $R_{s,\mathrm{an}}$
+by \SI{36}{\percent} relative to the straight-electrode geometry, and the
+benchmark-calibrated single-U response lies in the \SI{103}{\giga\hertz} class.
+The coupled FDTD-CHARGE simulation chain described in \cref{sec:pd_simulation}
+provides the numerical infrastructure to evaluate this design at device level,
+with the PINN surrogate offering independent cross-validation of the
+drift-diffusion solution.
+
+\paragraph{Future work: double U-shaped anode and PINN-based design-space exploration.}
+A natural extension of this work is the use of the validated PINN as a surrogate
+model for rapid design-space exploration. A preliminary PINN architecture has been
+validated against the CHARGE solution at selected bias points and used to explore
+the double U-shaped anode topology, which wraps metal contacts around both long
+sidewalls of the germanium mesa. The double-U reduces the maximum lateral current
+path from $W_m/4$ to $W_m/8$, yielding $R_{s,\mathrm{an}}^{\mathrm{2U}}\approx
+\SI{3.2}{\ohm}$ and a marginal conservative-model bandwidth improvement from
+\SI{44.5}{\giga\hertz} to approximately \SI{50}{\giga\hertz}. The diminishing
+return confirms that the vertical architecture is already close to its
+RC-versus-transport knee at the single-U operating point. A full double-U
+re-optimisation including the peaking network of \cref{eq:H_pd_pk} remains as
+future work, along with experimental fabrication and RF characterisation.
+
+The results chapter that follows applies the simulation chain to the O-band device,
+presenting the optical generation profiles, absorber length and intrinsic-thickness
+sweeps, current-voltage characteristics, bandwidth estimation, and the
+system-level sensitivity analysis that validates the design against the
+IEEE~802.3 400GBASE-DR4 receiver specification.

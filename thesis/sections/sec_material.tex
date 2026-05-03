@@ -1,0 +1,159 @@
+\section[Material Platform: Ge-on-Si]{Material and Integration Platform: Germanium on Silicon}
+\label{sec:pd_material}
+
+With the waveguide-integrated PIN structure identified as the correct device class
+and the O-band wavelength fixed at \SI{1310}{\nano\metre}, the absorber material
+must now be chosen. The selection follows directly from the absorption physics of
+\cref{sec:pd_fundamentals}: only germanium combines strong O-band absorption,
+sufficient carrier velocity, and silicon-foundry process compatibility. This
+section elaborates the three dimensions of that argument, namely spectral
+suitability, CMOS integration, and material-induced trade-offs, at the depth
+required to motivate the design choices of \cref{sec:pd_design}.
+
+\subsection[Why Germanium at 1310 nm]{Why Germanium at 1310 nm}
+\label{subsec:pd_bandstructure}
+
+Germanium is an indirect-gap semiconductor whose lowest conduction-band minimum
+lies at the $L$-point of the Brillouin zone, separated from the valence-band
+maximum at $\Gamma$ by an indirect gap
+$E_{g,\mathrm{ind}}=\SI{0.66}{\electronvolt}$ at \SI{300}{\kelvin}. A secondary
+conduction-band minimum at the $\Gamma$-point defines a direct gap
+$E_{g,\mathrm{dir}}=\SI{0.80}{\electronvolt}$~\cite{AshcroftMermin2021,Rossler2009,Ziman1972}.
+The photon energy at \SI{1310}{\nano\metre} is
+$\hbar\omega=hc/\lambda\approx\SI{0.946}{\electronvolt}$, which exceeds
+$E_{g,\mathrm{dir}}$ by approximately \SI{0.15}{\electronvolt}. Optical absorption
+at this wavelength therefore proceeds predominantly through \emph{direct} interband
+transitions at the $\Gamma$-point, for which crystal momentum is intrinsically
+conserved without phonon assistance~\cite{Basu2003,Kantorovich2004}. Silicon,
+whose lowest direct transition lies at \SI{3.4}{\electronvolt} and whose indirect
+gap of \SI{1.12}{\electronvolt} makes it effectively transparent at O-band
+wavelengths, cannot be used as the absorber. This single material-physics argument
+is the entire justification for the Ge-on-Si heterostructure.
+
+\paragraph{Biaxial strain and the direct-gap red-shift.}
+The application of biaxial tensile strain $\varepsilon$ reduces the direct gap
+according to the linear deformation-potential relation:
+\begin{equation}
+    E_{g,\mathrm{dir}}(\varepsilon)
+    \approx E_{g,\mathrm{dir}}(0)
+      - \bigl(2a_v + a_c\bigr)\bigl(1 - c_{12}/c_{11}\bigr)\varepsilon,
+    \label{eq:bandgap_strain}
+\end{equation}
+where $a_v$ and $a_c$ are the valence- and conduction-band hydrostatic
+deformation potentials and $c_{11}$, $c_{12}$ are the elastic stiffness
+constants. The biaxial tensile strain of approximately
+\SIrange{0.2}{0.3}{\percent} that develops in Ge epitaxial layers during
+post-growth cooldown, owing to the thermal expansion coefficient mismatch
+between Ge and Si, reduces $E_{g,\mathrm{dir}}$ by approximately
+\SI{25}{\milli\electronvolt} relative to the unstrained bulk value, red-shifting
+the onset of direct-gap absorption by roughly \SI{50}{\nano\metre} and enhancing
+$\kappa(\lambda)$ at C-band wavelengths. For the O-band operating point of the
+present device this correction is small but it is the principal mechanism
+exploited in strained-Ge extended-wavelength detector designs.
+
+\begin{table}[H]
+\centering
+\caption{Material properties of candidate photodetector absorbers at
+\SI{300}{\kelvin}. $\alpha$ values are referenced to \SI{1310}{\nano\metre}.
+The final column summarises compatibility with a standard silicon-photonics
+process flow.}
+\label{tab:material_compare}
+\footnotesize
+\begin{tabular*}{\linewidth}{@{\extracolsep{\fill}}L{2.8cm}C{1.6cm}C{2.0cm}C{2.2cm}C{2.0cm}C{1.2cm}L{2.3cm}@{}}
+\toprule
+Material & $E_g$ [eV] & $\alpha_{1310}$ [\si{\per\centi\metre}] &
+$v_{\mathrm{sat},h}$ [\si{\centi\metre\per\second}] &
+$\mu_p$ [\si{\centi\metre\squared\per\volt\per\second}] &
+$\Delta a/a_{\mathrm{Si}}$ [\%] & CMOS compatibility \\
+\midrule
+Ge & 0.66 (ind.), 0.80 (dir.) & $\sim2100$ & \SI{4e6}{} & 1900 & 4.2 & Compatible \\
+Si & 1.12 (ind.) & $\sim10$ & \SI{2.5e6}{} & 480 & 0 & Compatible \\
+InGaAs (lattice-matched to InP) & 0.75 & $\sim1\times10^4$ & \SI{5e6}{} & 4500 & $>5$ & Not compatible \\
+Ge$_{0.92}$Sn$_{0.08}$ & $\sim0.55$ (dir.) & $>5000$ & $\sim$\SI{4e6}{} & $\sim$1500 & 4.8 & Research-stage \\
+\bottomrule
+\end{tabular*}
+\end{table}
+
+\begin{figure}[H]
+    \centering
+    \missingfigure[figwidth=0.88\linewidth]{
+        Two-panel concept figure. Left panel: absorption coefficient
+        $\alpha(\lambda)$ versus wavelength for Ge, Si, InGaAs, and
+        GeSn, with markers at \SI{1310}{\nano\metre} and
+        \SI{1550}{\nano\metre}. Right panel: schematic comparison of the Ge
+        and Si band structures showing the O-band photon energy relative to
+        the Ge direct gap and the much larger Si direct-transition energy.}
+    \caption{Material selection argument for O-band detection on a silicon
+    photonics platform. Germanium combines appreciable absorption at
+    \SI{1310}{\nano\metre}, near-direct-gap behaviour, high hole saturation
+    velocity, and foundry-compatible heterogeneous integration.}
+    \label{fig:ge_vs_si_material}
+\end{figure}
+
+\subsection[CMOS Compatibility and Integration Constraints]{CMOS Compatibility and Integration Constraints}
+\label{subsec:pd_ge_integration}
+
+Germanium can be grown selectively on silicon by chemical vapour deposition (CVD)
+using a two-step heteroepitaxial process: a low-temperature ($\sim\SI{400}{\celsius}$)
+nucleation layer of \SIrange{30}{50}{\nano\metre} seeds the growth, and a
+high-temperature ($\sim\SI{650}{\celsius}$) bulk growth achieves the target
+thickness. Cyclic thermal annealing between \SIrange{600}{750}{\celsius}
+reduces the threading dislocation density from
+$\sim\SI{1e9}{\per\centi\metre\squared}$ after growth to
+$\sim\SI{5e7}{\per\centi\metre\squared}$ after annealing, which is the practical
+lower bound achievable without compositionally graded buffer layers. The total
+thermal budget of this process is compatible with the front-end-of-line (FEOL)
+constraints of a \SI{220}{\nano\metre} SOI platform.
+
+Major silicon-photonics foundries, including Intel, imec, and GlobalFoundries,
+have qualified Ge-on-Si photodetector processes at \SI{220}{\nano\metre} SOI node.
+The process compatibility removes the III-V bonding step required by InGaAs
+receivers, eliminates the need for flip-chip assembly, and enables monolithic
+co-integration of the photodetector with Si waveguides, grating couplers,
+multiplexers, and electro-optic modulators on the same die.
+
+\paragraph{Heterojunction band alignment and its numerical consequences.}
+The electrical consequence of the Ge/Si material interface directly conditions
+the boundary conditions of the drift-diffusion problem. Owing to the lattice
+mismatch ($\Delta a/a\approx4.2\%$) and the difference in band alignment, the
+Ge/Si heterojunction sustains a valence-band discontinuity of
+$\Delta E_v\approx\SI{0.54}{\electronvolt}$ and a conduction-band offset
+$\Delta E_c\approx\SI{-0.14}{\electronvolt}$~\cite{Basu2003}. For a $p^{++}$-Si
+anode contacting the intrinsic Ge absorber, the large $\Delta E_v$ acts as a
+potential barrier suppressing hole injection from silicon into germanium, thereby
+reducing the minority-carrier diffusion contribution to dark current quantified by
+\cref{eq:jdark_diff}. A thin compositionally graded transition layer of thickness
+$\delta_{\mathrm{grad}}\approx\SI{5}{\nano\metre}$ at the heterojunction removes
+the valence-band singularity that would otherwise prevent convergence of the
+self-consistent drift-diffusion solver without perceptibly modifying the
+electrostatic potential profile in the intrinsic germanium bulk.
+
+\subsection[Material-Induced Trade-offs]{Material-Induced Trade-offs}
+\label{subsec:pd_ge_tradeoffs}
+
+The same lattice mismatch ($\Delta a/a\approx4.2\%$) that makes Ge-on-Si
+heteroepitaxy necessary also creates a residual defect population that cannot be
+completely eliminated by annealing. Threading dislocations at density
+TDD $\approx\SI{5e7}{\per\centi\metre\squared}$ act as Shockley-Read-Hall
+recombination centres in the Ge bulk, directly setting the SRH lifetime $\tau_0$
+and the dark current floor through \cref{eq:jdark_srh}. The calibrated
+$\tau_0=\SI{5}{\nano\second}$ used in the electrical simulation of
+\cref{subsec:pd_charge} implicitly encodes this threading-dislocation density.
+
+The interaction between Ge thickness, dislocation density, and device performance
+creates a three-way trade-off. Thicker Ge layers absorb more light, improving
+$\mathcal{A}$ via \cref{eq:abs_fraction}, but slow carrier transit through
+\cref{eq:bw_tt} and increase the total SRH generation volume, raising $I_d$ via
+\cref{eq:jdark_srh}. Thinner Ge layers improve speed and reduce dark current but
+sacrifice absorption efficiency. Additionally, the near-interface Ge layer,
+specifically the first \SIrange{50}{100}{\nano\metre} grown on Si, has higher
+defect density than the bulk, which is why the $n^{++}$-Ge cathode of the
+present device is limited to \SI{50}{\nano\metre}: it minimises both free-carrier absorption (FCA)
+in the contact region and the volume of highest-defect-density material within
+the optical generation zone.
+
+A compact material comparison is therefore sufficient to close the absorber
+selection argument: Ge is not chosen because it is universally superior to all
+alternatives, but because it is the only material in \cref{tab:material_compare}
+that simultaneously satisfies the optical, transport, and integration constraints
+of the present O-band receiver.

@@ -1,9 +1,9 @@
 cff-version: 1.2.0
 message: "If you use this toolkit, please cite it as below."
 type: software
-title: "PD-Design-Kit: Ge-on-Si Photodiode Design Toolkit for PAM-4 Optical Receivers"
-version: "1.2.0"
-date-released: "2026-04-19"
+title: "PD-Design-Kit: Vertical PIN Ge-on-Si Photodetector Design Toolkit for 400GBASE-DR4 High-Speed Links"
+version: "2.0.0"
+date-released: "2026-05-02"
 doi: 10.5281/zenodo.19652934
 url: "https://github.com/iabdul-aal/PD-design-kit"
 license: CC-BY-4.0
@@ -13,20 +13,29 @@ authors:
     orcid: "https://orcid.org/0009-0004-9300-3936"
     affiliation: "Electronics and Communications Engineering, Faculty of Engineering, Alexandria University"
 abstract: >
-  A comprehensive design and simulation toolkit for Ge-on-Si O-band photodiodes,
-  spanning system-level MATLAB modeling to device-level Lumerical FDTD and CHARGE
-  simulations. Includes a Lumerical INTERCONNECT-ready compact photodetector data
-  export for circuit-level insertion. Targets high-speed PAM-4 optical receivers at
-  1310 nm with >100 GHz bandwidth.
+  A cascaded multiphysics simulation pipeline for a waveguide-integrated Ge-on-Si
+  vertical n-i-p photodiode with U-shaped electrode, targeting IEEE 802.3 400GBASE-DR4
+  intra-datacenter links at O-band (1310 nm). Spans FDTD optical absorption, CHARGE
+  carrier transport, MATLAB PAM-4 receiver modeling (53.125 GBd), and Lumerical
+  INTERCONNECT compact model export. All performance metrics flow from solver outputs
+  with zero hardcoded paper values. Includes PD design octagon (Razavi-equivalent
+  radar chart), 2D design-space contour maps, sensitivity tornado analysis, and
+  state-of-the-art literature benchmarking.
 keywords:
-  - photodiode
+  - photodetector
   - germanium-on-silicon
   - silicon photonics
+  - vertical PIN
+  - U-shaped electrode
   - O-band
+  - 1310 nm
   - PAM-4
+  - 400GBASE-DR4
+  - IEEE 802.3
   - Lumerical FDTD
   - CHARGE simulation
-  - optical receiver
-  - 1310 nm
-  - Lumerical INTERCONNECT
+  - INTERCONNECT compact model
+  - design octagon
+  - trade-off analysis
+  - high-speed optical receiver
 repository-code: "https://github.com/iabdul-aal/PD-design-kit"

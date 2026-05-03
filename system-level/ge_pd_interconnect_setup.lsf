@@ -1,0 +1,85 @@
+cml = load("ge_pd_cml_oband_ushaped.mat");
+lambda_c    = cml.wavelength_m;
+R_AW        = cml.optical.responsivity_nominal_AW;
+Id_A        = cml.electrical.Id_at_1V_nA * 1e-9;
+f3dB_Hz     = cml.bandwidth.f3dB_GHz * 1e9;
+Rs_ohm      = cml.bandwidth.Rs_ohm;
+Cj_F        = cml.bandwidth.Cj_fF * 1e-15;
+Cp_F        = cml.bandwidth.Cp_fF * 1e-15;
+Lp_H        = cml.bandwidth.Lp_pH * 1e-12;
+Psat_W      = cml.saturation.Psat_W;
+T_K         = cml.temperature.T_sim_K;
+symbol_rate = 53.125e9;
+Vbias       = -1.0;
+P_cw        = 0.12e-3;
+
+switchtolayout;
+deleteall;
+
+addelement("CW Laser");
+set("name","CWL_1");
+set("frequency", 3e8 / lambda_c);
+set("power", P_cw);
+set("linewidth", 0);
+set("phase", 0);
+set("x position", 100);
+set("y position", 200);
+
+addelement("PAM-4 Pulse Generator");
+set("name","PAM4_1");
+set("bitrate", symbol_rate * 2);
+set("symbol rate", symbol_rate);
+set("order", 4);
+set("automatic seed", 1);
+set("x position", 100);
+set("y position", 100);
+
+addelement("Amplitude Modulator");
+set("name","AM_1");
+set("modulation index", 1);
+set("x position", 300);
+set("y position", 200);
+
+addelement("Photodetector");
+set("name","PIN_1");
+set("model","photodetector_simple");
+set("responsivity", R_AW);
+set("dark current", Id_A);
+set("frequency", 3e8 / lambda_c);
+set("thermal noise", sqrt(4 * 1.381e-23 * T_K * f3dB_Hz / (Rs_ohm + 50)));
+set("x position", 500);
+set("y position", 200);
+
+addelement("Low Pass Filter");
+set("name","LPF_1");
+set("cutoff frequency", f3dB_Hz);
+set("insertion loss", 0);
+set("x position", 700);
+set("y position", 200);
+
+addelement("Eye Diagram");
+set("name","EYE_1");
+set("bitrate", symbol_rate * 2);
+set("x position", 900);
+set("y position", 150);
+
+addelement("Oscilloscope");
+set("name","OSC_1");
+set("x position", 900);
+set("y position", 250);
+
+connect("CWL_1", "output",      "AM_1",  "input");
+connect("PAM4_1","output",      "AM_1",  "modulation");
+connect("AM_1",  "output",      "PIN_1", "input");
+connect("PIN_1", "output",      "LPF_1", "input");
+connect("LPF_1", "output",      "EYE_1", "input");
+connect("LPF_1", "output",      "OSC_1", "input");
+
+setnamed("Root Element", "bitrate",      symbol_rate * 2);
+setnamed("Root Element", "sample rate",  symbol_rate * 32);
+
+save("ge_pd_interconnect_setup.icp");
+?"INTERCONNECT PAM-4 test bench created: ge_pd_interconnect_setup.icp";
+?"PIN_1: R="+num2str(R_AW)+" A/W  Id="+num2str(Id_A*1e9,"%.2f")+" nA  BW="+num2str(f3dB_Hz/1e9,"%.0f")+" GHz";
+?"Rs="+num2str(Rs_ohm,"%.1f")+" Ohm  Cj="+num2str(Cj_F*1e15,"%.1f")+" fF  Lp="+num2str(Lp_H*1e12,"%.0f")+" pH";
+?"Symbol rate: "+num2str(symbol_rate/1e9,"%.3f")+" GBd  (PAM-4 => "+num2str(symbol_rate*2/1e9,"%.1f")+" Gb/s)";

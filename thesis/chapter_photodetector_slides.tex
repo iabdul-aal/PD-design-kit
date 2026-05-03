@@ -1,0 +1,249 @@
+\documentclass[aspectratio=169,11pt]{beamer}
+\usetheme{Boadilla}
+\usecolortheme{seahorse}
+\usefonttheme{professionalfonts}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{siunitx}
+\DeclareSIUnit{\baud}{Bd}
+\usepackage{amsmath}
+\usepackage{tikz}
+
+\setbeamertemplate{navigation symbols}{}
+\setbeamertemplate{footline}[frame number]
+
+\title{Ge-on-Si Photodetector Design and Simulation}
+\subtitle{O-band vertical n-i-p photodiode for high-speed PAM-4 optical receivers}
+\author{Islam I.\ Abdulaal}
+\institute{Electronics and Communications Engineering\\Alexandria University}
+\date{2026}
+
+\begin{document}
+
+\begin{frame}
+\titlepage
+\end{frame}
+
+\begin{frame}{Motivation and Targets}
+\begin{itemize}
+\item Intra-datacenter PAM-4 receivers need \textbf{high responsivity}, \textbf{very low dark current}, and \textbf{bandwidth above \SI{100}{\giga\hertz}}.
+\item A \textbf{Ge-on-Si vertical n-i-p photodiode} offers a strong fit with standard SOI photonics.
+\item The chapter benchmarks the design against Yang Shi et al., \textit{Photonics Research} 12(1), 2024.
+\end{itemize}
+\vspace{0.5em}
+\centering
+\begin{tabular}{lr}
+\toprule
+Metric & Target \\
+\midrule
+Responsivity & $\geq \SI{0.95}{\ampere/\watt}$ \\
+Dark current & $\leq \SI{1.3}{\nano\ampere}$ \\
+Bandwidth & $\geq \SI{103}{\giga\hertz}$ \\
+Detectivity & $\geq 2.95\times10^{10}~\si{\centi\metre\sqrt{\hertz}/\watt}$ \\
+\bottomrule
+\end{tabular}
+\end{frame}
+
+\begin{frame}{Device Architecture}
+\begin{columns}[T]
+\begin{column}{0.55\textwidth}
+\begin{itemize}
+\item Vertical \textbf{n-i-p} stack on a \textbf{\SI{220}{\nano\metre} SOI} platform.
+\item \textbf{\SI{50}{\nano\metre} n++ Ge} top contact layer.
+\item \textbf{\SI{350}{\nano\metre} intrinsic Ge} absorber.
+\item \textbf{p++ Si} platform for the anode path.
+\item \textbf{U-shaped electrode} reduces the RC penalty while preserving carrier collection.
+\end{itemize}
+\end{column}
+\begin{column}{0.4\textwidth}
+\centering
+\begin{tabular}{lr}
+\toprule
+Layer & Thickness \\
+\midrule
+n++ Ge & \SI{50}{\nano\metre} \\
+i-Ge & \SI{350}{\nano\metre} \\
+p++ Si & \SI{220}{\nano\metre} \\
+BOX & \SI{2}{\micro\metre} \\
+\bottomrule
+\end{tabular}
+\end{column}
+\end{columns}
+\end{frame}
+
+\begin{frame}{Optical Simulation Flow}
+\begin{columns}[T]
+\begin{column}{0.55\textwidth}
+\begin{itemize}
+\item \textbf{Lumerical FDTD} models the taper-coupled optical absorption at \SI{1310}{\nano\metre}.
+\item The simulation exports \textbf{optical generation rate} into CHARGE.
+\item Ge length is optimized to reach high absorption with minimum footprint.
+\end{itemize}
+\vspace{0.5em}
+\textbf{Key optical design points:}
+\begin{itemize}
+\item TE-driven O-band operation
+\item Adiabatic spot-size converter (\SI{500}{\nano\metre} $\to$ \SI{5}{\micro\metre} over \SI{40}{\micro\metre})
+\item 3D generation-rate export: $G = P_\mathrm{abs}/(h\nu)$
+\end{itemize}
+\end{column}
+\begin{column}{0.4\textwidth}
+\centering
+\includegraphics[width=\linewidth]{figures/opt_generation_rate_map.png}
+\end{column}
+\end{columns}
+\end{frame}
+
+\begin{frame}{Electrical Simulation Flow}
+\begin{itemize}
+\item \textbf{Lumerical DEVICE CHARGE} solves carrier transport under reverse bias.
+\item SRH recombination enabled with $\tau_n = \tau_p$ (calibrated to match dark current target).
+\item Fine mesh override: \SI{20}{\nano\metre} max edge length over the Ge active region.
+\item Extracted quantities include:
+\begin{itemize}
+\item Dark current and illuminated current
+\item Band diagram, carrier density
+\item Electric field and potential
+\end{itemize}
+\item Bandwidth estimated from \textbf{transit-time + RC} limits.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Dark Current Result}
+\begin{columns}[T]
+\begin{column}{0.55\textwidth}
+\begin{itemize}
+\item All parameters flow from solvers --- no hardcoded paper values.
+\item Low dark current is essential for:
+\begin{itemize}
+\item Receiver sensitivity
+\item Noise performance
+\item Robust PAM-4 eye opening
+\end{itemize}
+\end{itemize}
+\end{column}
+\begin{column}{0.4\textwidth}
+\centering
+\includegraphics[width=\linewidth]{figures/dark_iv.png}
+\end{column}
+\end{columns}
+\end{frame}
+
+\begin{frame}{Internal Device Physics}
+\begin{columns}[T]
+\begin{column}{0.48\textwidth}
+\centering
+\includegraphics[width=\linewidth]{figures/phys_band_diagram.png}
+\end{column}
+\begin{column}{0.48\textwidth}
+\centering
+\includegraphics[width=\linewidth]{figures/phys_carrier_density.png}
+\end{column}
+\end{columns}
+\vspace{0.3em}
+\footnotesize Band alignment, carrier density, and depletion shaping near $V=-1$\,V explain the tradeoff between responsivity, dark current, and speed.
+\end{frame}
+
+\begin{frame}{Electric Field and Bandwidth}
+\begin{columns}[T]
+\begin{column}{0.48\textwidth}
+\centering
+\includegraphics[width=\linewidth]{figures/phys_field_potential.png}
+\end{column}
+\begin{column}{0.48\textwidth}
+\centering
+\includegraphics[width=\linewidth]{figures/freq_response_model.png}
+\end{column}
+\end{columns}
+\vspace{0.3em}
+\begin{itemize}
+\item Transit-time and RC contributions are combined into the bandwidth model.
+\item All parasitic parameters ($R_s$, $C_j$, $L_p$, $C_p$) derived from geometry.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{System-Level Receiver View}
+\begin{columns}[T]
+\begin{column}{0.48\textwidth}
+\centering
+\includegraphics[width=\linewidth]{figures/system_transfer_function.png}
+\end{column}
+\begin{column}{0.48\textwidth}
+\centering
+\includegraphics[width=\linewidth]{figures/system_photocurrent_eye.png}
+\end{column}
+\end{columns}
+\vspace{0.3em}
+\begin{itemize}
+\item The repo extends the device into a \textbf{MATLAB PAM-4 receiver model} at \SI{53.125}{\giga\baud}.
+\item All device parameters flow from the CML \texttt{.mat} generated by device-level postprocessing.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{PAM-4 Signal Quality}
+\begin{columns}[T]
+\begin{column}{0.45\textwidth}
+\centering
+\includegraphics[width=\linewidth]{figures/system_pam4_histogram.png}
+\end{column}
+\begin{column}{0.5\textwidth}
+\begin{itemize}
+\item Matched-filter output shows \textbf{4 distinct PAM-4 levels}.
+\item Decision thresholds separate the symbol clusters.
+\item SNR, BER, and SER are computed from the simulation.
+\item The PD can now be studied both as a device and as a circuit block.
+\end{itemize}
+\end{column}
+\end{columns}
+\end{frame}
+
+\begin{frame}{INTERCONNECT-Ready Compact Model}
+\begin{itemize}
+\item The repo exports a \textbf{Lumerical INTERCONNECT-ready} photodetector data package.
+\item Generated artifacts include:
+\begin{itemize}
+\item Responsivity table (frequency-dependent)
+\item Bandwidth table (bias-dependent)
+\item Dark-current table
+\item Compact-model \texttt{.mat} source data
+\item Equivalent-circuit parameters CSV
+\end{itemize}
+\end{itemize}
+\centering
+\includegraphics[width=0.6\linewidth]{figures/system_interconnect_compact_model.png}
+\end{frame}
+
+\begin{frame}{Data Pipeline Overview}
+\centering
+\begin{tikzpicture}[node distance=1.5cm, auto,
+  block/.style={rectangle, draw, text width=6em, text centered, minimum height=2.5em, font=\small},
+  arrow/.style={->, >=stealth, thick}]
+\end{tikzpicture}
+
+\vspace{0.5em}
+\footnotesize
+\texttt{FDTD .lsf} $\to$ \texttt{fdtd\_results.mat} $\to$ \texttt{CHARGE .lsf} $\to$ \texttt{charge\_results.mat} $\to$ \texttt{postprocess.m} $\to$ \texttt{CML .mat} $\to$ \texttt{system-level}
+
+\vspace{0.5em}
+\normalsize
+\begin{block}{}
+All parameters flow from Lumerical solvers $\to$ MAT files $\to$ MATLAB postprocess $\to$ CML export $\to$ system-level scripts. \textbf{Nothing is hardcoded in the pipeline.}
+\end{block}
+\end{frame}
+
+\begin{frame}{Final Takeaways}
+\begin{itemize}
+\item The chapter demonstrates a \textbf{Ge-on-Si O-band photodiode} targeting published high-speed metrics.
+\item The workflow is consistent across:
+\begin{itemize}
+\item \textbf{Device-level FDTD} --- optical absorption, generation rate
+\item \textbf{Device-level CHARGE} --- dark current, responsivity, band structure
+\item \textbf{Device-level postprocess} --- CML dataset, all derived parameters
+\item \textbf{System-level MATLAB} --- PAM-4 BER, eye diagrams, histograms
+\item \textbf{INTERCONNECT-ready export} --- circuit-level integration
+\end{itemize}
+\item \textbf{Zero hardcoded paper values} --- all metrics from solvers and geometry.
+\end{itemize}
+\end{frame}
+
+\end{document}

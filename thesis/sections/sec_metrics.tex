@@ -1,0 +1,374 @@
+\section[Performance Metrics]{Performance Metrics and Design Trade-offs}
+\label{sec:pd_metrics}
+
+The transport and absorption physics of \cref{sec:pd_fundamentals} support a set
+of engineering metrics that define what a useful photodetector must accomplish and
+at what cost. These metrics are not independent: they form a multi-dimensional
+trade-off space in which improving one quantity typically degrades another. Every
+architectural and material choice in the sections that follow is justifiable
+using the definitions established here.
+
+\subsection[Responsivity and Quantum Efficiency]{Responsivity and Quantum Efficiency}
+\label{subsec:pd_responsivity}
+
+The \emph{external responsivity} $\mathcal{R}$ is:
+\begin{equation}
+    \mathcal{R} \equiv \frac{I_{\mathrm{ph}}}{P_{\mathrm{opt}}}
+    \quad [\si{\ampere\per\watt}],
+    \label{eq:responsivity}
+\end{equation}
+with theoretical upper bound:
+\begin{equation}
+    \mathcal{R}_{\max} = \frac{q\lambda}{hc}
+    \approx \SI{1.057}{\ampere\per\watt}
+    \quad\text{at \SI{1310}{\nano\metre}}.
+    \label{eq:rmax}
+\end{equation}
+The external quantum efficiency (EQE) $\eta_{\mathrm{ext}}$ and internal quantum
+efficiency (IQE) $\eta_{\mathrm{int}}$ are:
+\begin{align}
+    \eta_{\mathrm{ext}}
+    &= \mathcal{R}\cdot\frac{hc}{q\lambda},
+    \label{eq:eqe}\\
+    \eta_{\mathrm{int}}
+    &= \frac{I_{\mathrm{ph}}/q}{P_{\mathrm{abs}}/\hbar\omega}.
+    \label{eq:iqe}
+\end{align}
+In the fully depleted intrinsic region at saturation field, the drift transit
+time $\tau_{\mathrm{tr}}=W_i/v_{\mathrm{d,sat},h}$ is much shorter than the
+SRH lifetime $\tau_0$, giving a carrier collection efficiency
+$\xi\approx1-\tau_{\mathrm{tr}}/\tau_0\approx1$. The more general form of the
+EQE chain is:
+\begin{equation}
+    \eta_{\mathrm{ext}}
+    = (1 - R_{\mathrm{refl}})\,\xi\,\eta_c\,
+      \bigl(1 - e^{-\alpha(\lambda)\,L}\bigr),
+    \label{eq:qe_full}
+\end{equation}
+where $R_{\mathrm{refl}}$ is the Si/Ge entry-facet reflectance and $\eta_c$ is
+the coupling efficiency from the silicon waveguide into the Ge absorber mode.
+Real devices fall below $\mathcal{R}_{\max}$ because of coupling loss ($\eta_c<1$),
+incomplete absorption ($e^{-\alpha L}>0$), and residual carrier recombination
+before collection ($\xi<1$).
+
+\begin{figure}[H]
+    \centering
+    \missingfigure[figwidth=0.84\linewidth]{
+        Two-panel metrics figure. Left panel: photocurrent versus input
+        optical power, showing the linear responsivity slope in the low-power
+        regime and saturation at high power. Right panel: responsivity versus
+        wavelength, highlighting the short-wavelength reduction from excess
+        carrier energy and the long-wavelength roll-off near the absorption
+        edge.}
+    \caption{Responsivity viewed in both its power-domain and spectral forms.
+    The low-power slope of the $I$-$P$ curve defines $\mathcal{R}$, whereas
+    the wavelength dependence determines the useful operating window around the
+    O-band.}
+    \label{fig:responsivity_concept}
+\end{figure}
+
+\subsection[Bandwidth: Transit-Time and RC Limits]{Bandwidth: Transit-Time and RC Limits}
+\label{subsec:pd_bw}
+
+The frequency response is limited by two physically distinct mechanisms.
+In the absence of deliberate inductive peaking, the combined baseline
+bandwidth is~\cite{SalehTeich1991}:
+\begin{equation}
+    f_{3\,\mathrm{dB}}
+    = \left(\frac{1}{f_{\mathrm{tt}}^2}
+      + \frac{1}{f_{\mathrm{RC}}^2}\right)^{-1/2}.
+    \label{eq:bw_total}
+\end{equation}
+
+\paragraph{Transit-time limit.}
+With hole saturation velocity $v_{\mathrm{d,sat},h}\approx\SI{4e6}{\centi\metre\per\second}$
+and electron saturation velocity $v_{\mathrm{d,sat},e}\approx\SI{6e6}{\centi\metre\per\second}$,
+the transit-time-limited 3\,dB bandwidth from Fourier analysis of a rectangular
+current impulse response is:
+\begin{equation}
+    f_{\mathrm{tt}} = \frac{0.45\,v_{\mathrm{d,sat},h}}{W_i},
+    \label{eq:bw_tt}
+\end{equation}
+where the coefficient $0.45$ arises from the sinc-like spectral roll-off and
+reflects the asymmetric electron-hole velocity ratio
+$v_{\mathrm{d,sat},e}/v_{\mathrm{d,sat},h}\approx1.5$.
+For $W_i=\SI{350}{\nano\metre}$: $f_{\mathrm{tt}}\approx\SI{51}{\giga\hertz}$.
+This value is a geometry-screening lower bound rather than the absolute transport
+ceiling. The full two-carrier response of \cref{eq:jt_analytical} is broader
+because electrons and holes induce terminal current simultaneously, and the
+experimentally relevant RF response further benefits from on-electrode inductance
+$L_p$. For the \SI{350}{\nano\metre} intrinsic region, the benchmark-calibrated
+transport ceiling is in the \SIrange{110}{120}{\giga\hertz} class.
+
+\paragraph{RC limit.}
+The junction capacitance of the fully depleted intrinsic region is:
+\begin{equation}
+    C_j = \frac{\varepsilon_0\varepsilon_{\mathrm{Ge}}\,A_j}{W_i},
+    \label{eq:cj}
+\end{equation}
+where $\varepsilon_{\mathrm{Ge}}\approx16.2$ and $A_j=W_m\times L$.
+The RC-limited bandwidth is:
+\begin{equation}
+    f_{\mathrm{RC}} = \frac{1}{2\pi R_{\mathrm{tot}}\,C_j},
+    \label{eq:bw_rc}
+\end{equation}
+where $R_{\mathrm{tot}}=R_s+R_L$ and $R_L=\SI{50}{\ohm}$.
+
+\paragraph{Optimal intrinsic-layer thickness.}
+Setting $f_{\mathrm{tt}}(W_i^*)=f_{\mathrm{RC}}(W_i^*)$ and substituting
+\cref{eq:bw_tt,eq:bw_rc,eq:cj} gives:
+\begin{equation}
+    W_i^* = \sqrt{0.9\pi\,R_{\mathrm{tot}}\,\varepsilon_0\varepsilon_{\mathrm{Ge}}
+             \,v_{\mathrm{d,sat},h}\,A_j}.
+    \label{eq:wi_optimal}
+\end{equation}
+Substituting $R_{\mathrm{tot}}=\SI{60}{\ohm}$, $\varepsilon_{\mathrm{Ge}}=16.2$,
+$v_{\mathrm{d,sat},h}=\SI{4e6}{\centi\metre\per\second}$, and
+$A_j=\SI{6}{\micro\metre\squared}$ gives
+$W_i^*\approx\SI{310}{\nano\metre}$, within \SI{11}{\percent} of the chosen
+$W_i=\SI{350}{\nano\metre}$, confirming that the device is positioned near the
+bandwidth optimum. The expression \cref{eq:wi_optimal} reveals a fundamental
+scaling law: since $W_i^*\propto\sqrt{A_j}$, shrinking the junction area by a
+factor of four allows $W_i^*$ to be halved, raising the balanced bandwidth at
+the new optimum by approximately the same factor.
+
+The small-signal photocurrent transfer function is well-approximated by the
+factorised form:
+\begin{equation}
+    H_{\mathrm{PD}}(f)
+    = \mathrm{sinc}\!\left(\frac{f}{f_{\mathrm{tt}}}\right)
+    \cdot\frac{1}{1+i\,f/f_{\mathrm{RC}}},
+    \label{eq:H_pd}
+\end{equation}
+where $\mathrm{sinc}(x)=\sin(\pi x)/(\pi x)$. For the benchmark-calibrated
+U-shaped device, the electrical sub-network is more accurately represented by a
+series branch $Z_s(\omega)=R_s+j\omega L_p$ driving a terminated capacitive load
+$Z_L(\omega)=\left(R_L^{-1}+j\omega C_p\right)^{-1}$ while the reverse-biased
+junction impedance is $Z_j(\omega)\approx(j\omega C_j)^{-1}$. Current division
+then gives the peaked electrical transimpedance:
+\begin{equation}
+    H_{\mathrm{elec,pk}}(\omega)
+    = \frac{Z_j(\omega)\,Z_L(\omega)}
+           {Z_j(\omega)+Z_s(\omega)+Z_L(\omega)},
+    \label{eq:helec_pk}
+\end{equation}
+and the full benchmark-calibrated detector response becomes:
+\begin{equation}
+    H_{\mathrm{PD,pk}}(\omega)
+    = H_{\mathrm{tt}}(\omega)\,H_{\mathrm{elec,pk}}(\omega).
+    \label{eq:H_pd_pk}
+\end{equation}
+\Cref{eq:H_pd} is used for fast trade-off screening; \cref{eq:H_pd_pk} is used
+when projecting the validated single-U device toward the \SI{100}{\giga\hertz}-class
+operating regime.
+
+\paragraph{Series resistance and RC time constant.}
+The series resistance $R_s$ in the vertical n-i-p architecture is dominated by
+the lateral conduction path through the $p^{++}$-Si platform:
+\begin{equation}
+    R_{s,\mathrm{anode}} \approx \frac{\rho_{\mathrm{Si}}}{t_{\mathrm{Si}}}
+    \cdot\frac{\ell_a}{w_a},
+    \label{eq:rs_anode}
+\end{equation}
+where $t_{\mathrm{Si}}=\SI{220}{\nano\metre}$ is the platform thickness.
+The RC time constant is:
+\begin{equation}
+    \tau_{\mathrm{RC}} = R_s\,C_j,
+    \label{eq:tau_rc}
+\end{equation}
+from which $f_{\mathrm{RC}}=(2\pi\tau_{\mathrm{RC}})^{-1}$.
+
+\begin{figure}[H]
+    \centering
+    \missingfigure[figwidth=0.82\linewidth]{
+        Two-panel RC figure. Left panel: simplified equivalent circuit showing
+        $C_j$, $R_s$, parasitic capacitance, and the \SI{50}{\ohm} load.
+        Right panel: qualitative capacitance and RC-limited bandwidth trends
+        versus junction area, illustrating the penalty paid when optical
+        absorption is pursued through a larger footprint.}
+    \caption{Capacitance-resistance interpretation of the vertical PIN
+    photodetector. The key RC penalty comes from simultaneously increasing the
+    depleted junction area and the lateral access resistance, which is why
+    layout and footprint must be optimised together.}
+    \label{fig:rc_concept}
+\end{figure}
+
+\subsection[Noise, Sensitivity, and Figures of Merit]{Noise, Sensitivity, and Figures of Merit}
+\label{subsec:pd_noise}
+
+\subsubsection{Dark Current}
+\label{subsubsec:pd_dark}
+
+Dark current $I_d$ flows through the reverse-biased junction in the absence of
+optical excitation and sets the noise floor through \cref{eq:shot}. Three
+generation-recombination mechanisms contribute~\cite{SzeNg2006}. The \emph{SRH
+generation} current density within the depleted intrinsic layer of thickness
+$W_i$ follows from \cref{eq:srh_dep}:
+\begin{equation}
+    J_{\mathrm{SRH}} = q\,U_{\mathrm{SRH,dep}}\,W_i
+    = \frac{q\,n_i\,W_i}{2\tau_0}.
+    \label{eq:jdark_srh}
+\end{equation}
+\emph{Minority-carrier diffusion} from the quasi-neutral contact regions
+contributes:
+\begin{equation}
+    J_{\mathrm{diff}}
+    = \frac{qD_p\,n_i^2}{L_p\,N_D} + \frac{qD_n\,n_i^2}{L_n\,N_A},
+    \label{eq:jdark_diff}
+\end{equation}
+where $L_p=\sqrt{D_p\tau_p}$ and $L_n=\sqrt{D_n\tau_n}$.
+\emph{Interface recombination} at the Ge/Si heterojunction contributes:
+\begin{equation}
+    J_{\mathrm{surf}} \approx \frac{q\,n_i\,v_s}{2}.
+    \label{eq:jdark_surf}
+\end{equation}
+The total dark current, including both bulk and surface (perimeter)
+contributions, is:
+\begin{equation}
+    I_d = A_j\!\left(J_{\mathrm{SRH}} + J_{\mathrm{diff}}\right)
+    + P_j\,q\,n_i\,v_s/2,
+    \label{eq:idark_decomposed}
+\end{equation}
+where $P_j=2(W_m+L)$ is the junction mesa perimeter. This perimeter scaling has
+a direct consequence for miniaturisation: as $A_j$ is reduced to decrease $C_j$
+and improve bandwidth, the area-to-perimeter ratio $A_j/P_j$ decreases, increasing
+the fractional contribution of the surface term.
+
+\begin{figure}[H]
+    \centering
+    \missingfigure[figwidth=0.82\linewidth]{
+        Two-panel dark-current figure. Left panel: decomposition of total dark
+        current into SRH, diffusion, and surface terms versus reverse bias.
+        Right panel: area scaling versus perimeter scaling for large and small
+        junctions, showing why surface effects grow in importance as the mesa
+        footprint shrinks.}
+    \caption{Dark-current mechanisms of the reverse-biased Ge-on-Si PIN.
+    The present device remains bulk-SRH dominated at the chosen footprint, but
+    perimeter-driven surface generation becomes progressively more important as
+    the junction is aggressively miniaturised.}
+    \label{fig:dark_current_concept}
+\end{figure}
+
+\subsubsection{Noise Spectral Densities and Noise-Equivalent Power}
+\label{subsubsec:pd_noise_psd}
+
+\begin{figure}[H]
+    \centering
+    \missingfigure[figwidth=0.86\linewidth]{
+        Four-panel noise concept figure. Discrete carrier arrivals, Poisson
+        counting statistics, time-domain current fluctuations, and flat shot
+        versus thermal noise spectral densities are shown on a common causal
+        path from charge discreteness to electrical noise PSD.}
+    \caption{Figure-first explanation of noise origin. Shot noise is not an
+    abstract fitting parameter but the continuum limit of the counting
+    fluctuations of discrete carriers arriving at the terminal.}
+    \label{fig:shot_noise_origin}
+\end{figure}
+
+\paragraph{Origin of shot noise from carrier counting statistics.}
+The physical origin of shot noise is the randomness of discrete carrier arrivals.
+Let $N_T$ denote the number of carriers collected during an observation interval
+$T$. If the arrivals are statistically independent, then $N_T$ is Poisson
+distributed with mean $\mathbb{E}[N_T]=IT/q$ and variance
+$\mathrm{Var}[N_T]=IT/q$. The collected charge is $Q_T=qN_T$, so:
+\begin{equation}
+    \mathrm{Var}[Q_T] = qIT.
+    \label{eq:var_charge_poisson}
+\end{equation}
+Dividing by $T^2$ converts charge variance to variance of the time-averaged current:
+\begin{equation}
+    \mathrm{Var}\!\left[\bar{I}_T\right]
+    = \frac{qI}{T}.
+    \label{eq:var_current_poisson}
+\end{equation}
+Passing from the finite-time variance to the one-sided continuous spectral
+density yields the standard result $S_{\mathrm{shot}}=2qI$.
+
+\emph{Shot noise} arises from the quantum-mechanical discreteness of charge
+carriers:
+\begin{equation}
+    S_{\mathrm{shot}}(f) = 2q\!\left(I_d + I_{\mathrm{ph}}\right)
+    \quad [\si{\ampere\squared\per\hertz}].
+    \label{eq:shot}
+\end{equation}
+\emph{Johnson (thermal) noise} from the load resistance contributes:
+\begin{equation}
+    S_{\mathrm{thermal}}(f) = \frac{4kT}{R_L}
+    \quad [\si{\ampere\squared\per\hertz}].
+    \label{eq:thermal}
+\end{equation}
+Integrating over the detection bandwidth gives the total photodetector noise
+variance:
+\begin{equation}
+    \sigma_n^2 = i_n^2\,B_e
+    \quad [\si{\ampere\squared}],
+    \label{eq:sigma_n}
+\end{equation}
+where $i_n^2 = S_{\mathrm{shot}}$. The \emph{noise-equivalent power} (NEP) and
+\emph{specific detectivity} $D^*$ are:
+\begin{align}
+    \mathrm{NEP}
+    &= \frac{\sqrt{S_{\mathrm{shot}} + S_{\mathrm{thermal}}}}{\mathcal{R}}
+    \quad [\si{\watt\per\sqrt\hertz}],
+    \label{eq:nep}\\
+    D^*_{\mathrm{shot}}
+    &= \frac{\mathcal{R}\sqrt{A_j}}{\sqrt{2qI_d}}.
+    \label{eq:dstar}
+\end{align}
+
+Generation-recombination noise from a trap ensemble with characteristic
+lifetime $\tau_{\mathrm{gr}}$ has a Lorentzian form that falls below relevance
+in the tens-of-GHz band of interest. Optical-source noise enters as:
+\begin{equation}
+    S_{\mathrm{RIN}}(f) = \mathcal{R}^2P_{\mathrm{opt}}^2\,\mathrm{RIN},
+    \label{eq:rin_noise}
+\end{equation}
+and can become important at the link level even when the detector itself is quiet.
+By contrast, taper insertion loss, waveguide propagation loss, free-carrier
+absorption in the doped contact layer, Fresnel reflection, and incomplete carrier
+collection do not create a new electrical noise PSD by themselves; they reduce
+the signal term $I_{\mathrm{ph}}=\mathcal{R}P_{\mathrm{opt}}$ and thereby
+degrade SNR indirectly.
+
+\begin{figure}[H]
+    \centering
+    \missingfigure[figwidth=0.85\linewidth]{
+        Two-panel photodetector-noise plot. Left panel: current-noise PSD
+        showing $S_{\mathrm{shot}}=2qI_d$ and the load-defined thermal term
+        $S_{\mathrm{thermal}}=4kT/R_L$ across frequency. Right panel: intrinsic
+        photodetector noise variance $\sigma_n^2=i_n^2 B_e$ versus bandwidth,
+        together with the corresponding dark-current shot-noise floor.}
+    \caption{Noise decomposition of the photodetector from
+    \cref{eq:shot,eq:thermal,eq:sigma_n}. For $I_d=\SI{1.3}{\nano\ampere}$,
+    the dark-current shot-noise contribution remains small at
+    \SI{103}{\giga\hertz}, confirming that the intrinsic detector noise floor
+    is low.}
+    \label{fig:noise_decomposition}
+\end{figure}
+
+\subsection[The Speed--Efficiency--Noise Trade-off]{The Speed--Efficiency--Noise Trade-off Triangle}
+\label{subsec:pd_tradeoffs}
+
+The metrics defined above are not free parameters. They are bound together by the
+device physics into a multi-dimensional trade-off space that every design decision
+navigates.
+
+The fundamental tension in the responsivity-bandwidth trade-off is structural.
+A thicker intrinsic layer $W_i$ absorbs more photons, improving $\mathcal{R}$
+via \cref{eq:qe_full}, but also increases the carrier transit time, reducing
+$f_{\mathrm{tt}}$ via \cref{eq:bw_tt}. A longer device absorbs more light but
+increases $C_j$ linearly through \cref{eq:cj}, reducing $f_{\mathrm{RC}}$ via
+\cref{eq:bw_rc}. Reducing $A_j$ below the absorption saturation point recovers
+bandwidth at the cost of responsivity.
+
+The noise axis adds a third dimension: higher reverse bias deepens the depletion
+region, which raises $f_{\mathrm{tt}}$ by increasing the carrier saturation
+velocity, but also drives more SRH generation through \cref{eq:jdark_srh},
+degrading NEP via \cref{eq:nep}.
+
+The responsivity-bandwidth product $\mathcal{R}\times f_{3\,\mathrm{dB}}$ captures
+the most important two-dimensional trade-off as a scalar figure of merit and is
+used in the benchmarking table of \cref{subsec:pd_benchmarks}. The design
+rationale developed in \cref{sec:pd_design} maps the full
+geometry-to-performance relationship, identifies the Pareto front of the
+vertical architecture, and positions the chosen device within it.

@@ -1,0 +1,48 @@
+\section[Introduction]{Introduction and Chapter Scope}
+\label{sec:pd_intro}
+
+The relentless growth of data-centre interconnect capacity has driven the O-band
+silicon-photonics ecosystem toward 400G and beyond. IEEE~802.3 Clause~140
+specifies 400GBASE-DR4 as a four-lane PAM-4 interface at \SI{1310}{\nano\metre},
+placing each lane at \SI{106.25}{\giga\bit\per\second} raw line rate and demanding
+a receiver-side photodetector that is simultaneously fast, efficient, and quiet.
+Meeting that specification on a CMOS-foundry platform is not merely a component
+selection problem: it requires a design methodology that connects photon absorption
+physics, material constraints, device topology, and electrode engineering into a
+single coherent argument.
+
+This chapter develops that argument from first principles. The discussion is
+structured as a progressive narrowing: beginning with the electromagnetic
+foundations of light absorption in semiconductors, passing through the metrics
+that define a useful receiver device, surveying the landscape of competing
+architectures and materials, and arriving at a specific vertical n-i-p
+Ge-on-Si waveguide photodetector whose geometry, contact topology, and
+simulation strategy are each justified by the physics established along the way.
+
+The chapter is organised as follows.
+\Cref{sec:pd_fundamentals} establishes the physics of photodetection, deriving
+the Beer-Lambert absorption law from Maxwell's equations, developing the
+drift-diffusion carrier transport framework, and quantifying the recombination
+mechanisms that limit carrier collection.
+\Cref{sec:pd_metrics} defines the evaluation language, namely responsivity,
+bandwidth, dark current, noise, and the trade-offs among them, that governs
+every architectural and material choice that follows.
+\Cref{sec:pd_architectures} surveys photodetector device classes from the
+photoconductor through the avalanche photodiode and derives, rather than
+asserts, the selection of the waveguide-integrated PIN junction for high-speed
+integrated links.
+\Cref{sec:pd_material} justifies germanium-on-silicon as the material platform,
+including its spectral suitability at \SI{1310}{\nano\metre}, its CMOS integration
+path, and the threading-dislocation challenge that sets the dark-current floor.
+\Cref{sec:pd_literature} reviews the experimental record of Ge-on-Si waveguide
+photodetectors critically and identifies the gap that motivates the U-shaped
+electrode approach adopted here.
+\Cref{sec:pd_design} presents the proposed device architecture in detail,
+including the vertical PIN layer stack, the adiabatic taper coupling strategy,
+the U-shaped electrode topology, and the geometry-to-performance design space
+mapping.
+\Cref{sec:pd_simulation} describes the multiphysics simulation strategy: FDTD
+optical modelling, CHARGE drift-diffusion solving, MATLAB post-processing, and
+the validation approach anchoring the simulation to the published benchmark.
+\Cref{sec:pd_summary} closes with a synthesis of the key design insights and a
+transition to the results chapter.

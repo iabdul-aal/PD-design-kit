@@ -1,0 +1,270 @@
+\section[Proposed Device Architecture]{Proposed Device Architecture and Design Rationale}
+\label{sec:pd_design}
+
+The preceding sections established the physical foundations
+(\cref{sec:pd_fundamentals}), the performance metric language
+(\cref{sec:pd_metrics}), and the architectural and material choices
+(\cref{sec:pd_architectures,sec:pd_material}) that narrow the design space to
+a vertical waveguide-integrated Ge-on-Si PIN photodetector at
+\SI{1310}{\nano\metre}. This section specifies the device geometry and justifies
+each design parameter in terms of the physics and metrics developed earlier.
+
+\subsection[Vertical PIN Structure]{Vertical PIN Structure: Geometry, Layer Stack, and Field Distribution}
+\label{subsec:pd_vertical_pin}
+
+The photodiode is realised on a \SI{220}{\nano\metre} SOI platform. Each layer
+parameter in \cref{tab:layer_stack} is the result of a specific physical argument
+derived from the metric framework of \cref{sec:pd_metrics}.
+
+\begin{table}[H]
+\centering
+\caption{Layer stack and primary material parameters of the Ge-on-Si n-i-p
+photodiode simulation model. All doping concentrations are net values.}
+\label{tab:layer_stack}
+\footnotesize
+\begin{tabular*}{\linewidth}{@{\extracolsep{\fill}}L{1.8cm}L{1.5cm}C{1.8cm}C{1.3cm}C{2.3cm}L{4.1cm}@{}}
+\toprule
+Layer & Material & Thickness & Type &
+Concentration [\si{\per\centi\metre\cubed}] &
+Primary function \\
+\midrule
+Cathode  & $n^{++}$-Ge & \SI{50}{\nano\metre}  & n & \SI{e19}{} &
+    Ohmic contact; minimise FCA \\
+Absorber & $i$-Ge      & \SI{350}{\nano\metre} & intrinsic & $\sim\SI{e13}{}$ &
+    Optical absorption; depletion \\
+Platform & $p^{++}$-Si & \SI{220}{\nano\metre} & p & \SI{e20}{} &
+    Anode contact; current spreading \\
+BOX      & \ce{SiO2}   & \SI{2}{\micro\metre}  & N/A & N/A &
+    Optical isolation \\
+Handle   & Si          & $\sim\SI{700}{\micro\metre}$ & N/A & N/A &
+    Mechanical support \\
+\bottomrule
+\end{tabular*}
+\end{table}
+
+The intrinsic germanium thickness $W_i=\SI{350}{\nano\metre}$ is selected from
+the optimisation of \cref{eq:wi_optimal}: it is within \SI{11}{\percent} of
+$W_i^*\approx\SI{310}{\nano\metre}$ and delivers the conservative lower-bound
+estimate $f_{\mathrm{tt}}\approx\SI{51}{\giga\hertz}$ from \cref{eq:bw_tt},
+while the benchmark-calibrated two-carrier and peaking-enhanced response of the
+same \SI{350}{\nano\metre} stack extends into the \SIrange{100}{120}{\giga\hertz}
+class through \cref{eq:H_pd_pk}. The $n^{++}$-Ge cathode is limited to
+\SI{50}{\nano\metre} to minimise free-carrier absorption (FCA) in the contact
+region; this design choice simultaneously suppresses the diffusion tail in the
+impulse response that would otherwise reduce the effective $f_{3\,\mathrm{dB}}$
+below the prediction of \cref{eq:bw_tt}~\cite{Yan2024}.
+
+\paragraph{Doping polarity and its impact on dark current.}
+\label{subsec:pd_polarity}
+The $p^{++}$-Si/$i$-Ge/$n^{++}$-Ge polarity (Si platform $p$-doped) places the
+graded Ge/Si transition such that the valence-band discontinuity $\Delta E_v$
+acts as an additive barrier to interface hole generation. In the alternative
+$p$-on-$n$ configuration (Si platform $n$-doped), the same $\Delta E_v$ raises
+$J_{\mathrm{surf}}$ above the value predicted by \cref{eq:jdark_surf} by modifying
+the effective barrier for thermally generated holes. For a fixed reverse bias of
+\SI{-1}{\volt}, the $p$-on-$n$ device exhibits $I_d$ a factor of approximately
+two to three lower than the $n$-on-$p$ counterpart, translating through
+\cref{eq:sens_dark} into a sensitivity improvement of approximately
+\SI{1.5}{\decibel} in the dark-current-dominated regime~\cite{Alasio2024}.
+The present device adopts the $p^{++}$-Si platform polarity precisely to
+minimise the interface generation contribution while maintaining CMOS process
+compatibility.
+
+\begin{figure}[H]
+    \centering
+    \missingfigure[figwidth=0.86\linewidth]{
+        Two-panel schematic of the selected Ge-on-Si PIN photodetector.
+        Left panel: device cross-section used in the electrical model, showing
+        the \SI{220}{\nano\metre} Si platform, the \SI{350}{\nano\metre}
+        intrinsic Ge absorber, the doped contact regions, and the BOX.
+        Right panel: top-view FDTD geometry showing the \SI{40}{\micro\metre}
+        taper, the \SI{8}{\micro\metre}-long Ge absorber, the
+        \SI{5}{\micro\metre} mesa width, the \SI{3}{\micro\metre} intrinsic
+        region width, the U-shaped anode clearance, and the key stack
+        specifications used in the optical and electrical models.
+    }
+    \caption{Selected device geometry for the Ge-on-Si PIN photodetector,
+    showing the principal dimensions and model specifications used in the FDTD
+    and CHARGE simulations.}
+    \label{fig:design_dimensions}
+\end{figure}
+
+\subsection[Optical Coupling via Adiabatic Taper]{Optical Coupling via Adiabatic Taper}
+\label{subsec:pd_taper}
+
+Optical coupling from the input silicon waveguide is provided by a
+\SI{40}{\micro\metre} adiabatic taper designed for near-unity coupling
+efficiency. The taper adiabatically transforms the mode of the Si access
+waveguide into the Ge-loaded mode over a length $L_t$ that is long enough to
+suppress excitation of higher-order modes. By narrowing the Si waveguide tip to
+approximately \SIrange{100}{200}{\nano\metre}, the guided mode is pushed
+evanescently upward into the overlying Ge absorber. At the distal end of the
+taper the mode is fully confined within the Ge, and absorption proceeds with
+near-unity coupling efficiency. Evanescent coupling spreads the power transfer
+over the full taper length, lowering the peak generation density for the same
+absorbed power and preserving the geometric orthogonality of $L$ and
+$W_i$~\cite{Wang2024,Yan2024}.
+
+\subsection[U-Shaped Electrode Topology]{U-Shaped Electrode Topology: RC Reduction and Current Path Engineering}
+\label{subsec:pd_electrode}
+
+The U-shaped anode electrode is the primary design intervention for the RC
+bandwidth in the vertical architecture. The anode electrode layout is the
+dominant determinant of the RC bandwidth: selecting the wrong topology incurs
+a penalty of approximately \SI{20}{\giga\hertz} in $f_{3\,\mathrm{dB}}$ relative
+to the present state of the art.
+
+\subsubsection{The Vertical n-i-p Equivalent Circuit}
+\label{subsubsec:pd_eqckt}
+
+The complete small-signal equivalent circuit of the waveguide-coupled vertical
+n-i-p photodiode, including all parasitic elements, is shown in
+\cref{fig:eq_circuit}. The photocurrent source $I_{\mathrm{ph}}=\mathcal{R}P_{\mathrm{opt}}$
+drives the junction admittance, which consists of the junction capacitance $C_j$
+in parallel with the shunt conductance $G_{\mathrm{sh}}=I_d/V_{\mathrm{bias}}$.
+The junction is accessed through the series resistance network comprising the
+cathode series resistance $R_{s,\mathrm{cat}}$ and the anode series resistance
+$R_{s,\mathrm{an}}$ (path through the $p^{++}$-Si platform from the mesa base to
+the metal anode pad). The bondpad-to-chip parasitic capacitance $C_{\mathrm{par}}$
+shunts the junction at high frequencies, and the load termination
+$R_L=\SI{50}{\ohm}$ converts the photocurrent into a voltage signal.
+
+Lumping $R_s=R_{s,\mathrm{cat}}+R_{s,\mathrm{an}}$ and
+$C_{\mathrm{tot}}=C_j+C_{\mathrm{par}}$, the voltage transfer function from
+photocurrent source to load voltage is:
+\begin{equation}
+    H_{\mathrm{RC}}(f)
+    = \frac{V_{\mathrm{out}}(f)}{I_{\mathrm{ph}}(f)}
+    = \frac{R_L}{(1+j2\pi f R_L C_{\mathrm{tot}})(1+j2\pi f R_s C_{\mathrm{tot}})},
+    \label{eq:hrc_full}
+\end{equation}
+which for $R_s\ll R_L$ reduces to the single-pole expression of \cref{eq:bw_rc}.
+
+\begin{figure}[H]
+\centering
+\missingfigure[figwidth=0.84\linewidth]{
+    Complete small-signal equivalent circuit of the vertical n-i-p detector,
+    including the photocurrent source, junction capacitance, shunt
+    conductance, parasitic capacitance, \SI{50}{\ohm} load, and the dominant
+    anode resistance term whose value changes between the straight and
+    U-shaped layouts.}
+\caption{Complete small-signal equivalent circuit of the vertical n-i-p waveguide
+photodiode including all parasitic elements from \cref{eq:hrc_full}. The dominant
+bandwidth-limiting resistance is $R_{s,\mathrm{an}}$, the lateral conduction path
+through the $p^{++}$-Si platform, which is reduced by \SI{36}{\percent} in the
+U-shaped electrode topology relative to the parallel-electrode design.}
+\label{fig:eq_circuit}
+\end{figure}
+
+\subsubsection{Parallel-Electrode versus U-shaped Anode: Quantitative Comparison}
+\label{subsec:pd_electrode_compare}
+
+In the standard parallel-electrode (straight-anode) architecture, the metal
+anode pad is placed on one side of the germanium mesa, and the current must
+flow laterally through the $p^{++}$-Si platform from the opposing mesa sidewall
+to the pad. The mean lateral path length is approximately
+$\ell_a^{\mathrm{par}}\approx W_m/2+d_{\mathrm{gap}}$, where $W_m$ is the mesa
+width and $d_{\mathrm{gap}}$ is the clearance between the mesa sidewall and the
+anode metal edge. For a \SI{5}{\micro\metre}-wide mesa and a \SI{0.5}{\micro\metre}
+lithographic clearance:
+\begin{equation}
+    R_{s,\mathrm{an}}^{\mathrm{par}}
+    \approx \frac{\rho_{\mathrm{Si}}}{t_{\mathrm{Si}}}
+    \cdot\frac{\ell_a^{\mathrm{par}}}{L}
+    = \frac{\rho_{\mathrm{Si}}}{t_{\mathrm{Si}}}
+    \cdot\frac{W_m/2+d_{\mathrm{gap}}}{L}.
+    \label{eq:rs_parallel}
+\end{equation}
+In the U-shaped anode architecture, the metal wraps around three sides of the
+mesa (the two long sidewalls and one short end), so that current from any point
+on the mesa base must travel at most $W_m/2$ laterally before reaching a
+metal contact. The effective mean path length is reduced to~\cite{Shi2024}:
+\begin{equation}
+    \ell_a^{\mathrm{U}} \approx \frac{W_m}{4} + d_{\mathrm{gap}},
+    \label{eq:la_u}
+\end{equation}
+giving a series resistance:
+\begin{equation}
+    R_{s,\mathrm{an}}^{\mathrm{U}}
+    \approx \frac{\rho_{\mathrm{Si}}}{t_{\mathrm{Si}}}
+    \cdot\frac{W_m/4+d_{\mathrm{gap}}}{L}.
+    \label{eq:rs_u}
+\end{equation}
+The reduction ratio is:
+\begin{equation}
+    \frac{R_{s,\mathrm{an}}^{\mathrm{U}}}{R_{s,\mathrm{an}}^{\mathrm{par}}}
+    = \frac{W_m/4+d_{\mathrm{gap}}}{W_m/2+d_{\mathrm{gap}}}
+    \approx 0.60 \quad\text{for } W_m=\SI{5}{\micro\metre},\;d_{\mathrm{gap}}=\SI{0.5}{\micro\metre},
+    \label{eq:rs_ratio}
+\end{equation}
+corresponding to a \SI{40}{\percent} resistance reduction, consistent with the
+\SI{36}{\percent} reported experimentally by Shi~\textit{et al.}~\cite{Shi2024}.
+Substituting into \cref{eq:bw_rc}:
+\begin{equation}
+    \frac{f_{\mathrm{RC}}^{\mathrm{U}}}{f_{\mathrm{RC}}^{\mathrm{par}}}
+    = \frac{R_{\mathrm{tot}}^{\mathrm{par}}}{R_{\mathrm{tot}}^{\mathrm{U}}}
+    = \frac{R_L + R_{s,\mathrm{an}}^{\mathrm{par}}}{R_L + R_{s,\mathrm{an}}^{\mathrm{U}}}.
+    \label{eq:frc_ratio}
+\end{equation}
+For $R_L=\SI{50}{\ohm}$, $R_{s,\mathrm{an}}^{\mathrm{par}}=\SI{8}{\ohm}$, and
+$R_{s,\mathrm{an}}^{\mathrm{U}}=\SI{5}{\ohm}$, this gives
+$f_{\mathrm{RC}}^{\mathrm{U}}/f_{\mathrm{RC}}^{\mathrm{par}}=58/55\approx1.055$,
+a modest \SI{5.5}{\percent} increase in $f_{\mathrm{RC}}$ alone. The larger
+bandwidth gain emerges only when the electrode is treated as part of the full
+electro-optical co-design problem. In the benchmark-calibrated peaked circuit of
+\cref{eq:H_pd_pk}, the reduced $R_s$ also enables a shallower and more useful
+inductive peaking condition, and the experimentally observed bandwidth increases
+from \SI{83}{\giga\hertz} (parallel electrode) to
+\SI{103}{\giga\hertz} (single-U)~\cite{Shi2024}.
+
+\begin{figure}[H]
+\centering
+\missingfigure[figwidth=0.86\linewidth]{
+    Four-panel topology figure. Straight and U-shaped electrode layouts are
+    compared in plan view, their current paths are mapped to the dominant
+    anode resistance, and the resulting bandwidth shift is shown relative to
+    the lower-bound transport ceiling and the benchmark-calibrated peaked
+    response.}
+\caption{Parallel-electrode versus U-shaped anode comparison. The current path
+in the $p^{++}$-Si platform is halved by the U-shape (left to centre panels),
+reducing $R_{s,\mathrm{an}}$ by \SI{36}{\percent} from \cref{eq:rs_ratio}.}
+\label{fig:electrode_compare}
+\end{figure}
+
+This analysis also identifies a physically important corollary: further reduction
+of $R_s$ beyond the U-shaped value offers diminishing returns. In the
+simplified screening model of \cref{eq:bw_total}, letting $R_s\to0$ drives the
+response toward the lower-bound transport limit of \cref{eq:bw_tt}; in the
+benchmark-calibrated full-response picture of \cref{eq:H_pd_pk}, the practical
+ceiling of the \SI{350}{\nano\metre} vertical stack lies in the
+\SIrange{110}{120}{\giga\hertz} class rather than increasing indefinitely with
+electrode optimisation.
+
+\paragraph{Mask-level representation in KLayout.}
+The simulated device is tied to an explicit lithographic layout through the
+KLayout script \texttt{system-level/ge\_pd\_layout.py}, which writes the cell
+\texttt{GE\_PD\_USHAPED\_OBAND} to \texttt{ge\_pd\_layout.gds}. The layout uses
+a database unit of \SI{1}{\nano\metre} and maps the principal process features
+onto ten logical layers corresponding to the Si slab, Si ridge, Si taper, Ge,
+$p^{++}$ region, $n^{++}$ region, via level, M1, M2, and BOX.
+
+\begin{figure}[H]
+    \centering
+    \missingfigure[figwidth=0.86\linewidth]{
+        Top-view KLayout rendering of the mask-level photodetector layout,
+        showing the Si taper, Ge mesa, U-shaped M1 anode, via array, and the
+        M2 runner derived from the scripted geometry in
+        \texttt{system-level/ge\_pd\_layout.py}.
+    }
+    \caption{Mask-level layout of the simulated O-band photodetector derived
+    from the KLayout script. The layout preserves the optical path, contact
+    topology, and routing footprint used to define the device implementation.}
+    \label{fig:klayout_layout}
+\end{figure}
+
+The geometry parameters defined above, namely $W_i$, $L$, $W_m$, the electrode
+topology, and the taper length, constitute the degrees of freedom of the design
+space. The quantitative mapping from these parameters to the performance metrics
+of \cref{sec:pd_metrics}, including the absorber length sweep, the
+intrinsic-thickness trade-off, and the electric-field screening threshold, is
+presented with simulation data in \cref{sec:pd_results}.

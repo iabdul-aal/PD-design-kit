@@ -1,26 +1,18 @@
-# Lumerical binary project files (too large for git)
 *.ldev
 *.fsp
+*.fsp.bak
 *.lms
-
-# Simulation output data
+*.icp
 *.mat
-!system-level/interconnect/*.mat
-
-# Lumerical log files
 *_p0.log
 *_p1.log
 ~#*
-
-# KLayout GDS output
 *.gds
 *.oas
-
-# MATLAB temp files
 *.asv
 *.m~
-
-# LaTeX build artifacts
+thesis/figures/
+*.csv
 thesis/*.aux
 thesis/*.bbl
 thesis/*.blg
@@ -36,21 +28,15 @@ thesis/*.fls
 thesis/*.fdb_latexmk
 thesis/*-SAVE-ERROR
 thesis/_minted-*/
+!thesis/*.pdf
 thesis/_chapter_*_check.pdf
-
-# OS junk
 .DS_Store
 Thumbs.db
 desktop.ini
-
-# Local papers
-*.pdf
-
-# Excluded thesis drafts
 thesis/papers.csv
 thesis/chapter_photodetector_extensions.tex
 thesis/chapter_photodetector_extensions_set2.tex
 thesis/chapter_photodetector_extensions_set3.tex
-
-# Temp scripts
 strip_comments.ps1
+*.json
+!CITATION.cff

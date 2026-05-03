@@ -10,7 +10,7 @@ h  = 6.626e-34;
 c0 = 3e8;
 
 assert(exist(cml_mat, 'file') == 2, ...
-    'CML data file not found: 
+    'CML data file not found: %s\nRun ge_pd_oband_ushaped_postprocess.m first.', cml_mat);
 cml = load(cml_mat);
 
 lambda_c = cml.geometry.lambda_c_m;
@@ -25,7 +25,7 @@ Lp_H     = cml.bandwidth.Lp_pH * 1e-12;
 R_load   = 50;
 T_K      = cml.temperature.T_sim_K;
 
-fprintf('CML loaded: R=
+fprintf('CML loaded: R=%.4f A/W  Id=%.3f nA  f3dB=%.1f GHz  Rs=%.1f Ohm  Cj=%.1f fF\n', ...
     R_AW, Id_A*1e9, f3dB_Hz/1e9, Rs_ohm, Cj_F*1e15);
 
 symbol_rate = 53.125e9;
@@ -142,15 +142,15 @@ Psen_W  = Q_req*(M-1)*2*sqrt(s2th_nom) / (R_AW * 2*dP);
 Psen_dBm = 10*log10(Psen_W/1e-3);
 
 fprintf('\n=== INTERCONNECT System Results ===\n');
-fprintf('  Symbol rate          : 
-fprintf('  Line rate (PAM-4)    : 
-fprintf('  Responsivity         : 
-fprintf('  Dark current         : 
-fprintf('  Bandwidth f3dB       : 
-fprintf('  SNR (simulated)      : 
-fprintf('  BER (simulated)      : 
-fprintf('  SER (simulated)      : 
-fprintf('  Sensitivity @BER1e-9 : 
+fprintf('  Symbol rate          : %.3f GBd\n',  symbol_rate/1e9);
+fprintf('  Line rate (PAM-4)    : %.1f Gb/s\n',  symbol_rate*2/1e9);
+fprintf('  Responsivity         : %.4f A/W\n',   R_AW);
+fprintf('  Dark current         : %.3f nA\n',    Id_A*1e9);
+fprintf('  Bandwidth f3dB       : %.1f GHz\n',   f3dB_Hz/1e9);
+fprintf('  SNR (simulated)      : %.2f dB\n',    SNR_dB);
+fprintf('  BER (simulated)      : %.2e\n',        BER_sim);
+fprintf('  SER (simulated)      : %.2e\n',        SER_sim);
+fprintf('  Sensitivity @BER1e-9 : %.2f dBm\n',   Psen_dBm);
 
 eyeSamp  = 2 * sps;
 nTraces  = min(floor(nSamp / eyeSamp), 200);
@@ -161,7 +161,7 @@ fig1 = figure('Color','w','Position',[80,80,1600,1000],'Name','PAM-4 Eye Diagram
 plot(tEye_ps, eyeData, 'k', 'LineWidth', 0.4, 'Color', [0.2 0.2 0.2]);
 xlabel('Time (ps)',       'FontSize', cfg.label_size, 'FontWeight','bold');
 ylabel('Photocurrent (\muA)', 'FontSize', cfg.label_size, 'FontWeight','bold');
-title(sprintf('PAM-4 Eye Diagram -- 
+title(sprintf('PAM-4 Eye Diagram - %.1f GBd, SNR = %.1f dB', symbol_rate/1e9, SNR_dB), ...
     'FontSize', cfg.title_size, 'FontWeight','bold');
 xlim([tEye_ps(1), tEye_ps(end)]);
 grid on;
@@ -177,7 +177,7 @@ yline(1e-9,  'k--', 'BER=10^{-9}',   'LineWidth', 1.5);
 yline(3.8e-3,'k:',  'KP4 FEC limit', 'LineWidth', 1.5);
 xlabel('Received Power (dBm)', 'FontSize', cfg.label_size, 'FontWeight','bold');
 ylabel('Bit Error Rate',        'FontSize', cfg.label_size, 'FontWeight','bold');
-title('BER vs Received Power -- PAM-4', 'FontSize', cfg.title_size, 'FontWeight','bold');
+title('BER vs Received Power - PAM-4', 'FontSize', cfg.title_size, 'FontWeight','bold');
 ylim([1e-12 1]); grid on;
 legend('Location','northeast','FontSize',9);
 style_ax(cfg);
@@ -188,7 +188,7 @@ yline(6,    'k--', 'Q=6 (BER=10^{-9})',  'LineWidth', 1.5);
 yline(3.09, 'k:',  'Q=3.09 (KP4 FEC)', 'LineWidth', 1.5);
 xlabel('Received Power (dBm)', 'FontSize', cfg.label_size, 'FontWeight','bold');
 ylabel('Q-Factor',              'FontSize', cfg.label_size, 'FontWeight','bold');
-title('Q-Factor vs Received Power -- PAM-4', 'FontSize', cfg.title_size, 'FontWeight','bold');
+title('Q-Factor vs Received Power - PAM-4', 'FontSize', cfg.title_size, 'FontWeight','bold');
 grid on; legend('Location','southeast','FontSize',9);
 style_ax(cfg);
 save_fig(fig2, figure_dir, 'system_ber_vs_power', cfg.dpi);
@@ -200,7 +200,7 @@ for tv = thr, xline(tv*1e6,'k--','LineWidth',1.5); end
 hold off;
 xlabel('Matched Filter Output (\muA)', 'FontSize', cfg.label_size, 'FontWeight','bold');
 ylabel('Count',                         'FontSize', cfg.label_size, 'FontWeight','bold');
-title(sprintf('PAM-4 Decision Histogram -- SNR = 
+title(sprintf('PAM-4 Decision Histogram - SNR = %.1f dB', SNR_dB), ...
     'FontSize', cfg.title_size, 'FontWeight','bold');
 grid on; style_ax(cfg);
 save_fig(fig3, figure_dir, 'system_pam4_histogram', cfg.dpi);
@@ -213,9 +213,9 @@ yyaxis right;
 semilogx(model.f_GHz, model.norm_dB, 'k--', 'LineWidth', cfg.line_width);
 ylabel('Normalised Response (dB)', 'FontSize', cfg.label_size, 'FontWeight','bold');
 xlabel('Frequency (GHz)', 'FontSize', cfg.label_size, 'FontWeight','bold');
-xline(model.f_rc/1e9,  'k:',  sprintf('f_{RC}=
-xline(model.f_pkg/1e9, 'k-.', sprintf('f_{pkg}=
-title('INTERCONNECT Compact Model -- Electro-optic Response', ...
+xline(model.f_rc/1e9,  'k:',  sprintf('f_{RC}=%.0f GHz',  model.f_rc/1e9),  'LineWidth',1.5);
+xline(model.f_pkg/1e9, 'k-.', sprintf('f_{pkg}=%.0f GHz', model.f_pkg/1e9), 'LineWidth',1.5);
+title('INTERCONNECT Compact Model - Electro-optic Response', ...
     'FontSize', cfg.title_size, 'FontWeight','bold');
 legend({'|Z_t|','Norm. EO','f_{RC}','f_{pkg}'},'Location','southwest');
 grid on; style_ax(cfg);
@@ -227,13 +227,13 @@ Pmin_sw    = NEP_sw * sqrt(bw_eff);
 fig5 = figure('Color','w','Position',[160,160,1600,1000],'Name','Sensitivity Summary');
 bar([1 2 3 4], [P_avg_dBm, Psen_dBm, 10*log10(Pmin_sw/1e-3), -Inf], 0.5, ...
     'FaceColor',[0.6 0.6 0.6],'EdgeColor','k');
-set(gca,'XTick',[1 2 3 4],'XTickLabel',{'P_{avg}','P_{sens} @BER1e-9','P_{min} (NEP)','--'});
+set(gca,'XTick',[1 2 3 4],'XTickLabel',{'P_{avg}','P_{sens} @BER1e-9','P_{min} (NEP)','-'});
 ylabel('Power (dBm)', 'FontSize', cfg.label_size, 'FontWeight','bold');
-title('Sensitivity Summary -- PAM-4 DR4', 'FontSize', cfg.title_size, 'FontWeight','bold');
+title('Sensitivity Summary - PAM-4 DR4', 'FontSize', cfg.title_size, 'FontWeight','bold');
 grid on; style_ax(cfg);
 save_fig(fig5, figure_dir, 'system_sensitivity_summary', cfg.dpi);
 
-fprintf('\nFigures saved to 
+fprintf('\nFigures saved to %s\n', figure_dir);
 
 function style_ax(cfg)
 set(gca, 'FontSize', cfg.font_size, 'FontName', cfg.font_name, 'LineWidth', 1.5, ...
@@ -246,5 +246,5 @@ if ~exist(outDir, 'dir'), mkdir(outDir); end
 set(fig, 'Color','w','InvertHardcopy','off','Renderer','painters');
 drawnow;
 exportgraphics(fig, fullfile(outDir, [baseName,'.png']), 'Resolution', dpi, 'BackgroundColor','white');
-fprintf('  Saved 
+fprintf('  Saved %s\n', fullfile(outDir, [baseName,'.png']));
 end

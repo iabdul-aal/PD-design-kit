@@ -29,7 +29,11 @@ kB  = 1.381e-23;
 h   = 6.626e-34;
 c0  = 3e8;
 
-lambda_c = 1.31e-6;
+if has_base_f && isfield(FB, 'lambda_c')
+    lambda_c = FB.lambda_c;
+else
+    lambda_c = 1.31e-6;
+end
 if has_base_c
     iGe_H_nom = CB.iGe_H;
     wg_H      = CB.wg_H;
@@ -57,7 +61,7 @@ Cp_geo  = 10e-15;
 RL      = 50;
 fRC_nom = 1 / (2*pi * (Rs_geo + RL) * (Cj_geo + Cp_geo));
 
-fig_idx = 20;   
+fig_idx = 20;   % start from fig 20 to avoid collision with base figs
 
 
 if has_charge_sw
@@ -77,10 +81,10 @@ if has_charge_sw
 
     fprintf('\n--- Charge Sweep Results ---\n');
     for k = 1:numel(iGe_arr)
-        fprintf('  i-Ge = 
+        fprintf('  i-Ge = %3.0f nm   Id@-1V = %.4f nA\n', iGe_arr(k)*1e9, Id_iGe(k)*1e9);
     end
-    fprintf('  U-shaped  Id@-1V = 
-    fprintf('  Parallel  Id@-1V = 
+    fprintf('  U-shaped  Id@-1V = %.4f nA\n', Id_U*1e9);
+    fprintf('  Parallel  Id@-1V = %.4f nA\n', Id_P*1e9);
 
     figure(fig_idx); clf; fig_idx = fig_idx+1;
     plot(iGe_arr*1e9, Id_iGe*1e9, 'ko-', 'MarkerFaceColor', 'k', 'MarkerSize', 6);
@@ -89,7 +93,7 @@ if has_charge_sw
     title('Dark Current vs i-Ge Thickness');
     for k = 1:numel(iGe_arr)
         text(iGe_arr(k)*1e9 + 3, Id_iGe(k)*1e9, ...
-            sprintf('
+            sprintf('%.3f nA', Id_iGe(k)*1e9), ...
             'FontName', style.font_name, 'FontSize', 9);
     end
     grid on; grid minor;
@@ -102,7 +106,7 @@ if has_charge_sw
     figure(fig_idx); clf; fig_idx = fig_idx+1; hold on;
     plot(iGe_arr*1e9, f_tt_arr/1e9,  'k-',  'DisplayName', 'f_{tt}');
     plot(iGe_arr*1e9, f3dB_arr/1e9,  'k--', 'DisplayName', 'f_{3dB}');
-    xline(iGe_H_nom*1e9, 'k:', sprintf('Nominal 
+    xline(iGe_H_nom*1e9, 'k:', sprintf('Nominal %.0f nm', iGe_H_nom*1e9), ...
         'LabelVerticalAlignment', 'bottom');
     hold off;
     xlabel('i-Ge Thickness (nm)'); ylabel('Bandwidth (GHz)');
@@ -114,13 +118,13 @@ if has_charge_sw
     end
     if ~isnan(R_AW_nom)
         R_proxy = (iGe_arr / iGe_H_nom) * R_AW_nom;
-        R_proxy = min(R_proxy, R_AW_nom * 1.2);   
+        R_proxy = min(R_proxy, R_AW_nom * 1.2);   % clip at saturation
         figure(fig_idx); clf; fig_idx = fig_idx+1;
         yyaxis left;  plot(iGe_arr*1e9, R_proxy,      'k-');  ylabel('Responsivity (A/W)');
         yyaxis right; plot(iGe_arr*1e9, f3dB_arr/1e9, 'k--'); ylabel('f_{3dB} (GHz)');
         xline(iGe_H_nom*1e9, 'k:');
         xlabel('i-Ge Thickness (nm)');
-        title('Responsivity--Bandwidth Trade-off vs i-Ge Thickness');
+        title('Responsivity-Bandwidth Trade-off vs i-Ge Thickness');
         grid on;
         save_thesis_figure(fig_idx-1, 'tradeoff_R_BW_iGe', style);
     end
@@ -134,18 +138,18 @@ if has_charge_sw
     plot(invT*1e3, logId, 'ko', 'MarkerFaceColor', 'k', 'MarkerSize', 7);
     hold on;
     plot(invT*1e3, fit_y, 'k--', 'DisplayName', ...
-        sprintf('Linear fit -- E_a \\approx 
+        sprintf('Linear fit - E_a \\approx %.1f meV', Ea_meV));
     hold off;
     xlabel('1/T (10^{-3} K^{-1})');
     ylabel('log_{10}(|I_{dark}| / nA)');
-    title('Arrhenius Plot -- Dark Current vs Temperature');
+    title('Arrhenius Plot - Dark Current vs Temperature');
     legend({'Data', 'Linear fit'}, 'Location', 'northeast');
     grid on;
     ax2 = axes('Position', ax1.Position, 'XAxisLocation', 'top', 'Color', 'none');
     ax2.XLim = ax1.XLim;
     ax2.YAxis.Visible = 'off';
     set(ax2, 'XTick', 1e3./T_arr.', ...
-        'XTickLabel', arrayfun(@(t) sprintf('
+        'XTickLabel', arrayfun(@(t) sprintf('%d K', t), T_arr, 'UniformOutput', false));
     xlabel(ax2, 'Temperature T (K)');
     save_thesis_figure(fig_idx-1, 'sweep_arrhenius_dark_current', style);
 
@@ -159,13 +163,13 @@ if has_charge_sw
 
     figure(fig_idx); clf; fig_idx = fig_idx+1;
     semilogy(abs(V_u), I_u*1e9, 'k-', 'DisplayName', ...
-        sprintf('U-shaped  (Id@-1V = 
+        sprintf('U-shaped  (Id@-1V = %.3f nA)', Id_U*1e9));
     hold on;
     semilogy(abs(V_p), I_p*1e9, 'k--', 'DisplayName', ...
-        sprintf('Parallel  (Id@-1V = 
+        sprintf('Parallel  (Id@-1V = %.3f nA)', Id_P*1e9));
     hold off;
     xlabel('Reverse Bias |V| (V)'); ylabel('|I_{dark}| (nA)');
-    title('Dark I--V: U-shaped vs Parallel Electrode');
+    title('Dark I-V: U-shaped vs Parallel Electrode');
     legend('Location', 'northwest');
     grid on; xlim([0 max([max(abs(V_u)), max(abs(V_p))])]);
     save_thesis_figure(fig_idx-1, 'sweep_electrode_comparison_iv', style);
@@ -194,7 +198,7 @@ if has_charge_sw
         save_thesis_figure(fig_idx-1, 'sweep_dark_current_vs_tau', style);
     end
 
-end  
+end  % has_charge_sw
 
 
 if has_fdtd_sw
@@ -210,21 +214,21 @@ if has_fdtd_sw
 
     fprintf('\n--- FDTD Sweep Results ---\n');
     for k = 1:numel(Ge_L_arr)
-        fprintf('  Ge_L = 
+        fprintf('  Ge_L = %3.0f um   A = %.2f%%\n', Ge_L_arr(k)*1e6, A_arr(k)*100);
     end
-    fprintf('  TE absorption = 
+    fprintf('  TE absorption = %.2f%%   TM absorption = %.2f%%   PDL = %.3f dB\n', ...
         A_pol(1)*100, A_pol(2)*100, PDL_dB);
-    fprintf('  Taper insertion loss = 
+    fprintf('  Taper insertion loss = %.3f dB\n', IL_dB);
 
     figure(fig_idx); clf; fig_idx = fig_idx+1;
     plot(Ge_L_arr*1e6, A_arr*100, 'ko-', 'MarkerFaceColor', 'k', 'MarkerSize', 6);
-    yline(95, 'k--', '95
+    yline(95, 'k--', '95%', 'LabelHorizontalAlignment', 'left');
     xlabel('Ge Absorber Length L_{Ge} (\mum)');
-    ylabel('Optical Absorption (
-    title('Absorption vs Ge Length -- O-band TE');
+    ylabel('Optical Absorption (%)');
+    title('Absorption vs Ge Length - O-band TE');
     ylim([0 105]); grid on;
     text(Ge_L_arr(end)*1e6 + 0.15, A_arr(end)*100, ...
-        sprintf('
+        sprintf('%.1f%%', A_arr(end)*100), ...
         'FontName', style.font_name, 'FontSize', 10);
     save_thesis_figure(fig_idx-1, 'sweep_absorption_vs_Ge_length', style);
 
@@ -232,28 +236,10 @@ if has_fdtd_sw
     figure(fig_idx); clf; fig_idx = fig_idx+1;
     plot(Ge_L_arr*1e6, R_Ge_L, 'ko-', 'MarkerFaceColor', 'k', 'MarkerSize', 6);
     xlabel('Ge Absorber Length L_{Ge} (\mum)');
-    ylabel('Responsivity (A/W) -- IQE = 1');
-    title('Responsivity vs Ge Length -- O-band TE');
+    ylabel('Responsivity (A/W) - IQE = 1');
+    title('Responsivity vs Ge Length - O-band TE');
     grid on;
     save_thesis_figure(fig_idx-1, 'sweep_responsivity_vs_Ge_length', style);
-
-    rho_Si_slab = 5e-4;
-    D_contact   = 1.6e-6;
-    slab_H_val  = 90e-9;
-    Ge_W_val    = 5e-6;
-    R_s_arr  = rho_Si_slab * D_contact ./ (slab_H_val * Ge_L_arr);
-    R_s_Ushape = R_s_arr * 0.45;
-    figure(fig_idx); clf; fig_idx = fig_idx+1;
-    plot(Ge_L_arr*1e6, R_s_arr,    'k-o', 'MarkerFaceColor', 'k', 'MarkerSize', 6, 'DisplayName', 'Parallel');
-    hold on;
-    plot(Ge_L_arr*1e6, R_s_Ushape, 'k--s', 'MarkerFaceColor', 'w', 'MarkerSize', 6, 'DisplayName', 'U-shaped');
-    hold off;
-    xlabel('Ge Absorber Length L_{Ge} (\mum)');
-    ylabel('Series Resistance R_s (Ohm)');
-    title('Resistance vs Ge Length -- Electrode Comparison');
-    legend('Location', 'northeast');
-    grid on;
-    save_thesis_figure(fig_idx-1, 'sweep_resistance_vs_Ge_length', style);
 
     figure(fig_idx); clf; fig_idx = fig_idx+1;
     yyaxis left;
@@ -261,9 +247,9 @@ if has_fdtd_sw
     ylabel('Responsivity (A/W)');
     yyaxis right;
     plot(lambda_sweep*1e9, A_sp*100, 'k--s', 'MarkerFaceColor', 'k', 'MarkerSize', 5);
-    ylabel('Optical Absorption (
+    ylabel('Optical Absorption (%)');
     xlabel('Wavelength (nm)');
-    title('Responsivity and Absorption Spectrum -- O-band (IQE = 1)');
+    title('Responsivity and Absorption Spectrum - O-band (IQE = 1)');
     legend({'Responsivity', 'Absorption'}, 'Location', 'southwest');
     grid on;
     save_thesis_figure(fig_idx-1, 'sweep_responsivity_absorption_spectrum', style);
@@ -271,7 +257,7 @@ if has_fdtd_sw
     figure(fig_idx); clf; fig_idx = fig_idx+1;
     plot(lambda_sweep*1e9, A_sp*100, 'k-o', 'MarkerFaceColor', 'k', 'MarkerSize', 5);
     xlabel('Wavelength (nm)');
-    ylabel('Optical Absorption (
+    ylabel('Optical Absorption (%)');
     title('O-band Absorption Spectrum');
     grid on;
     save_thesis_figure(fig_idx-1, 'sweep_absorption_spectrum', style);
@@ -279,17 +265,17 @@ if has_fdtd_sw
     figure(fig_idx); clf; fig_idx = fig_idx+1;
     bar([1 2], [A_pol(1) A_pol(2)]*100, 0.4, 'FaceColor', [0.5 0.5 0.5], 'EdgeColor', 'k');
     set(gca, 'XTick', [1 2], 'XTickLabel', {'TE', 'TM'});
-    ylabel('Optical Absorption (
-    title(sprintf('Polarisation Comparison  (PDL = 
+    ylabel('Optical Absorption (%)');
+    title(sprintf('Polarisation Comparison  (PDL = %.3f dB,  Taper IL = %.3f dB)', ...
         PDL_dB, IL_dB));
     ylim([0 105]); grid on;
-    text(1, A_pol(1)*100 + 1, sprintf('
+    text(1, A_pol(1)*100 + 1, sprintf('%.2f%%', A_pol(1)*100), ...
         'HorizontalAlignment', 'center', 'FontName', style.font_name, 'FontSize', 10);
-    text(2, A_pol(2)*100 + 1, sprintf('
+    text(2, A_pol(2)*100 + 1, sprintf('%.2f%%', A_pol(2)*100), ...
         'HorizontalAlignment', 'center', 'FontName', style.font_name, 'FontSize', 10);
     save_thesis_figure(fig_idx-1, 'sweep_polarisation_absorption', style);
 
-end  
+end  % has_fdtd_sw
 
 
 if has_fdtd_sw && has_charge_sw && isfield(FS, 'A_arr') && isfield(CS, 'iGe_arr')
@@ -308,7 +294,7 @@ if has_fdtd_sw && has_charge_sw && isfield(FS, 'A_arr') && isfield(CS, 'iGe_arr'
         yyaxis right;
         plot(CS.iGe_arr(:)*1e9, f3dB_iGe/1e9, 'k--^', 'MarkerFaceColor','k','MarkerSize',6);
         ylabel('f_{3dB} (GHz)');
-        xline(iGe_H_nom*1e9, 'k:', sprintf('Nom. 
+        xline(iGe_H_nom*1e9, 'k:', sprintf('Nom. %.0f nm', iGe_H_nom*1e9), ...
             'LabelVerticalAlignment','bottom');
         xlabel('i-Ge Thickness (nm)');
         title('Dark Current vs Bandwidth Trade-off (i-Ge Thickness)');
@@ -321,10 +307,10 @@ if has_fdtd_sw && has_charge_sw && isfield(FS, 'A_arr') && isfield(CS, 'iGe_arr'
         figure(fig_idx); clf; fig_idx = fig_idx+1; hold on;
         yyaxis left;
         plot(FS.Ge_L_arr(:)*1e6, R_len, 'k-o', 'MarkerFaceColor','k','MarkerSize',6);
-        ylabel('Responsivity (A/W) -- IQE = 1');
+        ylabel('Responsivity (A/W) - IQE = 1');
         yyaxis right;
         plot(FS.Ge_L_arr(:)*1e6, FS.A_arr(:)*100, 'k--s','MarkerFaceColor','k','MarkerSize',6);
-        ylabel('Absorption (
+        ylabel('Absorption (%)');
         hold off;
         xlabel('Ge Absorber Length (\mum)');
         title('Responsivity and Absorption vs Ge Length Trade-off');
@@ -342,7 +328,7 @@ if has_base_c && ~isnan(R_AW_nom) && ~isnan(Id_nom)
     EQE_nom   = R_AW_nom * h * c0 / (q * lambda_c);
     NEP_nom   = sqrt(2 * q * abs(Id_nom)) / max(R_AW_nom, 1e-20);
     Dstar_nom = sqrt(Ge_L * Ge_W) / max(NEP_nom, 1e-40) * 1e2;
-    RBW_nom   = R_AW_nom * f3dB_nom / 1e9;   
+    RBW_nom   = R_AW_nom * f3dB_nom / 1e9;   % A/W * GHz
 
     oct_labels = {'R (A/W)', 'BW (GHz)', 'D* (Jones)', 'EQE', ...
                   '1/I_d (1/nA)', 'R\timesf_{3dB}', 'NEP^{-1}', 'LDR_{est}'};
@@ -386,7 +372,7 @@ if has_base_c && ~isnan(R_AW_nom) && ~isnan(Id_nom)
     ax.FontSize = 10;
     ax.FontName = style.font_name;
     legend('Location', 'southoutside', 'NumColumns', 2, 'FontSize', 9);
-    title('PD Design Octagon -- Multi-Dimensional FoM Comparison', ...
+    title('PD Design Octagon - Multi-Dimensional FoM Comparison', ...
         'FontSize', 13, 'FontWeight', 'bold');
     save_thesis_figure(fig_idx-1, 'design_octagon_radar', style);
 end
@@ -394,11 +380,11 @@ end
 fprintf('\n--- Generating Literature Benchmark Table ---\n');
 
 lit_headers = {'Device', 'Type', 'R (A/W)', 'BW (GHz)', 'I_d (nA)', ...
-               'D* (Jones)', 'RxBW', 'Year'};
+               'D* (Jones)', 'R x BW', 'Year'};
 lit_data = { ...
-    'This work (sim)',       'V-PIN',  sprintf('
-        sprintf('
-        sprintf('
+    'This work (sim)',       'V-PIN',  sprintf('%.2f', R_AW_nom), ...
+        sprintf('%.0f', f3dB_nom/1e9), sprintf('%.2f', abs(Id_nom)*1e9), ...
+        sprintf('%.2e', Dstar_nom), sprintf('%.0f', RBW_nom), '2026'; ...
     'Shi et al.',            'V-PIN',  '0.95', '103', '1.3', '2.95e10', '98',  '2024'; ...
     'Shi et al.',            'V-PIN',  '0.85', '80',  '4.5', '7.9e9',  '68',  '2021'; ...
     'Lischke et al.',        'L-PIN',  '0.30', '265', '50',  '3.2e8',  '80',  '2021'; ...
@@ -420,7 +406,7 @@ annotation('textbox', [0.02, 0.92, 0.96, 0.07], ...
     'FontSize', 13, 'FontWeight', 'bold', 'FontName', style.font_name, ...
     'EdgeColor', 'none', 'HorizontalAlignment', 'center');
 annotation('textbox', [0.02, 0.01, 0.96, 0.08], ...
-    'String', 'V-PIN = vertical PIN;  L-PIN = lateral PIN;  RxBW = responsivity--bandwidth product (A/W.GHz)', ...
+    'String', 'V-PIN = vertical PIN;  L-PIN = lateral PIN;  R x BW = responsivity-bandwidth product (A/W*GHz)', ...
     'FontSize', 9, 'FontName', style.font_name, 'EdgeColor', 'none', ...
     'HorizontalAlignment', 'center', 'Color', [0.4 0.4 0.4]);
 save_thesis_figure(fig_idx-1, 'literature_benchmark_table', style);
@@ -437,7 +423,7 @@ RS_2D = Rsh_Si * (Ge_W / 2) ./ GL * 0.64;
 FRC_2D = 1 ./ (2*pi * (RS_2D + RL) .* (CJ_2D + Cp_geo));
 F3DB  = 1 ./ sqrt(1./F_TT.^2 + 1./FRC_2D.^2) / 1e9;
 
-alpha_abs = 7e5;  
+alpha_abs = 7e5;  % 1/m at 1310 nm for Ge
 A_2D = 1 - exp(-alpha_abs * GL);
 R_2D = A_2D * q * lambda_c / (h * c0);
 
@@ -486,7 +472,7 @@ params = struct( ...
     'delta', {0.20, 0.20, 0.20, 0.20, 0.20, 0.50, 0.20});
 
 n_params = numel(params);
-delta_bw = zeros(n_params, 2);  
+delta_bw = zeros(n_params, 2);  % [low_pct, high_pct] deviation from base
 
 for pp = 1:n_params
     for dir = [-1, +1]
@@ -507,7 +493,7 @@ for pp = 1:n_params
         rs_p   = rsh * (gW / 2) / gL * 0.64;
         frc_p  = 1 / (2*pi * (rs_p + rl) * (cj_p + cp));
         f3dB_p = 1 / sqrt(1/ftt_p^2 + 1/frc_p^2) / 1e9;
-        col = (dir + 1)/2 + 1;  
+        col = (dir + 1)/2 + 1;  % 1 or 2
         delta_bw(pp, col) = (f3dB_p - base_f3dB) / base_f3dB * 100;
     end
 end
@@ -519,14 +505,14 @@ names_sorted = {params(sort_idx).name};
 
 figure(fig_idx); clf; fig_idx = fig_idx+1;
 barh(1:n_params, delta_sorted(:,1), 'FaceColor', [0.3 0.3 0.3], ...
-    'DisplayName', sprintf('-
+    'DisplayName', sprintf('-%.0f%%', params(1).delta*100));
 hold on;
 barh(1:n_params, delta_sorted(:,2), 'FaceColor', [0.7 0.7 0.7], ...
-    'DisplayName', sprintf('+
+    'DisplayName', sprintf('+%.0f%%', params(1).delta*100));
 hold off;
 set(gca, 'YTick', 1:n_params, 'YTickLabel', names_sorted);
-xlabel('\Deltaf_{3dB} (
-title(sprintf('Bandwidth Sensitivity Tornado (base = 
+xlabel('\Deltaf_{3dB} (%)');
+title(sprintf('Bandwidth Sensitivity Tornado (base = %.0f GHz)', base_f3dB), ...
     'FontSize', 13, 'FontWeight', 'bold');
 legend('Location', 'southeast');
 xline(0, 'k-', 'LineWidth', 1);
@@ -569,17 +555,17 @@ if exist(cml_mat, 'file')
     end
 
     save(cml_mat, '-struct', 'cml');
-    fprintf('\nCML dataset updated with sweep results: 
+    fprintf('\nCML dataset updated with sweep results: %s\n', cml_mat);
 
     cml_json = strrep(cml_mat, '.mat', '.json');
     fid = fopen(cml_json, 'w');
-    fprintf(fid, '
+    fprintf(fid, '%s', jsonencode(cml, 'PrettyPrint', true));
     fclose(fid);
-    fprintf('CML .json updated: 
+    fprintf('CML .json updated: %s\n', cml_json);
 end
 
 n_figs = fig_idx - 20;
-fprintf('\n=== Sweep post-processing complete: 
+fprintf('\n=== Sweep post-processing complete: %d figures saved to %s ===\n', ...
     n_figs, figure_dir);
 
 
@@ -620,5 +606,5 @@ end
 drawnow;
 out_path = fullfile(style.figure_dir, [base_name, '.png']);
 exportgraphics(fig, out_path, 'Resolution', style.dpi, 'BackgroundColor', 'white');
-fprintf('  Saved 
+fprintf('  Saved %s\n', out_path);
 end

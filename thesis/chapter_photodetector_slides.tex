@@ -20,10 +20,10 @@
 \setbeamertemplate{navigation symbols}{}
 \setbeamertemplate{footline}[frame number]
 
-\title{Ge-on-Si Photodetector Design and Simulation}
-\subtitle{O-band vertical n-i-p photodiode for high-speed PAM-4 optical receivers}
-\author{Islam I.\ Abdulaal}
-\institute{Electronics and Communications Engineering\\Alexandria University}
+\title{Design of a 400 Gb/s Silicon Photonics Receiver}
+\subtitle{For IEEE 802.3 DR4 Datacenter Interconnects}
+\author{Omar Mahfouz, Farah Elsayed, Mark Zakria, Mahmoud Magdy,\\Islam Ibrahim, Alyedeen Hassan, Khalid Khalil}
+\institute{Department of Electronics and Communications Engineering\\Faculty of Engineering\\Alexandria University}
 \date{2026}
 \titlegraphic{\includegraphics[width=2.5cm]{AU Logo Colored.png}}
 
@@ -98,7 +98,7 @@ BOX & \SI{2}{\micro\metre} \\
 \end{column}
 \begin{column}{0.4\textwidth}
 \centering
-\includegraphics[width=\linewidth]{figures/opt_generation_rate_map.png}
+\includegraphics[width=\linewidth,height=0.6\textheight,keepaspectratio]{figures/opt_generation_rate_map.png}
 \end{column}
 \end{columns}
 \end{frame}
@@ -133,7 +133,7 @@ BOX & \SI{2}{\micro\metre} \\
 \end{column}
 \begin{column}{0.4\textwidth}
 \centering
-\includegraphics[width=\linewidth]{figures/dark_iv.png}
+\includegraphics[width=\linewidth,height=0.6\textheight,keepaspectratio]{figures/dark_iv.png}
 \end{column}
 \end{columns}
 \end{frame}
@@ -142,11 +142,11 @@ BOX & \SI{2}{\micro\metre} \\
 \begin{columns}[T]
 \begin{column}{0.48\textwidth}
 \centering
-\includegraphics[width=\linewidth]{figures/phys_band_diagram.png}
+\includegraphics[width=\linewidth,height=0.6\textheight,keepaspectratio]{figures/phys_band_diagram.png}
 \end{column}
 \begin{column}{0.48\textwidth}
 \centering
-\includegraphics[width=\linewidth]{figures/phys_carrier_density.png}
+\includegraphics[width=\linewidth,height=0.6\textheight,keepaspectratio]{figures/phys_carrier_density.png}
 \end{column}
 \end{columns}
 \vspace{0.3em}
@@ -157,11 +157,11 @@ BOX & \SI{2}{\micro\metre} \\
 \begin{columns}[T]
 \begin{column}{0.48\textwidth}
 \centering
-\includegraphics[width=\linewidth]{figures/phys_field_potential.png}
+\includegraphics[width=\linewidth,height=0.6\textheight,keepaspectratio]{figures/phys_field_potential.png}
 \end{column}
 \begin{column}{0.48\textwidth}
 \centering
-\includegraphics[width=\linewidth]{figures/freq_response_model.png}
+\includegraphics[width=\linewidth,height=0.6\textheight,keepaspectratio]{figures/freq_response_model.png}
 \end{column}
 \end{columns}
 \vspace{0.3em}
@@ -175,11 +175,11 @@ BOX & \SI{2}{\micro\metre} \\
 \begin{columns}[T]
 \begin{column}{0.48\textwidth}
 \centering
-\includegraphics[width=\linewidth]{figures/system_transfer_function.png}
+\includegraphics[width=\linewidth,height=0.6\textheight,keepaspectratio]{figures/system_transfer_function.png}
 \end{column}
 \begin{column}{0.48\textwidth}
 \centering
-\includegraphics[width=\linewidth]{figures/system_photocurrent_eye.png}
+\includegraphics[width=\linewidth,height=0.6\textheight,keepaspectratio]{figures/system_photocurrent_eye.png}
 \end{column}
 \end{columns}
 \vspace{0.3em}
@@ -193,7 +193,7 @@ BOX & \SI{2}{\micro\metre} \\
 \begin{columns}[T]
 \begin{column}{0.45\textwidth}
 \centering
-\includegraphics[width=\linewidth]{figures/system_pam4_histogram.png}
+\includegraphics[width=\linewidth,height=0.6\textheight,keepaspectratio]{figures/system_pam4_histogram.png}
 \end{column}
 \begin{column}{0.5\textwidth}
 \begin{itemize}
@@ -219,15 +219,12 @@ BOX & \SI{2}{\micro\metre} \\
 \end{itemize}
 \end{itemize}
 \centering
-\includegraphics[width=0.6\linewidth]{figures/system_interconnect_compact_model.png}
+\includegraphics[width=0.6\linewidth,height=0.6\textheight,keepaspectratio]{figures/system_interconnect_compact_model.png}
 \end{frame}
 
 \begin{frame}{Data Pipeline Overview}
 \centering
-\begin{tikzpicture}[node distance=1.5cm, auto,
-  block/.style={rectangle, draw, text width=6em, text centered, minimum height=2.5em, font=\small},
-  arrow/.style={->, >=stealth, thick}]
-\end{tikzpicture}
+
 
 \vspace{0.5em}
 \footnotesize

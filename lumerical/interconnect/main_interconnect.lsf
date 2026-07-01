@@ -1,0 +1,162 @@
+# Copyright (c) 2026 Islam Ibrahim. All rights reserved.
+
+script_dir       = filedirectory(which(currentscriptname));
+interconnect_dir = script_dir + "/..";
+project_dir      = interconnect_dir + "/projects";
+repo_root        = interconnect_dir + "/../..";
+foundry_dir      = interconnect_dir + "/models";
+model_json       = foundry_dir + "/source/ge_pd_cml_oband_ushaped/ge_pd_cml_oband_ushaped.json";
+res_dir          = repo_root + "/results/interconnect/";
+
+switchtodesign;
+if (exist("ge_pd_foundry")) { removecustom("ge_pd_foundry"); }
+installdesignkit(foundry_dir + "/artifacts/interconnect/ge_pd_foundry.cml",
+                 foundry_dir + "/artifacts/interconnect", 1);
+jsonload(model_json);
+
+freq_Hz  = model_data.data.center_frequency_Hz;
+R_AW     = model_data.data.responsivity_AW;
+Id_A     = model_data.data.dark_current_A;
+Id_nA    = Id_A * 1e9;
+f3dB_Hz  = model_data.data.bandwidth_Hz;
+f3dB_GHz = f3dB_Hz * 1e-9;
+Psat_W   = model_data.data.saturation_power_W;
+
+P_cw        = 0.12e-3;
+bitrate_bps = 106.25e9;
+sym_rate_Bd = 53.125e9;
+
+if (P_cw >= Psat_W) { ?"WARNING: P_cw exceeds saturation power."; }
+
+# ====== BUILD SCHEMATIC: compact spacing (220 units), annotate=0 =============
+switchtodesign;
+deleteall;
+
+addelement("PRBS Generator");
+set("name","PRBS_1"); set("automatic seed",1);
+set("x position",100); set("y position",300); set("annotate",0);
+
+addelement("Modulation Symbol Mapper");
+set("name","SYM_1"); set("modulation type","4PAM");
+set("configuration","single output");
+set("rise period",0.05); set("fall period",0.05);
+# 4PAM outputs [-3, -1, 1, 3]. Scale by 1/6 and shift by 0.5
+# to map constellation exactly to [0, 1/3, 2/3, 1] for modulator drive
+set("scale factor I", 1/6);
+set("bias",0.5);
+set("x position",320); set("y position",300); set("annotate",0);
+
+addelement("Fork 1xN");
+set("name","FORK_SYM"); set("number of ports",2);
+set("x position",540); set("y position",300); set("annotate",0);
+
+addelement("CW Laser");
+set("name","CWL_1"); set("frequency",freq_Hz);
+set("power",P_cw); set("linewidth",0); set("phase",0);
+set("x position",540); set("y position",540); set("annotate",0);
+
+addelement("Optical Amplitude Modulator");
+set("name","AM_1"); set("modulation index",1);
+set("x position",760); set("y position",420); set("annotate",0);
+
+addelement("ge_pd_cml_oband_ushaped");
+set("name","PIN_1"); set("enable_shot_noise",0);
+set("x position",980); set("y position",420); set("annotate",0);
+
+addelement("Fork 1xN");
+set("name","FORK_PIN"); set("number of ports",2);
+set("x position",1200); set("y position",425); set("annotate",0);
+
+addelement("Eye Diagram");
+set("name","EYE_1"); set("number of levels",4);
+set("x position",1420); set("y position",250); set("annotate",0);
+
+addelement("Oscilloscope");
+set("name","OSC_1");
+set("x position",1420); set("y position",590); set("annotate",0);
+
+connect("PRBS_1","output","SYM_1","modulation");
+connect("SYM_1","output","FORK_SYM","input");
+connect("FORK_SYM","output 1","AM_1","modulation");
+connect("FORK_SYM","output 2","EYE_1","reference");
+connect("CWL_1","output","AM_1","input");
+connect("AM_1","output","PIN_1","input");
+connect("PIN_1","output","FORK_PIN","input");
+connect("FORK_PIN","output 1","EYE_1","input");
+connect("FORK_PIN","output 2","OSC_1","input");
+
+# ====== GLOBAL SIM SETTINGS ==================================================
+switchtodesign;
+setnamed("::Root Element","bitrate",           bitrate_bps);
+setnamed("::Root Element","sample rate",       sym_rate_Bd * 32);
+setnamed("::Root Element","number of samples", 2^18);
+setnamed("SYM_1","modulation type",        "4PAM");
+# Re-apply bias and scale factor after switchtodesign to ensure they persist
+setnamed("SYM_1","scale factor I",         1/6);
+setnamed("SYM_1","bias",                   0.5);
+setnamed("EYE_1","number of levels",       4);
+setnamed("EYE_1","calculate measurements", 1);
+setnamed("EYE_1","BER estimation",         1);
+
+# ====== NOMINAL RUN: shot noise OFF -> clean eye + waveform ==================
+switchtodesign;
+setnamed("PIN_1","enable_shot_noise",0);
+setnamed("CWL_1","power",P_cw);
+run;
+
+# Collect EYE_1 measurement results
+eye_measurement_BER           = getresult("EYE_1","measurement/BER");
+eye_measurement_Q_factor      = getresult("EYE_1","measurement/Q factor");
+eye_measurement_height        = getresult("EYE_1","measurement/height");
+eye_measurement_threshold     = getresult("EYE_1","measurement/threshold");
+eye_measurement_level_one_mean= getresult("EYE_1","measurement/level one mean");
+eye_measurement_level_zero_mean=getresult("EYE_1","measurement/level zero mean");
+eye_measurement_log_of_BER    = log10(eye_measurement_BER + 1e-30);
+
+# Collect OSC_1 waveform
+osc_signal = getresult("OSC_1","signal");
+
+# Save nominal results + model params
+matlabsave(res_dir + "ge_pd_interconnect_pam4_eye",
+           eye_measurement_BER, eye_measurement_Q_factor,
+           eye_measurement_height, eye_measurement_threshold,
+           eye_measurement_level_one_mean, eye_measurement_level_zero_mean,
+           eye_measurement_log_of_BER, osc_signal,
+           R_AW, Id_nA, f3dB_GHz);
+?"Nominal run saved: eye_measurement_BER=" + num2str(eye_measurement_BER);
+
+# ====== BER vs POWER SWEEP: shot noise ON, 15 pts -10 to +3 dBm =============
+P_tx_arr_dBm = linspace(-10, 3, 15);
+nP           = length(P_tx_arr_dBm);
+sweep_BER    = matrix(nP);
+sweep_Q      = matrix(nP);
+sweep_eye    = matrix(nP);
+P_tx_arr_W   = matrix(nP);
+
+for (iP=1; iP<=nP; iP=iP+1) {
+    P_i = 10^(P_tx_arr_dBm(iP)/10) * 1e-3;
+    P_tx_arr_W(iP) = P_i;
+    switchtodesign;
+    setnamed("CWL_1","power",            P_i);
+    setnamed("PIN_1","enable_shot_noise", 1);
+    run;
+    sweep_Q(iP)   = getresult("EYE_1","measurement/Q factor");
+    sweep_BER(iP) = getresult("EYE_1","measurement/BER");
+    sweep_eye(iP) = getresult("EYE_1","measurement/height");
+    ?"Sweep " + num2str(iP) + "/" + num2str(nP)
+     + "  " + num2str(P_tx_arr_dBm(iP)) + " dBm"
+     + "  BER=" + num2str(sweep_BER(iP));
+}
+
+P_tx_arr_dBm_sweep = P_tx_arr_dBm;
+matlabsave(res_dir + "ge_pd_interconnect_pam4_power_sweep",
+           sweep_BER, sweep_Q, sweep_eye,
+           P_tx_arr_dBm_sweep, P_tx_arr_W);
+?"BER sweep saved.";
+
+# ====== RESTORE NOMINAL STATE + SAVE PROJECT =================================
+switchtodesign;
+setnamed("CWL_1","power",            P_cw);
+setnamed("PIN_1","enable_shot_noise", 0);
+save(project_dir + "/ge_pd_interconnect_setup.icp");
+?"main_interconnect.lsf complete.";

@@ -1,0 +1,76 @@
+# Copyright (c) 2026 Islam Ibrahim. All rights reserved.
+
+script_dir  = filedirectory(which(currentscriptname));
+device_dir  = script_dir + "/..";
+project_dir = device_dir + "/projects";
+repo_root   = device_dir + "/../..";
+res_dir     = repo_root + "/results/device/temperature/";
+
+T_arr = [250, 275, 300, 325, 350];
+nT    = length(T_arr);
+V_start = -2.5;
+V_stop     =  0.0;
+V_num      = 26;
+
+load(project_dir + "/ge_pd_charge_temperature_base.ldev");
+switchtolayout;
+save(project_dir + "/ge_pd_charge_temperature_ushaped.ldev");
+
+I_anode_t_matrix = matrix(V_num, nT);
+I_cathode_t_matrix = matrix(V_num, nT);
+
+for (iT = 1; iT <= nT; iT = iT + 1) {
+    switchtolayout;
+    select("CHARGE::optical_gen");
+    set("enabled", 0);
+    select("CHARGE::boundary conditions::cathode");
+    set("bc mode", "steady state");
+    set("sweep type", "single");
+    set("voltage", 0);
+    set("apply ac small signal", "none");
+    select("CHARGE::boundary conditions::anode");
+    set("bc mode", "steady state");
+    set("sweep type", "range");
+    set("range start", 0.0);
+    set("range stop",  -2.5);
+    set("range num points", V_num);
+    set("apply ac small signal", "none");
+    select("CHARGE");
+    set("solver mode", "steady state");
+    set("simulation temperature", T_arr(iT));
+    run;
+    
+    anode_res = getresult("CHARGE", "anode");
+    if (iT == 1) {
+        V_arr_sweep = anode_res.V_anode;
+    }
+    I_anode_t_matrix(1:V_num, iT) = anode_res.I;
+    
+    cathode_res = getresult("CHARGE", "cathode");
+    I_cathode_t_matrix(1:V_num, iT) = cathode_res.I;
+}
+
+V_sorted = matrix(V_num);
+I_anode_t_matrix_sorted = matrix(V_num, nT);
+I_cathode_t_matrix_sorted = matrix(V_num, nT);
+for (iT = 1; iT <= nT; iT = iT + 1) {
+    for (iV = 1; iV <= V_num; iV = iV + 1) {
+        if (iT == 1) {
+            V_sorted(iV) = V_arr_sweep(V_num - iV + 1);
+        }
+        I_anode_t_matrix_sorted(iV, iT) = I_anode_t_matrix(V_num - iV + 1, iT);
+        I_cathode_t_matrix_sorted(iV, iT) = I_cathode_t_matrix(V_num - iV + 1, iT);
+    }
+}
+
+temp_ushaped_I_anode = matrixdataset("I_anode");
+temp_ushaped_I_anode.addparameter("V_anode", V_sorted);
+temp_ushaped_I_anode.addparameter("temperature", T_arr);
+temp_ushaped_I_anode.addattribute("I", I_anode_t_matrix_sorted);
+
+temp_ushaped_I_cathode = matrixdataset("I_cathode");
+temp_ushaped_I_cathode.addparameter("V_anode", V_sorted);
+temp_ushaped_I_cathode.addparameter("temperature", T_arr);
+temp_ushaped_I_cathode.addattribute("I", I_cathode_t_matrix_sorted);
+
+matlabsave(res_dir + "ge_pd_charge_temp_ushaped", temp_ushaped_I_anode, temp_ushaped_I_cathode, T_arr);

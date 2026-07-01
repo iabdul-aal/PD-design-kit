@@ -1,0 +1,73 @@
+﻿# ── Lumerical binary project files ────────────────────────────────────────────
+*.fsp
+*.fsp.bak
+*.lms
+*.ldev
+*.oas
+*.icp
+*.ich
+
+# ── Lumerical INTERCONNECT model binaries ─────────────────────────────────────
+# Block .icp and .mat everywhere EXCEPT force-include them in models/
+lumerical/interconnect/models/**/*.icp
+lumerical/interconnect/models/**/*.mat
+# But keep the source .icp and .mat that are part of the model definition
+!lumerical/interconnect/models/source/**/*.icp
+!lumerical/interconnect/models/source/**/*.mat
+
+# ── MATLAB ────────────────────────────────────────────────────────────────────
+*.asv
+*.m~
+results/
+*.mat
+
+# ── Python ────────────────────────────────────────────────────────────────────
+*.pyc
+__pycache__/
+.venv/
+.uv-cache/
+
+# ── Figures — allow only TikZ sources and panel Python generators ──────────────
+figures/*
+!figures/python/
+!figures/python/*.py
+!figures/tikz/
+!figures/tikz/*.tex
+
+# ── Lumerical log / temp ──────────────────────────────────────────────────────
+*.log
+*_p0.log
+*_p1.log
+
+# ── LaTeX auxiliary ───────────────────────────────────────────────────────────
+*.aux
+*.bbl
+*.blg
+*.bcf
+*.out
+*.toc
+*.lot
+*.lof
+*.run.xml
+*.synctex.gz
+*.fls
+*.fdb_latexmk
+*-SAVE-ERROR
+_minted-*/
+
+# ── Misc ──────────────────────────────────────────────────────────────────────
+*.txt
+.util/
+docs/
+!docs/slides.pdf
+!docs/chapter.pdf
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ── Force-include ─────────────────────────────────────────────────────────────
+!CITATION.cff
+!README.md
+!LICENSE
+!USERGUIDE.md
+!"docs slides.pdf"

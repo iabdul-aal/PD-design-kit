@@ -1,0 +1,23 @@
+{
+  "foundry_name" : "ge_pd_foundry",
+  "version_suffix" : "1.0",
+  "process_prefix" : "",
+  "library" :
+  {
+    "foundry_name" : "ge_pd_foundry",
+    "name"        : "ge_pd_foundry",
+    "version"     : "1.0.0",
+    "description" : "Ge-on-Si PIN Photodetector O-band TE - Foundry CML Library"
+  },
+
+
+  "element_list" :
+  [
+    {
+      "element_name"   : "ge_pd_cml_oband_ushaped",
+      "photonic_model" : "compound_element",
+      "data_file"      : "ge_pd_cml_oband_ushaped.json",
+      "stat_refdata"   : "ge_pd_cml_oband_ushaped_stat_refdata.mat"
+    }
+  ]
+}

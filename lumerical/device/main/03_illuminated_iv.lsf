@@ -1,0 +1,86 @@
+# Copyright (c) 2026 Islam Ibrahim. All rights reserved.
+
+# ============================================================
+# 03_illuminated_iv.lsf  — Illuminated IV sweep (optical_gen enabled)
+# Depends on: 01_build.lsf  (must be run first)
+# Runs in PARALLEL with 02_dark_iv.lsf, 04, 05, 14
+# Output: ge_pd_charge_illuminated_iv.mat
+# NOTE: Responsivity print requires dark IV result for I_dk_1V.
+#       If needed post-hoc, load ge_pd_charge_dark_iv.mat and compute.
+# ============================================================
+
+script_dir  = filedirectory(which(currentscriptname));
+device_dir  = script_dir + "/../..";
+project_dir = device_dir + "/projects";
+repo_root   = device_dir + "/../..";
+res_dir     = repo_root + "/results/device/main/";
+
+P_opt   = 100e-6;
+V_num   = 41;
+V_start = 1.0;
+V_stop  = -3.0;
+
+# Load the saved .ldev built by 01_build.lsf
+load(project_dir + "/ge_pd_charge_oband_ushaped.ldev");
+switchtolayout;
+# Save a private working copy so the master .ldev is never modified by run()
+tmp_file = project_dir + "/ge_pd_charge_oband_ushaped_tmp_illum_iv.ldev";
+save(tmp_file);
+
+select("CHARGE::optical_gen");
+set("enabled", 1);
+select("CHARGE::boundary conditions::cathode");
+set("bc mode", "steady state");
+set("sweep type", "single");
+set("voltage", 0);
+select("CHARGE::boundary conditions::anode");
+set("bc mode", "steady state");
+set("sweep type", "range");
+set("range start", V_start);
+set("range stop", V_stop);
+set("range num points", V_num);
+select("CHARGE");
+set("solver mode", "steady state");
+run;
+
+anode_res    = getresult("CHARGE", "anode");
+cathode_res  = getresult("CHARGE", "cathode");
+monitor_band = getresult("CHARGE::monitor_band");
+matlabsave(res_dir + "ge_pd_charge_illuminated_iv", anode_res, cathode_res, monitor_band, P_opt);
+
+# ── PRINT: Illuminated IV comparison ────────────────────────────────────
+V_vec_il  = anode_res.V_anode;
+I_vec_il  = anode_res.I;
+idx_1V_il = find(V_vec_il, -1);
+if (length(idx_1V_il) < 1) {
+    idx_1V_il = 1;
+}
+I_il_1V_raw = I_vec_il(idx_1V_il);
+I_il_1V     = abs(I_il_1V_raw);
+I_ph_1V     = I_il_1V;
+resp_note   = "total-current estimate; run 02_dark_iv for net R";
+if (fileexists(res_dir + "ge_pd_charge_dark_iv.mat")) {
+    matlabload(res_dir + "ge_pd_charge_dark_iv.mat");
+    V_vec_dk = anode_res.V_anode;
+    I_vec_dk = anode_res.I;
+    idx_1V_dk = find(V_vec_dk, -1);
+    if (length(idx_1V_dk) < 1) {
+        idx_1V_dk = 1;
+    }
+    I_dk_1V_raw = I_vec_dk(idx_1V_dk);
+    I_ph_1V = abs(I_il_1V_raw - I_dk_1V_raw);
+    resp_note = "dark-subtracted net responsivity";
+}
+resp_sim = I_ph_1V / P_opt;
+?"";
+?"╔══════════════════════════════════════════════════════════╗";
+?"║           ILLUMINATED IV — Sim vs Paper                 ║";
+?"╠══════════════════════════════════════════════════════════╣";
+?"║  Sim  total current @ -1 V : " + num2str(I_il_1V*1e6, "%.3f") + " uA";
+?"║  Sim  photocurrent @ -1 V  : " + num2str(I_ph_1V*1e6, "%.3f") + " uA";
+?"║  Sim  responsivity         : " + num2str(resp_sim, "%.3f") + " A/W  (" + resp_note + ")";
+?"║  Paper U-shaped  @ -1 V  :  0.95 A/W";
+?"║  Paper Parallel  @ -1 V  :  0.92 A/W";
+?"╚══════════════════════════════════════════════════════════╝";
+?"";
+?"Illuminated IV complete. Results saved to: " + res_dir + "ge_pd_charge_illuminated_iv.mat";

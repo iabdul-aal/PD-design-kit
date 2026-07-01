@@ -1,0 +1,391 @@
+# Copyright (c) 2026 Islam Ibrahim. All rights reserved.
+
+script_dir  = filedirectory(which(currentscriptname));
+device_dir  = script_dir + "/..";
+project_dir = device_dir + "/projects";
+repo_root   = device_dir + "/../..";
+res_dir     = repo_root + "/results/device/parallel/";
+gen_file    = repo_root + "/results/fdtd/parallel/ge_pd_gen_parallel_nominal.mat";
+
+V_start    = -2.5;
+V_stop     =  0.0;
+V_num      = 26;
+V_ssac_arr = [-1.0];
+nV_ssac    = length(V_ssac_arr);
+# Save a private working copy once so the master .ldev is never modified by run()
+tmp_file = project_dir + "/ge_pd_charge_parallel_nominal.ldev";
+load(project_dir + "/ge_pd_charge_oband_ushaped.ldev");
+switchtolayout;
+
+# Patch structure group scripts to prevent duplicate accumulation
+select("Al_cath_group");
+set("script", "deleteall;\n" + get("script"));
+select("Al_anode_group");
+set("script", "deleteall;\n" + get("script"));
+select("Si_ppp_group");
+set("script", "deleteall;\n" + get("script"));
+
+save(tmp_file);
+
+switchtolayout;
+runsetup;
+select("Al_anode_group::Al_anode_back_taper"); set("enabled", 0);
+select("Al_anode_group::Al_anode_back_ind");   set("enabled", 0);
+# Re-associate contact boundary conditions to regenerated solids
+select("CHARGE::boundary conditions::cathode");
+set("surface type", "solid");
+set("solid", "Al_cath_group");
+select("CHARGE::boundary conditions::anode");
+set("surface type", "solid");
+set("solid", "Al_anode_group");
+
+select("CHARGE::optical_gen");
+set("enabled", 0);
+importdataset(gen_file);
+
+switchtolayout;
+runsetup;
+select("Al_anode_group::Al_anode_back_taper"); set("enabled", 0);
+select("Al_anode_group::Al_anode_back_ind");   set("enabled", 0);
+# Re-associate contact boundary conditions to regenerated solids
+select("CHARGE::boundary conditions::cathode");
+set("surface type", "solid");
+set("solid", "Al_cath_group");
+select("CHARGE::boundary conditions::anode");
+set("surface type", "solid");
+set("solid", "Al_anode_group");
+
+
+# Run Dark IV sweep using built-in range sweep from 0.0 to -2.5 V
+select("CHARGE::boundary conditions::cathode");
+set("bc mode", "steady state");
+set("sweep type", "single");
+set("voltage", 0);
+set("apply ac small signal", "none");
+select("CHARGE::boundary conditions::anode");
+set("bc mode", "steady state");
+set("sweep type", "range");
+set("range start", 0.0);
+set("range stop",  -2.5);
+set("range num points", V_num);
+set("apply ac small signal", "none");
+select("CHARGE");
+set("solver mode", "steady state");
+run;
+
+anode_res = getresult("CHARGE", "anode");
+V_arr_sweep = anode_res.V_anode;
+I_anode_arr_sweep = anode_res.I;
+
+cathode_res = getresult("CHARGE", "cathode");
+I_cathode_arr_sweep = cathode_res.I;
+
+# Reverse arrays so that they are in the order [-2.5, ..., 0.0]
+V_sorted = matrix(V_num);
+I_anode_sorted = matrix(V_num);
+I_cathode_sorted = matrix(V_num);
+for (i = 1; i <= V_num; i = i + 1) {
+    V_sorted(i) = V_arr_sweep(V_num - i + 1);
+    I_anode_sorted(i) = I_anode_arr_sweep(V_num - i + 1);
+    I_cathode_sorted(i) = I_cathode_arr_sweep(V_num - i + 1);
+}
+
+anode = matrixdataset("anode");
+anode.addparameter("V_anode", V_sorted);
+anode.addattribute("I", I_anode_sorted);
+
+cathode = matrixdataset("cathode");
+cathode.addparameter("V_anode", V_sorted);
+cathode.addattribute("I", I_cathode_sorted);
+
+monitor_band = getresult("CHARGE::monitor_band");
+matlabsave(res_dir + "ge_pd_charge_parallel_dark_iv", anode, cathode, monitor_band);
+
+# Run Illuminated IV sweep using built-in range sweep from 0.0 to -2.5 V
+switchtolayout;
+runsetup;
+select("Al_anode_group::Al_anode_back_taper"); set("enabled", 0);
+select("Al_anode_group::Al_anode_back_ind");   set("enabled", 0);
+# Re-associate contact boundary conditions to regenerated solids
+select("CHARGE::boundary conditions::cathode");
+set("surface type", "solid");
+set("solid", "Al_cath_group");
+select("CHARGE::boundary conditions::anode");
+set("surface type", "solid");
+set("solid", "Al_anode_group");
+
+select("CHARGE::optical_gen");
+set("enabled", 1);
+select("CHARGE::boundary conditions::cathode");
+set("bc mode", "steady state");
+set("sweep type", "single");
+set("voltage", 0);
+set("apply ac small signal", "none");
+select("CHARGE::boundary conditions::anode");
+set("bc mode", "steady state");
+set("sweep type", "range");
+set("range start", 0.0);
+set("range stop",  -2.5);
+set("range num points", V_num);
+set("apply ac small signal", "none");
+select("CHARGE");
+set("solver mode", "steady state");
+run;
+
+anode_res = getresult("CHARGE", "anode");
+V_arr_sweep = anode_res.V_anode;
+I_anode_arr_sweep = anode_res.I;
+
+cathode_res = getresult("CHARGE", "cathode");
+I_cathode_arr_sweep = cathode_res.I;
+
+# Reverse arrays so that they are in the order [-2.5, ..., 0.0]
+V_sorted = matrix(V_num);
+I_anode_illum_sorted = matrix(V_num);
+I_cathode_illum_sorted = matrix(V_num);
+for (i = 1; i <= V_num; i = i + 1) {
+    V_sorted(i) = V_arr_sweep(V_num - i + 1);
+    I_anode_illum_sorted(i) = I_anode_arr_sweep(V_num - i + 1);
+    I_cathode_illum_sorted(i) = I_cathode_arr_sweep(V_num - i + 1);
+}
+
+anode = matrixdataset("anode");
+anode.addparameter("V_anode", V_sorted);
+anode.addattribute("I", I_anode_illum_sorted);
+
+cathode = matrixdataset("cathode");
+cathode.addparameter("V_anode", V_sorted);
+cathode.addattribute("I", I_cathode_illum_sorted);
+
+monitor_band = getresult("CHARGE::monitor_band");
+matlabsave(res_dir + "ge_pd_charge_parallel_illuminated_iv", anode, cathode, monitor_band);
+
+switchtolayout;
+runsetup;
+select("Al_anode_group::Al_anode_back_taper"); set("enabled", 0);
+select("Al_anode_group::Al_anode_back_ind");   set("enabled", 0);
+# Re-associate contact boundary conditions to regenerated solids
+select("CHARGE::boundary conditions::cathode");
+set("surface type", "solid");
+set("solid", "Al_cath_group");
+select("CHARGE::boundary conditions::anode");
+set("surface type", "solid");
+set("solid", "Al_anode_group");
+
+select("CHARGE::optical_gen");
+set("enabled", 1);
+select("CHARGE::boundary conditions::cathode");
+set("bc mode", "steady state");
+set("sweep type", "single");
+set("voltage", 0);
+set("apply ac small signal", "none");
+select("CHARGE::boundary conditions::anode");
+set("bc mode", "steady state");
+set("sweep type", "single");
+set("voltage", V_ssac_arr(1));
+set("apply ac small signal", "none");
+select("CHARGE");
+set("solver mode", "ssac");
+set("small signal ac optical generation", true);
+set("frequency spacing", "log");
+set("log start frequency", 100e6);
+set("log stop frequency", 200e9);
+set("num frequency points per dec", 10);
+run;
+
+ssac_res = getresult("CHARGE", "ac_anode");
+f_arr = ssac_res.f;
+n_freq = length(f_arr);
+
+I_anode_par_mag_matrix = matrix(n_freq, nV_ssac);
+I_cathode_par_mag_matrix = matrix(n_freq, nV_ssac);
+
+I_anode_par_mag_matrix(1:n_freq, 1) = ssac_res.dI;
+ssac_res_cath = getresult("CHARGE", "ac_cathode");
+I_cathode_par_mag_matrix(1:n_freq, 1) = ssac_res_cath.dI;
+
+for (iV = 2; iV <= nV_ssac; iV = iV + 1) {
+    switchtolayout;
+    runsetup;
+    select("Al_anode_group::Al_anode_back_taper"); set("enabled", 0);
+    select("Al_anode_group::Al_anode_back_ind");   set("enabled", 0);
+    # Re-associate contact boundary conditions to regenerated solids
+    select("CHARGE::boundary conditions::cathode");
+    set("surface type", "solid");
+    set("solid", "Al_cath_group");
+    select("CHARGE::boundary conditions::anode");
+    set("surface type", "solid");
+    set("solid", "Al_anode_group");
+
+    select("CHARGE::optical_gen");
+    set("enabled", 1);
+    select("CHARGE::boundary conditions::cathode");
+    set("bc mode", "steady state");
+    set("sweep type", "single");
+    set("voltage", 0);
+    set("apply ac small signal", "none");
+    select("CHARGE::boundary conditions::anode");
+    set("bc mode", "steady state");
+    set("sweep type", "single");
+    set("voltage", V_ssac_arr(iV));
+    set("apply ac small signal", "none");
+    select("CHARGE");
+    set("solver mode", "ssac");
+    set("small signal ac optical generation", true);
+    set("frequency spacing", "log");
+    set("log start frequency", 100e6);
+    set("log stop frequency", 200e9);
+    set("num frequency points per dec", 10);
+    run;
+    ssac_res = getresult("CHARGE", "ac_anode");
+    I_anode_par_mag_matrix(1:n_freq, iV) = ssac_res.dI;
+    ssac_res_cath = getresult("CHARGE", "ac_cathode");
+    I_cathode_par_mag_matrix(1:n_freq, iV) = ssac_res_cath.dI;
+}
+
+ssac_I_anode = matrixdataset("I_anode");
+ssac_I_anode.addparameter("f", f_arr);
+ssac_I_anode.addparameter("V_anode", V_ssac_arr);
+ssac_I_anode.addattribute("I", I_anode_par_mag_matrix);
+
+ssac_I_cathode = matrixdataset("I_cathode");
+ssac_I_cathode.addparameter("f", f_arr);
+ssac_I_cathode.addparameter("V_anode", V_ssac_arr);
+ssac_I_cathode.addattribute("I", I_cathode_par_mag_matrix);
+
+matlabsave(res_dir + "ge_pd_charge_parallel_ssac", ssac_I_anode, ssac_I_cathode, V_ssac_arr);
+
+
+switchtolayout;
+runsetup;
+select("Al_anode_group::Al_anode_back_taper"); set("enabled", 0);
+select("Al_anode_group::Al_anode_back_ind");   set("enabled", 0);
+# Re-associate contact boundary conditions to regenerated solids
+select("CHARGE::boundary conditions::cathode");
+set("surface type", "solid");
+set("solid", "Al_cath_group");
+select("CHARGE::boundary conditions::anode");
+set("surface type", "solid");
+set("solid", "Al_anode_group");
+
+select("CHARGE::optical_gen");
+set("enabled", 0);
+select("CHARGE::boundary conditions::cathode");
+set("bc mode", "steady state");
+set("sweep type", "single");
+set("voltage", 0);
+set("apply ac small signal", "none");
+select("CHARGE::boundary conditions::anode");
+set("bc mode", "steady state");
+set("sweep type", "single");
+set("voltage", V_ssac_arr(1));
+set("apply ac small signal", "all");
+select("CHARGE");
+set("solver mode", "ssac");
+set("small signal ac optical generation", false);
+set("frequency spacing", "log");
+set("log start frequency", 1e6);
+set("log stop frequency", 200e9);
+set("num frequency points per dec", 10);
+run;
+
+cap_res = getresult("CHARGE", "ac_anode");
+f_arr_cap = cap_res.f;
+n_freq_cap = length(f_arr_cap);
+
+I_anode_par_cap_matrix = matrix(n_freq_cap, nV_ssac);
+I_cathode_par_cap_matrix = matrix(n_freq_cap, nV_ssac);
+
+I_anode_par_cap_matrix(1:n_freq_cap, 1) = cap_res.dI;
+cap_res_cath = getresult("CHARGE", "ac_cathode");
+I_cathode_par_cap_matrix(1:n_freq_cap, 1) = cap_res_cath.dI;
+
+for (iV = 2; iV <= nV_ssac; iV = iV + 1) {
+    switchtolayout;
+    runsetup;
+    select("Al_anode_group::Al_anode_back_taper"); set("enabled", 0);
+    select("Al_anode_group::Al_anode_back_ind");   set("enabled", 0);
+    # Re-associate contact boundary conditions to regenerated solids
+    select("CHARGE::boundary conditions::cathode");
+    set("surface type", "solid");
+    set("solid", "Al_cath_group");
+    select("CHARGE::boundary conditions::anode");
+    set("surface type", "solid");
+    set("solid", "Al_anode_group");
+
+    select("CHARGE::optical_gen");
+    set("enabled", 0);
+    select("CHARGE::boundary conditions::cathode");
+    set("bc mode", "steady state");
+    set("sweep type", "single");
+    set("voltage", 0);
+    set("apply ac small signal", "none");
+    select("CHARGE::boundary conditions::anode");
+    set("bc mode", "steady state");
+    set("sweep type", "single");
+    set("voltage", V_ssac_arr(iV));
+    set("apply ac small signal", "all");
+    select("CHARGE");
+    set("solver mode", "ssac");
+    set("small signal ac optical generation", false);
+    set("frequency spacing", "log");
+    set("log start frequency", 1e6);
+    set("log stop frequency", 200e9);
+    set("num frequency points per dec", 10);
+    run;
+    cap_res = getresult("CHARGE", "ac_anode");
+    I_anode_par_cap_matrix(1:n_freq_cap, iV) = cap_res.dI;
+    cap_res_cath = getresult("CHARGE", "ac_cathode");
+    I_cathode_par_cap_matrix(1:n_freq_cap, iV) = cap_res_cath.dI;
+}
+
+cap_I_anode = matrixdataset("I_anode");
+cap_I_anode.addparameter("f", f_arr_cap);
+cap_I_anode.addparameter("V_anode", V_ssac_arr);
+cap_I_anode.addattribute("I", I_anode_par_cap_matrix);
+
+cap_I_cathode = matrixdataset("I_cathode");
+cap_I_cathode.addparameter("f", f_arr_cap);
+cap_I_cathode.addparameter("V_anode", V_ssac_arr);
+cap_I_cathode.addattribute("I", I_cathode_par_cap_matrix);
+
+matlabsave(res_dir + "ge_pd_charge_parallel_capacitance", cap_I_anode, cap_I_cathode, V_ssac_arr);
+
+
+switchtolayout;
+runsetup;
+select("Al_anode_group::Al_anode_back_taper"); set("enabled", 0);
+select("Al_anode_group::Al_anode_back_ind");   set("enabled", 0);
+# Re-associate contact boundary conditions to regenerated solids
+select("CHARGE::boundary conditions::cathode");
+set("surface type", "solid");
+set("solid", "Al_cath_group");
+select("CHARGE::boundary conditions::anode");
+set("surface type", "solid");
+set("solid", "Al_anode_group");
+
+select("CHARGE::optical_gen");
+set("enabled", 1);
+select("CHARGE::boundary conditions::anode");
+set("bc mode", "transient");
+set("transient voltage time steps", [0, 80e-12]);
+set("transient voltage table", [-1, -1]);
+select("CHARGE::boundary conditions::cathode");
+set("bc mode", "transient");
+set("transient voltage time steps", [0, 80e-12]);
+set("transient voltage table", [0, 0]);
+select("CHARGE");
+set("solver mode", "transient");
+set("solver type", "newton");
+set("rel lte limit", 0.001);
+set("abs lte limit", 0.001);
+set("shutter mode", "step on");
+set("shutter ton", 50e-15);
+set("shutter tslew", 0);
+set("transient min time step", 50e-15);
+set("transient max time step", 0.5e-12);
+run("CHARGE");
+
+
+anode_tr = getresult("CHARGE", "anode");
+matlabsave(res_dir + "ge_pd_charge_parallel_transient", anode_tr);

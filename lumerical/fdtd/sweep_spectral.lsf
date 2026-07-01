@@ -1,0 +1,34 @@
+# Copyright (c) 2026 Islam Ibrahim. All rights reserved.
+
+script_dir  = filedirectory(which(currentscriptname));
+fdtd_dir    = script_dir + "/..";
+project_dir = fdtd_dir + "/projects";
+repo_root   = fdtd_dir + "/../..";
+base_fsp    = project_dir + "/ge_pd_fdtd_oband_ushaped.fsp";
+res_dir     = repo_root + "/results/fdtd/spectral/";
+
+load(base_fsp);
+save(project_dir + "/ge_pd_fdtd_spectral.fsp");
+
+switchtolayout;
+select("E_field_XZ");         set("enabled", 0);
+select("E_field_XY");         set("enabled", 0);
+select("mode_profile_wg");    set("enabled", 0);
+select("mode_profile_taper"); set("enabled", 0);
+select("time_monitor");       set("enabled", 0);
+select("source");
+set("wavelength start", 1.26e-6);
+set("wavelength stop",  1.36e-6);
+select("generation_rate");
+set("export filename", res_dir + "ge_pd_gen_spectral_1260_1360nm.mat");
+
+run;
+runanalysis("generation_rate");
+
+T_after_Ge = getresult("T_after_Ge", "T");
+T_ref      = getresult("T_ref",      "T");
+G          = getresult("generation_rate", "G");
+Jsc        = getresult("generation_rate", "Jsc");
+Pabs_total = getresult("generation_rate", "Pabs_total");
+
+matlabsave(res_dir + "ge_pd_fdtd_spectral", T_after_Ge, T_ref, G, Jsc, Pabs_total);

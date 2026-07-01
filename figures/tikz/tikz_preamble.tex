@@ -1,0 +1,56 @@
+% Copyright (c) 2026 Islam Ibrahim. All rights reserved.
+
+%% ============================================================
+%% tikz_preamble.tex - Shared design tokens for thesis TikZ figures
+%%
+%% Usage: \input{tikz_preamble} after package loading.
+%% ============================================================
+
+%% Font hierarchy
+%% Title:      \small\bfseries\rmfamily
+%% Body:       \footnotesize\rmfamily
+%% Label/Ann:  \scriptsize\rmfamily
+%% Tiny:       \tiny\rmfamily
+
+%% Shared TikZ styles
+\tikzset{
+  ax/.style={line width=0.7pt, ->},
+  seg/.style={line width=1.2pt},
+  lbl/.style={font=\scriptsize\rmfamily},
+  lbltiny/.style={font=\tiny\rmfamily, inner sep=1.5pt},
+  ann/.style={font=\scriptsize\rmfamily, inner sep=1.5pt},
+  steplbl/.style={font=\footnotesize\bfseries\rmfamily, inner sep=2pt},
+}
+
+%% Shared color palette
+%% Device regions
+\colorlet{pRegion}{blue!30!cyan!25}
+\colorlet{nRegion}{green!40!yellow!25}
+\colorlet{iRegion}{violet!12}
+\colorlet{geLayer}{green!50!black!60}
+\colorlet{siLayer}{gray!35}
+\colorlet{boxLayer}{yellow!70!orange!50}
+\colorlet{metalCont}{gray!55}
+
+%% Band diagram
+\colorlet{ecBand}{red!70!black}
+\colorlet{evBand}{blue!50!black}
+\colorlet{efLevel}{gray!55}
+
+%% Carriers and photons
+\colorlet{photonCol}{orange!80!black}
+\colorlet{electronCol}{cyan!60!black}
+\colorlet{holeCol}{orange!70!black}
+
+%% Electric field and charge
+\colorlet{efieldCol}{blue!70!black}
+\colorlet{rhoCol}{red!60!black}
+\colorlet{naCol}{blue!40!cyan!30}
+\colorlet{ndCol}{red!30!orange!25}
+
+%% Line-weight reference
+%% Axis lines:      0.7 pt
+%% Band/curve:      1.2 pt
+%% Device border:   0.6 pt
+%% Annotation:      0.5 pt
+%% Dashed guide:    0.4-0.5 pt

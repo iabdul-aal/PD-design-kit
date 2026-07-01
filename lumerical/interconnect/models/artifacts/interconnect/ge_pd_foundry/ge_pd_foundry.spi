@@ -1,0 +1,2 @@
+.subckt ge_pd_cml_oband_ushaped input output thermal_noise=0 enable_shot_noise=1 enable_power_saturation=1 DC_operation_only=0 frequency_at_max_power=1 convert_noise_bins=1 automatic_seed=1 seed=1 single_tap_filter=0 filter_fit_tolerance=0.001 number_of_fir_taps=256 maximum_number_of_fir_taps=4096 filter_delay=0 initialize_filter_taps=0 run_diagnostic=0 diagnostic_size=1024 library="Design kits/ge_pd_foundry"
+.ends

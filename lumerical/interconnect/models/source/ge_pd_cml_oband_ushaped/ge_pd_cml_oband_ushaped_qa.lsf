@@ -1,0 +1,48 @@
+# Copyright (c) 2026 Islam Ibrahim. All rights reserved.
+
+
+qa_wavelength = 1.31e-6;
+qa_BW_bias    = -1.0;
+
+nom_f3dB      = 52.673277224667018e9;
+nom_IL        = 1.3;
+nom_R         = 0.73816411098922941;
+nom_Id_nA     = 7.0999130276690376;
+nom_NEP       = 2.4663290833573631e-11;
+nom_Psat      = 5.28500966172418e-3;
+nom_lam       = 1.31e-6;
+
+tol_BW   = 0.05;
+tol_IL   = 0.01;
+tol_R    = 0.02;
+tol_Id   = 0.10;
+tol_NEP  = 0.05;
+tol_Psat = 0.05;
+
+setnamed("::Root Element::ge_pd_cml_oband_ushaped", "bias_voltage", qa_BW_bias);
+setnamed("::Root Element::ge_pd_cml_oband_ushaped", "wavelength",   qa_wavelength);
+run;
+
+f3dB_meas = getresult("ge_pd_cml_oband_ushaped", "f3dB");
+IL_meas   = getresult("ge_pd_cml_oband_ushaped", "IL");
+R_meas    = getresult("ge_pd_cml_oband_ushaped", "responsivity");
+
+pass = 1;
+
+err_BW = abs(f3dB_meas - nom_f3dB) / nom_f3dB;
+if (err_BW <= tol_BW) {
+} else {
+    pass = 0;
+}
+
+err_IL = abs(IL_meas - nom_IL) / nom_IL;
+if (err_IL <= tol_IL) {
+} else {
+    pass = 0;
+}
+
+err_R = abs(R_meas - nom_R) / nom_R;
+if (err_R <= tol_R) {
+} else {
+    pass = 0;
+}

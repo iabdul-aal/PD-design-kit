@@ -1,0 +1,114 @@
+# Copyright (c) 2026 Islam Ibrahim. All rights reserved.
+
+script_dir  = filedirectory(which(currentscriptname));
+fdtd_dir    = script_dir + "/..";
+project_dir = fdtd_dir + "/projects";
+repo_root   = fdtd_dir + "/../..";
+base_fsp    = project_dir + "/ge_pd_fdtd_oband_ushaped.fsp";
+res_dir     = repo_root + "/results/fdtd/GeL/";
+
+load(base_fsp);
+save(project_dir + "/ge_pd_fdtd_GeL_sweep.fsp");
+
+switchtolayout;
+select("E_field_XZ");         set("enabled", 0);
+select("E_field_XY");         set("enabled", 0);
+select("mode_profile_wg");    set("enabled", 0);
+select("mode_profile_taper"); set("enabled", 0);
+select("time_monitor");       set("enabled", 0);
+
+wg_H           = 220e-9;
+Ge_W           = 5e-6;
+Npp_H          = 50e-9;
+D2             = 2.56e-6;
+Al_anode_W_bot = 200e-9;
+Al_anode_W_top = 500e-9;
+iGe_W_top      = Ge_W * 0.5;
+Npp_W          = iGe_W_top;
+Al_cath_W_bot  = Npp_W * 0.6;
+Al_cath_W_top  = Npp_W * 0.8;
+
+Ge_L_arr = [2, 4, 6, 8] * 1e-6;
+nL       = length(Ge_L_arr);
+
+r_T_cell   = cell(nL);
+r_ref_cell = cell(nL);
+
+for (iN = 1; iN <= nL; iN = iN+1) {
+
+    Ge_L           = Ge_L_arr(iN);
+    x_ctr          = Ge_L / 2;
+    x_T            = Ge_L + 0.5e-6;
+    x_mesh         = Ge_L + 0.2e-6;
+    x_back_min     = Ge_L + D2;
+    x_back_max_bot = x_back_min + Al_anode_W_bot;
+    x_back_max_top = x_back_min + Al_anode_W_top;
+
+    switchtolayout;
+
+    select("i_Ge");
+    set("x span bottom", Ge_L);
+    set("x span top",    Ge_L);
+    set("x",             x_ctr);
+
+    select("Npp_Ge");
+    set("x min", 0);
+    set("x max", Ge_L);
+
+    select("Si_ext");
+    set("x min", 0);
+    set("x max", Ge_L);
+
+    select("Al_cath_taper");
+    set("x span bottom", Ge_L);
+    set("x span top",    Ge_L);
+    set("x",             x_ctr);
+
+    select("Al_cath_ind");
+    set("x min", 0);
+    set("x max", Ge_L);
+
+    select("Al_anode_left_taper");
+    set("x min", 0);
+    set("x max", x_back_min);
+
+    select("Al_anode_right_taper");
+    set("x min", 0);
+    set("x max", x_back_min);
+
+    select("Al_anode_left_ind");
+    set("x min", 0);
+    set("x max", x_back_min);
+
+    select("Al_anode_right_ind");
+    set("x min", 0);
+    set("x max", x_back_min);
+
+    select("Al_anode_back_taper");
+    set("x min", x_back_min);
+    set("x max", x_back_max_bot);
+
+    select("Al_anode_back_ind");
+    set("x min", x_back_min);
+    set("x max", x_back_max_top);
+
+    select("T_after_Ge");
+    set("x", x_T);
+
+    select("mesh_Ge");
+    set("x min", -0.2e-6);
+    set("x max", x_mesh);
+
+    select("generation_rate");
+    set("x",               x_ctr);
+    set("x span",          Ge_L);
+    set("export filename", res_dir + "ge_pd_gen_GeL_" + num2str(Ge_L*1e6) + "um.mat");
+
+    run;
+    runanalysis("generation_rate");
+
+    r_T_cell{iN}   = getresult("T_after_Ge", "T");
+    r_ref_cell{iN} = getresult("T_ref",      "T");
+}
+
+matlabsave(res_dir + "ge_pd_fdtd_sweep_GeL", r_T_cell, r_ref_cell, Ge_L_arr);

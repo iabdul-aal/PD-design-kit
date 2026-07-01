@@ -1,0 +1,13 @@
+*.pdf binary
+results/**/*.mat filter=lfs diff=lfs merge=lfs -text
+*.mat filter=lfs diff=lfs merge=lfs -text
+*.ldev filter=lfs diff=lfs merge=lfs -text
+*.fsp filter=lfs diff=lfs merge=lfs -text
+*.lms filter=lfs diff=lfs merge=lfs -text
+*.icp filter=lfs diff=lfs merge=lfs -text
+*.ich filter=lfs diff=lfs merge=lfs -text
+*.cml filter=lfs diff=lfs merge=lfs -text
+*.gds filter=lfs diff=lfs merge=lfs -text
+*.ice.x filter=lfs diff=lfs merge=lfs -text
+figures/setup/*.png filter=lfs diff=lfs merge=lfs -text
+figures/setup/*.mat filter=lfs diff=lfs merge=lfs -text

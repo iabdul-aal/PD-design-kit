@@ -1,0 +1,22 @@
+.LIB nominal
+.MODEL ge_pd_cml_oband_ushaped delta_height=0 delta_width=0 delta_electrical_BW=0 library="ge_pd_foundry"
+.ENDL
+
+.LIB statistical
+.GLOBALGROUP global_delta_width=(normal,1.0)
+.GLOBALGROUP global_delta_height=(normal,1.0)
+.GLOBALGROUP global_ge_pd_cml_oband_ushaped_delta_electrical_BW=(normal,1)
+
+.CORRGROUP corr_delta_width=0.003
+.CORRGROUP corr_delta_height=0.01
+
+.MODEL ge_pd_cml_oband_ushaped delta_height=0 LOCAL=(normal,0.8) CORRGROUP=corr_delta_height GLOBALGROUP=global_delta_height delta_width=0 LOCAL=(normal,0.7) CORRGROUP=corr_delta_width GLOBALGROUP=global_delta_width delta_electrical_BW=0 LOCAL=(normal,0.9) GLOBALGROUP=global_ge_pd_cml_oband_ushaped_delta_electrical_BW library="ge_pd_foundry"
+.ENDL
+
+.LIB corner_1
+.MODEL ge_pd_cml_oband_ushaped delta_height=-2.4 delta_width=-2.1 delta_electrical_BW=-3 library="ge_pd_foundry"
+.ENDL
+
+.LIB corner_2
+.MODEL ge_pd_cml_oband_ushaped delta_height=2.4 delta_width=2.1 delta_electrical_BW=3 library="ge_pd_foundry"
+.ENDL

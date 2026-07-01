@@ -1,0 +1,125 @@
+# Copyright (c) 2026 Islam Ibrahim. All rights reserved.
+
+# ============================================================
+# 07_export_spatial.lsf  — Export spatial physics data for panel 08
+#
+# Extracts from the existing completed dark-IV simulation:
+#   (b) Electrostatic potential V_pot(y,z) and |E|(y,z) at V_bias = -1 V
+#   (d) Band energies Ec(z), Ev(z), Efn(z), Efp(z)  vs V_bias
+#
+# Output: results/device/main/ge_pd_charge_spatial.mat
+#
+# Depends on: 01_build.lsf (must have been run and tmp_dark_iv.ldev exists)
+# Does NOT rerun the full sweep — loads from the tmp .ldev file directly.
+# A single-point electrostatic monitor run is added for the 2D Y-Z field.
+# ============================================================
+
+script_dir  = filedirectory(which(currentscriptname));
+device_dir  = script_dir + "/../..";
+project_dir = device_dir + "/projects";
+repo_root   = device_dir + "/../..";
+res_dir     = repo_root + "/results/device/main/";
+
+# ── Step 1: Load the master .ldev and switch to layout ──────────────────────
+load(project_dir + "/ge_pd_charge_oband_ushaped.ldev");
+switchtolayout;
+
+# Save a fresh private working copy for this export run
+tmp_file = project_dir + "/ge_pd_charge_oband_ushaped_tmp_spatial.ldev";
+save(tmp_file);
+
+# ── Step 2: Configure a SINGLE-POINT dark sweep at V = -1 V ─────────────────
+# (fast — only one bias point, no optical gen, so we can add 2D monitors)
+select("CHARGE::optical_gen");
+set("enabled", 0);
+
+select("CHARGE::boundary conditions::cathode");
+set("bc mode", "steady state");
+set("sweep type", "single");
+set("voltage", 0);
+
+select("CHARGE::boundary conditions::anode");
+set("bc mode", "steady state");
+set("sweep type", "single");       # single point at -1 V
+set("voltage", -1);
+
+select("CHARGE");
+set("solver mode", "steady state");
+
+# ── Step 3: Add a 2D Y-Z electrostatic monitor ─────────────────────────────
+# Place it at x = Ge_L/2 (centre of absorber) for a clean Y-Z cross-section
+Ge_L     = 8e-6;
+Ge_W     = 5e-6;
+wg_H     = 220e-9;
+iGe_H    = 350e-9;
+Npp_H    = 50e-9;
+z_iGe_bot = wg_H;
+z_iGe_top = wg_H + iGe_H;
+z_Npp_bot = z_iGe_top - Npp_H;
+clad_margin = 2e-6;
+y_left   = -(Ge_W/2 + clad_margin + 0.2e-6);
+y_right  =  (Ge_W/2 + clad_margin + 0.2e-6);
+
+addelectrostaticmonitor;
+set("name", "monitor_efield_yz");
+set("monitor type", 7);            # 2D cross-section monitor (Y-Z plane)
+set("x", Ge_L/2);
+set("y min", y_left);
+set("y max", y_right);
+set("z min", -BOX_H);              # from below Si into cladding above Npp
+set("z max", z_iGe_top + 100e-9);
+set("record electrostatic potential", 1);
+set("record electric field", 1);
+
+# ── Step 4: Run ─────────────────────────────────────────────────────────────
+run;
+
+# ── Step 5: Extract band-structure monitor data ──────────────────────────────
+# The band-structure monitor result is a Lumerical dataset.
+# We pull every named sub-field as a plain matrix.
+bd = getresult("CHARGE::monitor_band");
+
+# Spatial axis (z) and bias axis
+z_band  = bd.z;                    # [m]  Nz-vector
+V_bias  = bd.bandstructure.V;      # [V]  NV-vector  (one per sweep point)
+
+# Band energies  [eV] — dimensions (Nz, NV)
+Ec   = bd.bandstructure.Ec;
+Ev   = bd.bandstructure.Ev;
+Efn  = bd.bandstructure.Efn;
+Efp  = bd.bandstructure.Efp;
+
+# ── Step 6: Extract 2D electrostatic monitor data ───────────────────────────
+ef = getresult("CHARGE::monitor_efield_yz");
+
+y_field  = ef.y;                   # [m]  Ny-vector
+z_field  = ef.z;                   # [m]  Nz-vector
+
+# Electrostatic potential V_pot [V] — (Ny, Nz)
+V_pot    = ef.electrostatics.V;
+
+# Electric field components [V/m]
+Ey_field = ef.electrostatics.Ey;
+Ez_field = ef.electrostatics.Ez;
+
+# |E| magnitude
+E_mag    = sqrt(Ey_field^2 + Ez_field^2);
+
+# ── Step 7: Save all as flat variables ───────────────────────────────────────
+matlabsave(res_dir + "ge_pd_charge_spatial",
+           z_band, V_bias,
+           Ec, Ev, Efn, Efp,
+           y_field, z_field,
+           V_pot, Ey_field, Ez_field, E_mag);
+
+?"";
+?"╔══════════════════════════════════════════════════════════╗";
+?"║          SPATIAL EXPORT — Complete                      ║";
+?"╠══════════════════════════════════════════════════════════╣";
+?"║  z_band  : " + num2str(length(z_band))  + " points";
+?"║  V_bias  : " + num2str(length(V_bias))  + " sweep points";
+?"║  Ec shape: " + num2str(size(Ec, 1)) + " x " + num2str(size(Ec, 2));
+?"║  V_pot   : " + num2str(size(V_pot, 1)) + " (y) x " + num2str(size(V_pot, 2)) + " (z)";
+?"╚══════════════════════════════════════════════════════════╝";
+?"";
+?"Spatial data saved to: " + res_dir + "ge_pd_charge_spatial.mat";

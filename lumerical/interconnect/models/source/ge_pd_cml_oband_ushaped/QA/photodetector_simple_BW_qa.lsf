@@ -1,0 +1,173 @@
+# Copyright (c) 2026 Islam Ibrahim. All rights reserved.
+
+
+
+
+if (exist("source_directory")){
+    if (source_directory!=filedirectory(filedirectory(which(currentscriptname)))){
+        clear;
+        source_directory = filedirectory(filedirectory(which(currentscriptname)));
+        foundry_directory = filedirectory(filedirectory(which(source_directory)));
+        cd(filedirectory(which(currentscriptname)));
+        feval("/aux_scripts/photodetector_simple_init_qa.lsf");
+    }
+}else{
+        clear;
+        source_directory = filedirectory(filedirectory(which(currentscriptname)));
+        foundry_directory = filedirectory(filedirectory(which(source_directory)));
+        cd(filedirectory(which(currentscriptname)));
+        feval("/aux_scripts/photodetector_simple_init_qa.lsf");      
+}
+err=error_count;
+
+if(!DC_operation_only){
+    for(counter=1:length(bias_voltage_test)){
+        
+        test_bias = bias_voltage_test(counter);
+        
+        
+        new;
+        
+        set("monitor data","save to memory");
+        set("time window",4e-9);
+        set("sample rate",sample_rate_test);
+        
+        
+        
+        delay = 2e-9;
+        
+        addelement(design_kit_name + model);
+        DUT3_name = get("name");
+        if(exist("container_selection_code")) { eval(container_selection_code); }
+        set("x position", -87);
+        set("y position", 30);
+        set("enable_shot_noise", false);
+        set("thermal_noise",0);
+        
+        addelement("CW Laser");
+        CWL3_name = get("name");
+        set("x position", -460);
+        set("y position", 0);
+        set("power",0.001);
+        set("frequency", c/wavelength_test);
+        
+        addelement("Impulse");
+        IMP1_name = get("name");
+        set("x position", -260);
+        set("y position", -210);
+        set("delay",delay);
+        set("amplitude",1);
+        set("bias",0);
+        
+        addelement("Optical Amplitude Modulator");
+        AM1_name = get("name");
+        set("x position", -285);
+        set("y position", 30);
+        set("modulation index",0.01);
+        
+        addelement("DC Source");
+        DC5_name = get("name");
+        set("x position", 94);
+        set("y position", -150);
+        set("amplitude", test_bias);
+        
+        addelement("DC Source");
+        DC6_name = get("name");
+        set("x position", -70);
+        set("y position", -150);
+        set("amplitude",0);
+        
+        addelement("Oscilloscope");
+        OSC3_name = get("name");
+        set("x position", 72);
+        set("y position", 154);
+        
+        connect(CWL3_name,"output",AM1_name,"input");
+        connect(AM1_name,"output",DUT3_name,ports{opt_1_RELAY}.name);
+        connect(IMP1_name,"output",AM1_name,"modulation");
+        connect(DC6_name,"output",DUT3_name,ports{ele_cat_RELAY}.name);
+        connect(DUT3_name,ports{ele_cat_RELAY}.name,OSC3_name,"input");
+        
+        if(ele_an_2_RELAY != 0) {
+            addelement("Fork 1xN");
+            Fork_name = get("name");
+            set("x position", 72);
+            set("y position", 54);
+            set("horizontal flipped",1);
+            set("number of ports",2);
+                        
+            connect(DC5_name,"output",Fork_name,"input");
+            connect(Fork_name,"output 1", DUT3_name,ports{ele_an_RELAY}.name);
+            connect(Fork_name,"output 2",DUT3_name,ports{ele_an_2_RELAY}.name);
+        }else{
+            connect(DC5_name,"output",DUT3_name,ports{ele_an_RELAY}.name);
+        }
+
+        
+        if(opt_2_RELAY!=0) {
+            addelement("CW Laser");
+            CWL_dummy3_name = get("name");
+            set("x position", -300);
+            set("y position", 200);
+            set("enabled",false);
+            set("frequency", c/wavelength_test);
+            connect(CWL_dummy3_name,"output",DUT3_name,ports{opt_2_RELAY}.name);
+        }
+        
+        if(exist("stat_parameters")){
+            selectpartial(prefix);
+            set("perturb_stat_params",0);
+        }
+        run;
+        
+        
+        
+        
+        
+        s_out = getresult(OSC3_name,"signal");
+        t_out = s_out.time;
+        s_out = s_out.getattribute("amplitude (a.u.)");
+        p2 = find(s_out,max(s_out)):length(s_out);
+        t_out = t_out(p2);
+        t_out = t_out - t_out(1);
+        s_out = s_out(p2);
+        
+        sf_out = fft(s_out,2,0);
+        f_out = fftw(t_out,2,0)/(2*pi);
+        p2 = 2:find(f_out,500e9);
+        f_out = f_out(p2);
+        sf_out = sf_out(p2);
+        
+        sf_out = sf_out/abs(sf_out(1));
+        
+        tempx = linspace(min(f_out),max(f_out),5000);
+        tempy = interp(20*log10(abs(sf_out)),f_out,tempx);
+        f3dB_test = tempx(find(tempy,-3));
+        
+        if(create_plots){
+            three_dB = ones(length(tempx)) * 0.001;
+            plot(1e-9*tempx, tempy, log10(three_dB), "Frequency (GHz)", "Normalized impulse response (dB)", "bias = "+num2str(test_bias)+" V", "log10x");
+            legend("","");
+            setplot("x min",0.5);
+            setplot("y max",0.1);
+            setplot("x max",300);
+            setplot("y min",-25);
+        }
+        
+        f3dB_model = BW_data;
+        temp = size(f3dB_model);
+        f3dB_model_V = f3dB_model(1:temp(1),1);
+        f3dB_model = f3dB_model(1:temp(1),2);
+        f3dB_model = interp(f3dB_model,f3dB_model_V,getnamed(DC5_name,"amplitude")-getnamed(DC6_name,"amplitude"));
+        
+        msg = "3dB cutoff freq is " + num2str(abs(f3dB_test*1e-9)) + " GHz.  Expected value is " + num2str(abs(f3dB_model*1e-9)) + " GHz.";
+        pass = abs((f3dB_test-f3dB_model)/f3dB_model) < BW_rel_tolerance;
+        if(!pass) {
+            error_count = error_count+1;
+        }
+        assert(msg,pass);
+        if(break_at_failure & !pass) { break; }
+    }
+}
+else{
+}

@@ -1,0 +1,91 @@
+# Copyright (c) 2026 Islam Ibrahim. All rights reserved.
+
+# ============================================================
+# 04_ssac_opt_bw_all.lsf  — SSAC Optical BW, all bias points
+# Debug bias point: -1 V
+# Depends on: 01_build.lsf
+# Runs in PARALLEL with 02, 03, 05, 14 after build.
+# Output: ge_pd_charge_ssac_V1.mat
+# ============================================================
+
+script_dir  = filedirectory(which(currentscriptname));
+device_dir  = script_dir + "/../..";
+project_dir = device_dir + "/projects";
+repo_root   = device_dir + "/../..";
+res_dir     = repo_root + "/results/device/main/";
+
+V_ssac_arr = [-0.5, -1, -1.5, -2, -2.5];
+nV_ssac    = length(V_ssac_arr);
+
+# Save a private working copy once so the master .ldev is never modified by run()
+tmp_file = project_dir + "/ge_pd_charge_oband_ushaped_tmp_ssac_opt.ldev";
+load(project_dir + "/ge_pd_charge_oband_ushaped.ldev");
+switchtolayout;
+save(tmp_file);
+
+
+
+for (ii = 1; ii <= nV_ssac; ii = ii + 1) {
+    # Previous runs leave DEVICE in analysis mode; return to layout before object edits.
+    switchtolayout;
+    select("CHARGE::optical_gen");
+    set("enabled", 1);
+    select("CHARGE::boundary conditions::anode");
+    set("bc mode", "steady state");
+    set("sweep type", "single");
+    set("voltage", V_ssac_arr(ii));
+    set("apply ac small signal", "none");
+    select("CHARGE::boundary conditions::cathode");
+    set("bc mode", "steady state");
+    set("sweep type", "single");
+    set("voltage", 0);
+    set("apply ac small signal", "none");
+    select("CHARGE");
+    set("solver mode", "ssac");
+    set("small signal ac optical generation", true);
+    set("frequency spacing", "log");
+    set("log start frequency", 100e6);
+    set("log stop frequency", 200e9);
+    set("num frequency points per dec", 10);
+    run;
+
+    ac_anode = getresult("CHARGE", "ac_anode");
+    V_bias   = V_ssac_arr(ii);
+    fname    = "ge_pd_charge_ssac_V" + num2str(ii);
+    matlabsave(res_dir + fname, ac_anode, V_bias);
+
+    # ── PRINT: Optical bandwidth comparison ─────────────────────────────
+    freq_vec  = pinch(ac_anode.f);
+    dI_vec    = pinch(abs(ac_anode.dI));
+    dI_ref    = dI_vec(1);
+    threshold = dI_ref / sqrt(2);
+    bw_idx    = find(dI_vec <= threshold);
+    if (size(bw_idx, 1) >= 1 and bw_idx(1) > 0) {
+        idx_bw = bw_idx(1);
+        if (idx_bw > 1) {
+            f1 = freq_vec(idx_bw - 1);
+            f2 = freq_vec(idx_bw);
+            y1 = 20*log10(dI_vec(idx_bw - 1)/dI_ref);
+            y2 = 20*log10(dI_vec(idx_bw)/dI_ref);
+            bw_GHz = (f1 + (-3-y1)*(f2-f1)/(y2-y1)) / 1e9;
+        } else {
+            bw_GHz = freq_vec(idx_bw) / 1e9;
+        }
+    } else {
+        bw_GHz = -1;
+    }
+    ?"";
+    ?"╔══════════════════════════════════════════════════════════╗";
+    ?"║     SSAC OPTICAL BW @ V_bias = " + num2str(V_bias, "%.1f") + " V — Sim vs Paper     ║";
+    ?"╠══════════════════════════════════════════════════════════╣";
+    if (bw_GHz > 0) {
+        ?"║  Sim  -3 dB bandwidth : " + num2str(bw_GHz, "%.1f") + " GHz";
+    } else {
+        ?"║  Sim  -3 dB bandwidth : > sweep range";
+    }
+    ?"║  Paper U-shaped  @ -1 V : 103 GHz";
+    ?"║  Paper Parallel  @ -1 V :  83 GHz";
+    ?"╚══════════════════════════════════════════════════════════╝";
+    ?"";
+}
+?"SSAC optical BW all bias points complete.";

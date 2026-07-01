@@ -1,0 +1,194 @@
+# Copyright (c) 2026 Islam Ibrahim. All rights reserved.
+
+
+
+if (exist("source_directory")){
+    if (source_directory!=filedirectory(filedirectory(which(currentscriptname)))){
+        clear;
+        source_directory = filedirectory(filedirectory(which(currentscriptname)));
+        foundry_directory = filedirectory(filedirectory(which(source_directory)));
+        cd(filedirectory(which(currentscriptname)));
+        feval("/aux_scripts/photodetector_simple_init_qa.lsf");
+    }
+}else{
+        clear;
+        source_directory = filedirectory(filedirectory(which(currentscriptname)));
+        foundry_directory = filedirectory(filedirectory(which(source_directory)));
+        cd(filedirectory(which(currentscriptname)));
+        feval("/aux_scripts/photodetector_simple_init_qa.lsf");      
+}
+err=error_count;
+
+
+for(counter=1:length(bias_voltage_test)){
+    
+    test_bias = bias_voltage_test(counter);
+    
+    
+    new;
+    
+    set("monitor data","save to memory");
+    set("time window",4e-9);
+    set("sample rate",sample_rate_test);
+    
+    
+    
+    addelement(design_kit_name + model);
+    DUT1_name = get("name");
+    if(exist("container_selection_code")) { eval(container_selection_code); }
+    set("x position", 600);
+    set("y position", 30);
+    set("enable_shot_noise", false);
+    set("thermal_noise",0);
+    
+    addelement("CW Laser");
+    CWL1_name = get("name");
+    set("x position", 300);
+    set("y position", 0);
+    set("power",0);
+    set("frequency", c/wavelength_test);
+    
+    addelement("DC Source");
+    DC1_name = get("name");
+    set("x position", 794);
+    set("y position", -150);
+    set("amplitude",0);
+    
+    addelement("DC Source");
+    DC2_name = get("name");
+    set("x position", 548);
+    set("y position", -136);
+    set("amplitude", test_bias);
+    
+    addelement("Oscilloscope");
+    OSC1_name = get("name");
+    set("x position", 772);
+    set("y position", 154);
+    
+    
+    connect(CWL1_name,"output",DUT1_name,ports{opt_1_RELAY}.name);
+    connect(DC1_name,"output",DUT1_name,ports{ele_cat_RELAY}.name);
+    connect(DC2_name,"output",DUT1_name,ports{ele_an_RELAY}.name);
+    connect(DUT1_name,ports{ele_cat_RELAY}.name,OSC1_name,"input");
+    
+    if(ele_an_2_RELAY != 0) {
+        connect(DC2_name,"output",DUT1_name,ports{ele_an_2_RELAY}.name);
+    }
+    
+    if(opt_2_RELAY!=0) {
+        addelement("CW Laser");
+        CWL_dummy1_name = get("name");
+        set("x position", 400);
+        set("y position", 200);
+        set("enabled",false);
+        set("frequency", c/wavelength_test);
+        connect(CWL_dummy1_name,"output",DUT1_name,ports{opt_2_RELAY}.name);
+    }
+    
+    
+    
+    addelement(design_kit_name + model);
+    DUT2_name = get("name");
+    if(exist("container_selection_code")) { eval(container_selection_code); }
+    set("x position", 600);
+    set("y position", 680);
+    set("enable_shot_noise", false);
+    set("thermal_noise",0);
+    
+    addelement("CW Laser");
+    CWL2_name = get("name");
+    set("x position", 300);
+    set("y position", 650);
+    set("power",0.001);
+    set("frequency", c/wavelength_test);
+    
+    addelement("DC Source");
+    DC3_name = get("name");
+    set("x position", 794);
+    set("y position", 500);
+    set("amplitude",0);
+    
+    addelement("DC Source");
+    DC4_name = get("name");
+    set("x position", 548);
+    set("y position", 650-136);
+    set("amplitude", test_bias);
+    
+    addelement("Oscilloscope");
+    OSC2_name = get("name");
+    set("x position", 772);
+    set("y position", 650+154);
+    
+    
+    connect(CWL2_name,"output",DUT2_name,ports{opt_1_RELAY}.name);
+    connect(DC3_name,"output",DUT2_name,ports{ele_cat_RELAY}.name);
+    connect(DC4_name,"output",DUT2_name,ports{ele_an_RELAY}.name);
+    connect(DUT2_name,ports{ele_cat_RELAY}.name,OSC2_name,"input");
+    
+    if(ele_an_2_RELAY != 0) {
+        connect(DC4_name,"output",DUT2_name,ports{ele_an_2_RELAY}.name);
+    }
+    
+    if(opt_2_RELAY!=0) {
+        addelement("CW Laser");
+        CWL_dummy2_name = get("name");
+        set("x position", 400);
+        set("y position", 400);
+        set("enabled",false);
+        set("frequency", c/wavelength_test);
+        connect(CWL_dummy2_name,"output",DUT2_name,ports{opt_2_RELAY}.name);
+    }
+    
+    if(exist("stat_parameters")){
+        selectpartial(prefix);
+        set("perturb_stat_params",0);
+    }
+    run;
+    
+    
+    
+    
+    
+    I_dark = getresult(OSC1_name,"signal");
+    I_dark = I_dark.getattribute("amplitude (a.u.)");
+    I_dark = I_dark(length(I_dark));
+    
+    Idark_model = Idark_data;
+    temp = size(Idark_model);
+    Idark_model_V = Idark_model(1:temp(1),1);
+    Idark_model = Idark_model(1:temp(1),2);
+    Idark_model = interp(Idark_model,Idark_model_V,getnamed("DC_2","amplitude")-getnamed("DC_1","amplitude"));
+    
+    msg = "Dark current is " + num2str(abs(I_dark)) + " Amp.  Expected value is " + num2str(abs(Idark_model)) + " Amp.";
+    if(Idark_model == 0){
+        pass = abs(I_dark) <= 1e-15;
+    } else{
+        pass = abs((I_dark-Idark_model)/Idark_model) < Idark_rel_tolerance;
+    }
+    if(!pass) {
+        error_count = error_count+1;
+    }
+    assert(msg,pass);
+    if(break_at_failure & !pass) { break; }
+    
+    
+    
+    I_ph = getresult(OSC2_name,"signal");
+    I_ph = I_ph.getattribute("amplitude (a.u.)");
+    I_ph = I_ph(length(I_ph)) - I_dark;
+    
+    resp_model = Resp_data;
+    temp = size(resp_model);
+    resp_model_f = resp_model(1:temp(1),1);
+    resp_model = resp_model(1:temp(1),2);
+    Iph_model = interp(resp_model,resp_model_f,getnamed(CWL2_name,"frequency"))*getnamed(CWL2_name,"power");
+    
+    msg = "Photo current is " + num2str(abs(I_ph)) + " Amp.  Expected value is " + num2str(abs(Iph_model)) + " Amp.";
+    pass = abs((I_ph-Iph_model)/Iph_model) < Iph_rel_tolerance;
+    if(!pass) {
+        error_count = error_count+1;
+    }
+    assert(msg,pass);
+    if(break_at_failure & !pass) { break; }
+    
+}

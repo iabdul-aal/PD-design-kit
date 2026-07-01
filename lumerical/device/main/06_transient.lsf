@@ -1,0 +1,49 @@
+# Copyright (c) 2026 Islam Ibrahim. All rights reserved.
+
+# ============================================================
+# 14_transient.lsf  — Transient impulse response @ -1 V bias
+# Depends on: 01_build.lsf
+# Runs in PARALLEL with all other scripts after build.
+# Output: ge_pd_charge_transient.mat
+# ============================================================
+
+script_dir  = filedirectory(which(currentscriptname));
+device_dir  = script_dir + "/../..";
+project_dir = device_dir + "/projects";
+repo_root   = device_dir + "/../..";
+res_dir     = repo_root + "/results/device/main/";
+
+P_opt      = 100e-6;
+V_ssac_arr = [-0.5, -1, -1.5, -2, -2.5];
+
+load(project_dir + "/ge_pd_charge_oband_ushaped.ldev");
+switchtolayout;
+# Save a private working copy so the master .ldev is never modified by run()
+tmp_file = project_dir + "/ge_pd_charge_oband_ushaped_tmp_transient.ldev";
+save(tmp_file);
+select("CHARGE::optical_gen");
+set("enabled", 1);
+select("CHARGE::boundary conditions::anode");
+set("bc mode", "transient");
+set("transient voltage time steps", [0, 80e-12]);
+set("transient voltage table", [-1.0, -1.0]);
+select("CHARGE::boundary conditions::cathode");
+set("bc mode", "transient");
+set("transient voltage time steps", [0, 80e-12]);
+set("transient voltage table", [0, 0]);
+select("CHARGE");
+set("solver mode", "transient");
+set("solver type", "newton");
+set("rel lte limit", 0.001);
+set("abs lte limit", 0.001);
+set("shutter mode", "step on");
+set("shutter ton", 50e-15);
+set("shutter tslew", 0);
+set("transient min time step", 50e-15);
+set("transient max time step", 0.5e-12);  # 0.5 ps: optimized for speed and accuracy
+run("CHARGE");
+
+anode_tr = getresult("CHARGE", "anode");
+matlabsave(res_dir + "ge_pd_charge_transient", anode_tr, P_opt, V_ssac_arr);
+
+?"Transient complete. Results saved to: " + res_dir + "ge_pd_charge_transient.mat";

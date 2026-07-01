@@ -1,0 +1,705 @@
+{
+  "general": {
+    "description": "Ge-on-Si PIN Photodetector - O-band TE U-shaped",
+    "prefix": "PD",
+    "notes": {
+      "_data": [
+        {
+          "property": "wavelength_range",
+          "value": "O-band (1260 - 1360 nm), nominal 1310 nm"
+        },
+        {
+          "property": "bias_range",
+          "value": "[-2.5 V, 0.5 V]"
+        },
+        {
+          "property": "operating_bias",
+          "value": "-1.0 V (nominal)"
+        },
+        {
+          "property": "geometry",
+          "value": "Ge 8 um x 5 um U-shaped absorber on Si waveguide"
+        },
+        {
+          "property": "bias_voltage",
+          "value": "Nominal -1 V operating bias is folded into the compact model data"
+        },
+        {
+          "property": "electrical_ports",
+          "value": "Standard compact receiver interface: optical input and electrical photocurrent output"
+        },
+        {
+          "property": "bridge_source",
+          "value": "Synchronized from matlab/cml-bridge/ge_pd_cml_oband_ushaped.json"
+        }
+      ],
+      "_type": "cell"
+    }
+  },
+  "ports": {
+    "input": {
+      "name": "input",
+      "dir": "Bidirectional",
+      "loc": 0.5,
+      "pos": "Left",
+      "type": "Optical Signal",
+      "order": 1
+    },
+    "output": {
+      "name": "output",
+      "dir": "Bidirectional",
+      "loc": 0.5,
+      "pos": "Right",
+      "type": "Electrical Signal",
+      "order": 2
+    }
+  },
+  "parameters": {
+    "parameter_1": {
+      "name": "temperature",
+      "default": "%temperature%",
+      "min": 0,
+      "max": 10000,
+      "unit": "C",
+      "kind": "Temperature",
+      "type": "Number",
+      "visible_to_user": 0,
+      "annotate": 0,
+      "category": "Thermal"
+    },
+    "parameter_2": {
+      "name": "thermal_noise",
+      "category": "CML",
+      "kind": "NonQuantity",
+      "type": "Number",
+      "min": 0,
+      "max": 1,
+      "unit": "A/Hz^0.5",
+      "default": 0,
+      "visible_to_user": 1,
+      "annotate": 0
+    },
+    "parameter_3": {
+      "name": "enable_shot_noise",
+      "category": "CML",
+      "kind": "NonQuantity",
+      "type": "Number",
+      "min": 0,
+      "max": 1,
+      "unit": "",
+      "default": 1,
+      "visible_to_user": 1,
+      "annotate": 0
+    },
+    "parameter_4": {
+      "name": "enable_power_saturation",
+      "category": "CML",
+      "kind": "NonQuantity",
+      "type": "Number",
+      "min": 0,
+      "max": 1,
+      "unit": "",
+      "default": 1,
+      "visible_to_user": 1,
+      "annotate": 0
+    },
+    "parameter_5": {
+      "name": "DC_operation_only",
+      "category": "CML",
+      "kind": "NonQuantity",
+      "type": "Number",
+      "min": 0,
+      "max": 1,
+      "unit": "",
+      "default": 0,
+      "visible_to_user": 1,
+      "annotate": 0
+    },
+    "parameter_6": {
+      "name": "frequency_at_max_power",
+      "category": "CML",
+      "kind": "NonQuantity",
+      "type": "Number",
+      "min": 0,
+      "max": 1,
+      "unit": "",
+      "default": 1,
+      "visible_to_user": 1,
+      "annotate": 0
+    },
+    "parameter_7": {
+      "name": "convert_noise_bins",
+      "category": "CML",
+      "kind": "NonQuantity",
+      "type": "Number",
+      "min": 0,
+      "max": 1,
+      "unit": "",
+      "default": 1,
+      "visible_to_user": 1,
+      "annotate": 0
+    },
+    "parameter_8": {
+      "name": "automatic_seed",
+      "category": "CML",
+      "kind": "NonQuantity",
+      "type": "Number",
+      "min": 0,
+      "max": 1,
+      "unit": "",
+      "default": 1,
+      "visible_to_user": 1,
+      "annotate": 0
+    },
+    "parameter_9": {
+      "name": "seed",
+      "category": "CML",
+      "kind": "NonQuantity",
+      "type": "Number",
+      "min": 1,
+      "max": 2.147483647E+9,
+      "unit": "",
+      "default": 1,
+      "visible_to_user": 1,
+      "annotate": 0
+    },
+    "parameter_10": {
+      "name": "single_tap_filter",
+      "category": "CML",
+      "kind": "NonQuantity",
+      "type": "Number",
+      "min": 0,
+      "max": 1,
+      "unit": "",
+      "default": 0,
+      "visible_to_user": 1,
+      "annotate": 0
+    },
+    "parameter_11": {
+      "name": "filter_fit_tolerance",
+      "category": "CML",
+      "kind": "NonQuantity",
+      "type": "Number",
+      "min": 1E-10,
+      "max": 1,
+      "unit": "",
+      "default": 0.001,
+      "visible_to_user": 1,
+      "annotate": 0
+    },
+    "parameter_12": {
+      "name": "number_of_fir_taps",
+      "category": "CML",
+      "kind": "NonQuantity",
+      "type": "Number",
+      "min": 1,
+      "max": 4096,
+      "unit": "",
+      "default": 256,
+      "visible_to_user": 1,
+      "annotate": 0
+    },
+    "parameter_13": {
+      "name": "maximum_number_of_fir_taps",
+      "category": "CML",
+      "kind": "NonQuantity",
+      "type": "Number",
+      "min": 1,
+      "max": 65536,
+      "unit": "",
+      "default": 4096,
+      "visible_to_user": 1,
+      "annotate": 0
+    },
+    "parameter_14": {
+      "name": "filter_delay",
+      "category": "CML",
+      "kind": "NonQuantity",
+      "type": "Number",
+      "min": 0,
+      "max": 1,
+      "unit": "s",
+      "default": 0,
+      "visible_to_user": 1,
+      "annotate": 0
+    },
+    "parameter_15": {
+      "name": "initialize_filter_taps",
+      "category": "CML",
+      "kind": "NonQuantity",
+      "type": "Number",
+      "min": 0,
+      "max": 1,
+      "unit": "",
+      "default": 0,
+      "visible_to_user": 1,
+      "annotate": 0
+    },
+    "parameter_16": {
+      "name": "run_diagnostic",
+      "category": "CML",
+      "kind": "NonQuantity",
+      "type": "Number",
+      "min": 0,
+      "max": 1,
+      "unit": "",
+      "default": 0,
+      "visible_to_user": 1,
+      "annotate": 0
+    },
+    "parameter_17": {
+      "name": "diagnostic_size",
+      "category": "CML",
+      "kind": "NonQuantity",
+      "type": "Number",
+      "min": 1,
+      "max": 65536,
+      "unit": "",
+      "default": 1024,
+      "visible_to_user": 1,
+      "annotate": 0
+    }
+  },
+  "model_data": {
+    "photonic_model": "compound_element",
+    "get_compound": "script",
+    "debug_mode": 0,
+    "elements": {
+      "_data": [
+        {
+          "element": "PIN Photodetector",
+          "name": "pin"
+        },
+        {
+          "element": "LP Bessel Filter",
+          "name": "lpf"
+        }
+      ],
+      "_type": "cell"
+    },
+    "connection": {
+      "_data": [
+        {
+          "e1_name": "PD",
+          "e1_port": "input",
+          "e2_name": "pin",
+          "e2_port": "input"
+        },
+        {
+          "e1_name": "pin",
+          "e1_port": "output",
+          "e2_name": "lpf",
+          "e2_port": "input"
+        },
+        {
+          "e1_name": "lpf",
+          "e1_port": "output",
+          "e2_name": "PD",
+          "e2_port": "output"
+        }
+      ],
+      "_type": "cell"
+    },
+    "data": {
+      "center_frequency_Hz": 2.2884920458015269E+14,
+      "responsivity_AW": 0.93090192912451675,
+      "dark_current_A": 6.8420504166951516E-10,
+      "bandwidth_Hz": 9.31E+10,
+      "saturation_power_W": 0.01,
+      "filter_order": 4,
+      "slope_resp_height": 0.006,
+      "slope_resp_width": 0.007,
+      "slope_bw": 2.0E+9
+    },
+    "setup_script_file": "ge_pd_cml_oband_ushaped_setup_script.lsf",
+    "Idark_data": {
+      "voltage": {
+        "_complex": false,
+        "_data": [
+          1,
+          0.9,
+          0.8,
+          0.7,
+          0.6,
+          0.5,
+          0.39999999999999991,
+          0.29999999999999993,
+          0.19999999999999996,
+          0.099999999999999978,
+          0,
+          -0.10000000000000009,
+          -0.20000000000000018,
+          -0.30000000000000004,
+          -0.40000000000000013,
+          -0.5,
+          -0.60000000000000009,
+          -0.70000000000000018,
+          -0.8,
+          -0.90000000000000013,
+          -1,
+          -1.1,
+          -1.2000000000000002,
+          -1.3000000000000003,
+          -1.4000000000000004,
+          -1.5,
+          -1.6,
+          -1.7000000000000002,
+          -1.8000000000000003,
+          -1.9000000000000004,
+          -2,
+          -2.1,
+          -2.2,
+          -2.3000000000000003,
+          -2.4000000000000004,
+          -2.5,
+          -2.6,
+          -2.7,
+          -2.8000000000000003,
+          -2.9000000000000004,
+          -3
+        ],
+        "_size": [
+          41,
+          1
+        ],
+        "_type": "matrix"
+      },
+      "current": {
+        "_complex": false,
+        "_data": [
+          0.023220937117028786,
+          0.017072798340234709,
+          0.01126483246879139,
+          0.0060038827849619534,
+          0.0018590610222605978,
+          0.00014230900540171485,
+          5.4243322522862637E-6,
+          3.3623868228767254E-7,
+          2.2889752590305019E-8,
+          1.6392335552710368E-9,
+          7.2692574890393642E-27,
+          2.3268706197888722E-10,
+          3.4001752563272593E-10,
+          4.1743083728322526E-10,
+          4.7799029945128727E-10,
+          5.2721215268702647E-10,
+          5.6828578389871494E-10,
+          6.0331307103490643E-10,
+          6.33721196672211E-10,
+          6.6045596541170261E-10,
+          6.8420504166951516E-10,
+          7.0547992861444E-10,
+          7.2464947184379333E-10,
+          7.4200372797196044E-10,
+          7.57810318744257E-10,
+          7.7231244566478875E-10,
+          7.8571367425207394E-10,
+          7.9817230540493042E-10,
+          8.09813770112477E-10,
+          8.2072805360064764E-10,
+          8.3098050597651125E-10,
+          8.4061997229149214E-10,
+          8.4968335421167274E-10,
+          8.5821382988042544E-10,
+          8.6626319891664016E-10,
+          8.7388387484402608E-10,
+          8.8112762449585565E-10,
+          8.88038013900075E-10,
+          8.9464525020488017E-10,
+          9.0097191423238424E-10,
+          9.0702990304776712E-10
+        ],
+        "_size": [
+          41,
+          1
+        ],
+        "_type": "matrix"
+      }
+    },
+    "resp_data": {
+      "frequency": {
+        "_complex": false,
+        "_data": [
+          2.2043563088235297E+14,
+          2.2078552870915034E+14,
+          2.2113542653594775E+14,
+          2.2148532436274512E+14,
+          2.218352221895425E+14,
+          2.2218512001633991E+14,
+          2.2253501784313728E+14,
+          2.2288491566993466E+14,
+          2.2323481349673206E+14,
+          2.2358471132352944E+14,
+          2.2393460915032681E+14,
+          2.2428450697712422E+14,
+          2.2463440480392159E+14,
+          2.2498430263071897E+14,
+          2.2533420045751638E+14,
+          2.2568409828431375E+14,
+          2.2603399611111109E+14,
+          2.263838939379085E+14,
+          2.2673379176470591E+14,
+          2.2708368959150325E+14,
+          2.2743358741830066E+14,
+          2.2778348524509806E+14,
+          2.2813338307189544E+14,
+          2.2848328089869281E+14,
+          2.2883317872549019E+14,
+          2.2918307655228759E+14,
+          2.2953297437908497E+14,
+          2.2988287220588238E+14,
+          2.3023277003267975E+14,
+          2.3058266785947712E+14,
+          2.3093256568627453E+14,
+          2.3128246351307188E+14,
+          2.3163236133986931E+14,
+          2.3198225916666669E+14,
+          2.3233215699346406E+14,
+          2.3268205482026141E+14,
+          2.3303195264705881E+14,
+          2.3338185047385622E+14,
+          2.3373174830065359E+14,
+          2.34081646127451E+14,
+          2.3443154395424838E+14,
+          2.3478144178104575E+14,
+          2.3513133960784312E+14,
+          2.3548123743464053E+14,
+          2.3583113526143791E+14,
+          2.3618103308823528E+14,
+          2.3653093091503269E+14,
+          2.3688082874183009E+14,
+          2.3723072656862744E+14,
+          2.3758062439542488E+14,
+          2.3793052222222222E+14
+        ],
+        "_size": [
+          51,
+          1
+        ],
+        "_type": "matrix"
+      },
+      "responsivity": {
+        "_complex": false,
+        "_data": [
+          1.09104551433542,
+          1.08938113647744,
+          1.0877228600838136,
+          1.0860745240105905,
+          1.0844370957376674,
+          1.0828104694396441,
+          1.0811917250131104,
+          1.079576131014623,
+          1.0779607772856039,
+          1.0763421197985759,
+          1.0747177359836202,
+          1.0730890089296385,
+          1.0714602257680963,
+          1.0698355361105849,
+          1.0682171870138264,
+          1.0666062473461289,
+          1.0650010292106107,
+          1.063398697254945,
+          1.0617934127887292,
+          1.0601810601732109,
+          1.0585615139996207,
+          1.05693498154157,
+          1.0553044262415283,
+          1.0536737074894222,
+          1.052046970380601,
+          1.0504275490866242,
+          1.0488160247832696,
+          1.0472103843682661,
+          1.0456074008426088,
+          1.0440037295267806,
+          1.0423955106586931,
+          1.0407812843672635,
+          1.0391627432290704,
+          1.0375437614157164,
+          1.0359296458374223,
+          1.0343239244525426,
+          1.0327280452225582,
+          1.0311419614008934,
+          1.0295621072742784,
+          1.0279857624326152,
+          1.0264110426792166,
+          1.0248366215839593,
+          1.0232636993442927,
+          1.0216938240582552,
+          1.020129989688511,
+          1.0185752056423996,
+          1.0170318510376648,
+          1.0155014136694329,
+          1.0139851131224131,
+          1.012482555502163,
+          1.0109906182888748
+        ],
+        "_size": [
+          51,
+          1
+        ],
+        "_type": "matrix"
+      }
+    },
+    "bandwidth_data": {
+      "voltage": {
+        "_complex": false,
+        "_data": [
+          -1,
+          -1.5
+        ],
+        "_size": [
+          2,
+          1
+        ],
+        "_type": "matrix"
+      },
+      "bandwidth": {
+        "_complex": false,
+        "_data": [
+          9.31E+10,
+          9.31E+10
+        ],
+        "_size": [
+          2,
+          1
+        ],
+        "_type": "matrix"
+      }
+    },
+    "saturation_power_data": 0.01,
+    "enable_power_saturation": 1,
+    "enable_shot_noise": 1,
+    "DC_operation_only": 0,
+    "elec_eq_ckt_data": {
+      "Rj": 50,
+      "Rp": 50,
+      "Cp": 1.0000000000000002E-14,
+      "Cj_data": {
+        "voltage": {
+          "_complex": false,
+          "_data": [
+            -1,
+            -1.5
+          ],
+          "_size": [
+            2,
+            1
+          ],
+          "_type": "matrix"
+        },
+        "cap": {
+          "_complex": false,
+          "_data": [
+            1.1863511191533074E-14,
+            1.1863511191533074E-14
+          ],
+          "_size": [
+            2,
+            1
+          ],
+          "_type": "matrix"
+        }
+      }
+    }
+  },
+  "QA": {
+    "custom_qa_filenames": {
+      "_data": [
+        "ge_pd_cml_oband_ushaped_custom_qa.lsf"
+      ],
+      "_type": "cell"
+    }
+  },
+  "statistical": {
+    "parameters": {
+      "parameter_1": {
+        "GLOBAL": {
+          "GLOBALGROUP": "global_delta_height"
+        },
+        "LOCAL": {
+          "CORRGROUP": "corr_delta_height",
+          "distribution": "normal",
+          "sigma": 0.8
+        },
+        "corners": {
+          "_complex": false,
+          "_data": [
+            -2.4,
+            2.4
+          ],
+          "_size": [
+            2,
+            1
+          ],
+          "_type": "matrix"
+        },
+        "mean": 0,
+        "name": "delta_height",
+        "slope_Resp": 0.006
+      },
+      "parameter_2": {
+        "GLOBAL": {
+          "GLOBALGROUP": "global_delta_width"
+        },
+        "LOCAL": {
+          "CORRGROUP": "corr_delta_width",
+          "distribution": "normal",
+          "sigma": 0.7
+        },
+        "corners": {
+          "_complex": false,
+          "_data": [
+            -2.1,
+            2.1
+          ],
+          "_size": [
+            2,
+            1
+          ],
+          "_type": "matrix"
+        },
+        "mean": 0,
+        "name": "delta_width",
+        "slope_Resp": 0.007
+      },
+      "parameter_3": {
+        "GLOBAL": {
+          "distribution": "normal",
+          "sigma": 1
+        },
+        "LOCAL": {
+          "distribution": "normal",
+          "sigma": 0.9
+        },
+        "corners": {
+          "_complex": false,
+          "_data": [
+            -3,
+            3
+          ],
+          "_size": [
+            2,
+            1
+          ],
+          "_type": "matrix"
+        },
+        "mean": 0,
+        "name": "delta_electrical_BW",
+        "slope_BW": 2.0E+9
+      }
+    },
+    "QA": {
+      "parameters": {
+        "voltage": -1
+      },
+      "N_trials": 10,
+      "enable_qa": 1,
+      "reference_data_available": 1,
+      "absolute_tolerances": {
+        "BW": 4.214880967215704E+9,
+        "Idark": 1E-10,
+        "Resp": 0.018618038582490334
+      }
+    }
+  }
+}

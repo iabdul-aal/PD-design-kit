@@ -1,0 +1,15 @@
+simulator lang=spectre
+library ge_pd_foundry
+
+section nominal
+endsection nominal
+
+section statistical
+endsection statistical
+
+section corner_1
+endsection corner_1
+
+section corner_2
+endsection corner_2
+

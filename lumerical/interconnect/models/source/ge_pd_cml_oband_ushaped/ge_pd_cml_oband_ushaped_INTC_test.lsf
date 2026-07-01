@@ -1,0 +1,13 @@
+# Copyright (c) 2026 Islam Ibrahim. All rights reserved.
+
+clear;
+cd(filedirectory(which(currentscriptname)));
+
+QA_description = "
+This QA performs a two-port smoke test for the compound Ge photodetector:
+1. connect a CW Laser to the optical input.
+2. connect the electrical output to an oscilloscope.
+3. run the INTERCONNECT circuit.
+";
+
+feval("ge_pd_cml_oband_ushaped_custom_qa.lsf");

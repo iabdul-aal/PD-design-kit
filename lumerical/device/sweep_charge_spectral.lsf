@@ -1,0 +1,218 @@
+# Copyright (c) 2026 Islam Ibrahim. All rights reserved.
+
+script_dir  = filedirectory(which(currentscriptname));
+device_dir  = script_dir + "/..";
+project_dir = device_dir + "/projects";
+repo_root   = device_dir + "/../..";
+gen_file    = repo_root + "/results/fdtd/spectral/ge_pd_gen_spectral_1260_1360nm.mat";
+res_dir     = repo_root + "/results/device/spectral/";
+
+V_start    = -2.5;
+V_stop     =  0.0;
+V_num      = 26;
+V_ssac_arr = [-1.0];
+nV_ssac    = length(V_ssac_arr);
+# Save a private working copy once so the master .ldev is never modified by run()
+tmp_file = project_dir + "/ge_pd_charge_spectral_ushaped.ldev";
+load(project_dir + "/ge_pd_charge_oband_ushaped.ldev");
+switchtolayout;
+save(tmp_file);
+
+switchtolayout;
+select("CHARGE::optical_gen");
+set("enabled", 0);
+importdataset(gen_file);
+
+# Run Dark IV sweep using built-in range sweep from 0.0 to -2.5 V
+switchtolayout;
+select("CHARGE::boundary conditions::cathode");
+set("bc mode", "steady state");
+set("sweep type", "single");
+set("voltage", 0);
+set("apply ac small signal", "none");
+select("CHARGE::boundary conditions::anode");
+set("bc mode", "steady state");
+set("sweep type", "range");
+set("range start", 0.0);
+set("range stop",  -2.5);
+set("range num points", V_num);
+set("apply ac small signal", "none");
+select("CHARGE");
+set("solver mode", "steady state");
+run;
+
+anode_res = getresult("CHARGE", "anode");
+V_arr_sweep = anode_res.V_anode;
+I_anode_arr_sweep = anode_res.I;
+
+cathode_res = getresult("CHARGE", "cathode");
+I_cathode_arr_sweep = cathode_res.I;
+
+# Reverse arrays so that they are in the order [-2.5, ..., 0.0]
+V_sorted = matrix(V_num);
+I_anode_sorted = matrix(V_num);
+I_cathode_sorted = matrix(V_num);
+for (i = 1; i <= V_num; i = i + 1) {
+    V_sorted(i) = V_arr_sweep(V_num - i + 1);
+    I_anode_sorted(i) = I_anode_arr_sweep(V_num - i + 1);
+    I_cathode_sorted(i) = I_cathode_arr_sweep(V_num - i + 1);
+}
+
+anode = matrixdataset("anode");
+anode.addparameter("V_anode", V_sorted);
+anode.addattribute("I", I_anode_sorted);
+
+cathode = matrixdataset("cathode");
+cathode.addparameter("V_anode", V_sorted);
+cathode.addattribute("I", I_cathode_sorted);
+
+matlabsave(res_dir + "ge_pd_charge_spectral_ushaped_dark_iv", anode, cathode);
+
+# Run Illuminated IV sweep using built-in range sweep from 0.0 to -2.5 V
+switchtolayout;
+select("CHARGE::optical_gen");
+set("enabled", 1);
+select("CHARGE::boundary conditions::cathode");
+set("bc mode", "steady state");
+set("sweep type", "single");
+set("voltage", 0);
+set("apply ac small signal", "none");
+select("CHARGE::boundary conditions::anode");
+set("bc mode", "steady state");
+set("sweep type", "range");
+set("range start", 0.0);
+set("range stop",  -2.5);
+set("range num points", V_num);
+set("apply ac small signal", "none");
+select("CHARGE");
+set("solver mode", "steady state");
+run;
+
+anode_res = getresult("CHARGE", "anode");
+V_arr_sweep = anode_res.V_anode;
+I_anode_arr_sweep = anode_res.I;
+
+cathode_res = getresult("CHARGE", "cathode");
+I_cathode_arr_sweep = cathode_res.I;
+
+# Reverse arrays so that they are in the order [-2.5, ..., 0.0]
+V_sorted = matrix(V_num);
+I_anode_illum_sorted = matrix(V_num);
+I_cathode_illum_sorted = matrix(V_num);
+for (i = 1; i <= V_num; i = i + 1) {
+    V_sorted(i) = V_arr_sweep(V_num - i + 1);
+    I_anode_illum_sorted(i) = I_anode_arr_sweep(V_num - i + 1);
+    I_cathode_illum_sorted(i) = I_cathode_arr_sweep(V_num - i + 1);
+}
+
+anode = matrixdataset("anode");
+anode.addparameter("V_anode", V_sorted);
+anode.addattribute("I", I_anode_illum_sorted);
+
+cathode = matrixdataset("cathode");
+cathode.addparameter("V_anode", V_sorted);
+cathode.addattribute("I", I_cathode_illum_sorted);
+
+matlabsave(res_dir + "ge_pd_charge_spectral_ushaped_illuminated_iv", anode, cathode);
+
+# SSAC Optical Bandwidth Sweep
+switchtolayout;
+select("CHARGE::optical_gen");
+set("enabled", 1);
+select("CHARGE::boundary conditions::cathode");
+set("bc mode", "steady state");
+set("sweep type", "single");
+set("voltage", 0);
+set("apply ac small signal", "none");
+select("CHARGE::boundary conditions::anode");
+set("bc mode", "steady state");
+set("sweep type", "single");
+set("voltage", V_ssac_arr(1));
+set("apply ac small signal", "none");
+select("CHARGE");
+set("solver mode", "ssac");
+set("small signal ac optical generation", true);
+set("frequency spacing", "log");
+set("log start frequency", 100e6);
+set("log stop frequency", 200e9);
+set("num frequency points per dec", 10);
+run;
+
+ssac_res = getresult("CHARGE", "ac_anode");
+f_arr = ssac_res.f;
+n_freq = length(f_arr);
+
+I_anode_matrix = matrix(n_freq, nV_ssac);
+I_cathode_matrix = matrix(n_freq, nV_ssac);
+
+I_anode_matrix(1:n_freq, 1) = ssac_res.dI;
+ssac_res_cath = getresult("CHARGE", "ac_cathode");
+I_cathode_matrix(1:n_freq, 1) = ssac_res_cath.dI;
+
+for (iV = 2; iV <= nV_ssac; iV = iV + 1) {
+    switchtolayout;
+    select("CHARGE::optical_gen");
+    set("enabled", 1);
+    select("CHARGE::boundary conditions::cathode");
+    set("bc mode", "steady state");
+    set("sweep type", "single");
+    set("voltage", 0);
+    set("apply ac small signal", "none");
+    select("CHARGE::boundary conditions::anode");
+    set("bc mode", "steady state");
+    set("sweep type", "single");
+    set("voltage", V_ssac_arr(iV));
+    set("apply ac small signal", "none");
+    select("CHARGE");
+    set("solver mode", "ssac");
+    set("small signal ac optical generation", true);
+    set("frequency spacing", "log");
+    set("log start frequency", 100e6);
+    set("log stop frequency", 200e9);
+    set("num frequency points per dec", 10);
+    run;
+    ssac_res = getresult("CHARGE", "ac_anode");
+    I_anode_matrix(1:n_freq, iV) = ssac_res.dI;
+    ssac_res_cath = getresult("CHARGE", "ac_cathode");
+    I_cathode_matrix(1:n_freq, iV) = ssac_res_cath.dI;
+}
+
+ssac_ushaped_I_anode = matrixdataset("I_anode");
+ssac_ushaped_I_anode.addparameter("f", f_arr);
+ssac_ushaped_I_anode.addparameter("V_anode", V_ssac_arr);
+ssac_ushaped_I_anode.addattribute("I", I_anode_matrix);
+
+ssac_ushaped_I_cathode = matrixdataset("I_cathode");
+ssac_ushaped_I_cathode.addparameter("f", f_arr);
+ssac_ushaped_I_cathode.addparameter("V_anode", V_ssac_arr);
+ssac_ushaped_I_cathode.addattribute("I", I_cathode_matrix);
+
+matlabsave(res_dir + "ge_pd_charge_spectral_ushaped_ssac", ssac_ushaped_I_anode, ssac_ushaped_I_cathode, V_ssac_arr);
+
+# Transient Sweep
+switchtolayout;
+select("CHARGE::optical_gen");
+set("enabled", 1);
+select("CHARGE::boundary conditions::anode");
+set("bc mode", "transient");
+set("transient voltage time steps", [0, 80e-12]);
+set("transient voltage table", [-1, -1]);
+select("CHARGE::boundary conditions::cathode");
+set("bc mode", "transient");
+set("transient voltage time steps", [0, 80e-12]);
+set("transient voltage table", [0, 0]);
+select("CHARGE");
+set("solver mode", "transient");
+set("solver type", "newton");
+set("rel lte limit", 0.001);
+set("abs lte limit", 0.001);
+set("shutter mode", "step on");
+set("shutter ton", 50e-15);
+set("shutter tslew", 0);
+set("transient min time step", 50e-15);
+set("transient max time step", 0.5e-12);
+run("CHARGE");
+
+anode_tr = getresult("CHARGE", "anode");
+matlabsave(res_dir + "ge_pd_charge_spectral_ushaped_transient", anode_tr, V_ssac_arr);
+

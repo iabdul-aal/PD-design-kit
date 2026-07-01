@@ -1,0 +1,65 @@
+# Copyright (c) 2026 Islam Ibrahim. All rights reserved.
+
+# ============================================================
+# 02_dark_iv.lsf  — Dark IV sweep (optical_gen disabled)
+# Depends on: 01_build.lsf  (must be run first)
+# Runs independently after build. Output: ge_pd_charge_dark_iv.mat
+# ============================================================
+
+script_dir  = filedirectory(which(currentscriptname));
+device_dir  = script_dir + "/../..";
+project_dir = device_dir + "/projects";
+repo_root   = device_dir + "/../..";
+res_dir     = repo_root + "/results/device/main/";
+
+V_num   = 41;
+V_start = 1.0;
+V_stop  = -3.0;
+
+# Load the saved .ldev built by 01_build.lsf
+load(project_dir + "/ge_pd_charge_oband_ushaped.ldev");
+switchtolayout;
+# Save a private working copy so the master .ldev is never modified by run()
+tmp_file = project_dir + "/ge_pd_charge_oband_ushaped_tmp_dark_iv.ldev";
+save(tmp_file);
+
+select("CHARGE::optical_gen");
+set("enabled", 0);
+select("CHARGE::boundary conditions::cathode");
+set("bc mode", "steady state");
+set("sweep type", "single");
+set("voltage", 0);
+select("CHARGE::boundary conditions::anode");
+set("bc mode", "steady state");
+set("sweep type", "range");
+set("range start", V_start);
+set("range stop", V_stop);
+set("range num points", V_num);
+select("CHARGE");
+set("solver mode", "steady state");
+run;
+
+anode_res    = getresult("CHARGE", "anode");
+cathode_res  = getresult("CHARGE", "cathode");
+monitor_band = getresult("CHARGE::monitor_band");
+P_opt_dk     = 0;
+matlabsave(res_dir + "ge_pd_charge_dark_iv", anode_res, cathode_res, monitor_band, P_opt_dk);
+
+# ── PRINT: Dark IV comparison ────────────────────────────────────────────
+V_vec_dk = anode_res.V_anode;
+I_vec_dk = anode_res.I;
+idx_1V   = find(V_vec_dk, -1);
+if (length(idx_1V) < 1) {
+    idx_1V = 1;
+}
+I_dk_1V  = abs(I_vec_dk(idx_1V));
+?"";
+?"╔══════════════════════════════════════════════════════════╗";
+?"║              DARK IV — Sim vs Paper                     ║";
+?"╠══════════════════════════════════════════════════════════╣";
+?"║  Sim  dark current @ -1 V : " + num2str(I_dk_1V*1e9, "%.2f") + " nA";
+?"║  Paper U-shaped  @ -1 V  :  1.3 nA";
+?"║  Paper Parallel  @ -1 V  :  1.9 nA";
+?"╚══════════════════════════════════════════════════════════╝";
+?"";
+?"Dark IV complete. Results saved to: " + res_dir + "ge_pd_charge_dark_iv.mat";

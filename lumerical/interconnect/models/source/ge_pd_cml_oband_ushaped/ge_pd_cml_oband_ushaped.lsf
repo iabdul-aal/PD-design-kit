@@ -1,0 +1,45 @@
+# Copyright (c) 2026 Islam Ibrahim. All rights reserved.
+
+resp_eff = responsivity_AW;
+bw_eff = bandwidth_Hz;
+
+if (!exist("delta_height")) {
+    delta_height = 0;
+}
+if (!exist("delta_width")) {
+    delta_width = 0;
+}
+if (!exist("delta_electrical_BW")) {
+    delta_electrical_BW = 0;
+}
+
+resp_eff = resp_eff + delta_height*slope_resp_height;
+resp_eff = resp_eff + delta_width*slope_resp_width;
+bw_eff = bw_eff + delta_electrical_BW*slope_bw;
+
+if (resp_eff < 0) {
+    resp_eff = 0;
+}
+if (bw_eff < 1) {
+    bw_eff = 1;
+}
+
+setnamed("pin", "responsivity", resp_eff);
+setnamed("pin", "dark current", dark_current_A);
+setnamed("pin", "enable shot noise", %enable_shot_noise%);
+setnamed("pin", "enable power saturation", %enable_power_saturation%);
+setnamed("pin", "saturation power", saturation_power_W);
+setnamed("pin", "enable thermal noise", 1);
+setnamed("pin", "thermal noise", %thermal_noise%);
+setnamed("pin", "frequency at max power", %frequency_at_max_power%);
+setnamed("pin", "convert noise bins", %convert_noise_bins%);
+setnamed("pin", "automatic seed", %automatic_seed%);
+setnamed("pin", "maximum number of fir taps", %maximum_number_of_fir_taps%);
+setnamed("pin", "filter delay", %filter_delay%);
+setnamed("pin", "initialize filter taps", %initialize_filter_taps%);
+setnamed("pin", "run diagnostic", %run_diagnostic%);
+
+setexpression("lpf", "cutoff frequency", "");
+setnamed("lpf", "cutoff frequency", bw_eff);
+setnamed("lpf", "order", filter_order);
+setnamed("lpf", "insertion loss", 0);

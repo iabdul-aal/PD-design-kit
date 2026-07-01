@@ -1,0 +1,98 @@
+# Copyright (c) 2026 Islam Ibrahim. All rights reserved.
+
+script_dir  = filedirectory(which(currentscriptname));
+fdtd_dir    = script_dir + "/..";
+project_dir = fdtd_dir + "/projects";
+repo_root   = fdtd_dir + "/../..";
+base_fsp    = project_dir + "/ge_pd_fdtd_oband_ushaped.fsp";
+res_dir     = repo_root + "/results/fdtd/GeH/";
+
+load(base_fsp);
+save(project_dir + "/ge_pd_fdtd_GeH_sweep.fsp");
+
+switchtolayout;
+select("E_field_XZ");         set("enabled", 0);
+select("E_field_XY");         set("enabled", 0);
+select("mode_profile_wg");    set("enabled", 0);
+select("mode_profile_taper"); set("enabled", 0);
+select("time_monitor");       set("enabled", 0);
+
+wg_H      = 220e-9;
+Npp_H     = 50e-9;
+Al_ind_H  = 300e-9;
+z_rib_top = wg_H;
+
+iGe_H_arr = [200, 300, 400] * 1e-9;
+nH        = length(iGe_H_arr);
+
+r_T_cell   = cell(nH);
+r_ref_cell = cell(nH);
+
+for (iN = 1; iN <= nH; iN = iN+1) {
+
+    iGe_H      = iGe_H_arr(iN);
+    z_iGe_bot  = z_rib_top;
+    z_iGe_top  = z_iGe_bot + iGe_H;
+    z_Npp_bot  = z_iGe_top - Npp_H;
+    z_Npp_top  = z_iGe_top;
+    z_cath_bot = z_Npp_bot;
+    z_cath_top = z_iGe_top + 200e-9;
+    z_ind_bot  = z_cath_top;
+    z_Al_top   = z_ind_bot + Al_ind_H;
+
+    switchtolayout;
+
+    select("i_Ge");
+    set("z min", z_iGe_bot);
+    set("z max", z_iGe_top);
+
+    select("Npp_Ge");
+    set("z min", z_Npp_bot);
+    set("z max", z_Npp_top);
+
+    select("Al_cath_taper");
+    set("z min", z_cath_bot);
+    set("z max", z_ind_bot);
+
+    select("Al_cath_ind");
+    set("z min", z_ind_bot);
+    set("z max", z_Al_top);
+
+    select("Al_anode_left_taper");
+    set("z max", z_ind_bot);
+
+    select("Al_anode_right_taper");
+    set("z max", z_ind_bot);
+
+    select("Al_anode_back_taper");
+    set("z max", z_ind_bot);
+
+    select("Al_anode_left_ind");
+    set("z min", z_ind_bot);
+    set("z max", z_Al_top);
+
+    select("Al_anode_right_ind");
+    set("z min", z_ind_bot);
+    set("z max", z_Al_top);
+
+    select("Al_anode_back_ind");
+    set("z min", z_ind_bot);
+    set("z max", z_Al_top);
+
+    select("mesh_Ge");
+    set("z min", z_iGe_bot - 0.05e-6);
+    set("z max", z_Npp_top + 0.05e-6);
+
+    select("generation_rate");
+    set("z",               (z_iGe_bot + z_iGe_top) / 2);
+    set("z span",          iGe_H);
+    set("export filename", res_dir + "ge_pd_gen_GeH_" + num2str(iGe_H*1e9) + "nm.mat");
+
+    run;
+    runanalysis("generation_rate");
+
+    r_T_cell{iN}   = getresult("T_after_Ge", "T");
+    r_ref_cell{iN} = getresult("T_ref",      "T");
+}
+
+matlabsave(res_dir + "ge_pd_fdtd_sweep_GeH", r_T_cell, r_ref_cell, iGe_H_arr);

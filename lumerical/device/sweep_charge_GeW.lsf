@@ -1,0 +1,325 @@
+# Copyright (c) 2026 Islam Ibrahim. All rights reserved.
+
+script_dir  = filedirectory(which(currentscriptname));
+device_dir  = script_dir + "/..";
+project_dir = device_dir + "/projects";
+repo_root   = device_dir + "/../..";
+res_dir     = repo_root + "/results/device/GeW/";
+
+wg_H           = 220e-9;
+slab_H         = 90e-9;
+iGe_H          = 350e-9;
+Npp_H          = 50e-9;
+Al_ind_H       = 300e-9;
+D1             = 1.6e-6;
+D2             = 2.56e-6;
+Ge_L           = 8e-6;
+clad_margin    = 2e-6;
+Al_anode_W_bot = 200e-9;
+Al_anode_W_top = 500e-9;
+
+z_Si_bot   = 0;
+z_slab_top = slab_H;
+z_ext_top  = wg_H;
+z_iGe_bot  = z_ext_top;
+z_iGe_top  = z_iGe_bot + iGe_H;
+z_Npp_bot  = z_iGe_top - Npp_H;
+z_Npp_top  = z_iGe_top;
+z_cath_bot = z_Npp_bot;
+z_cath_top = z_Npp_top + 200e-9;
+z_ind_bot  = z_cath_top;
+z_Al_top   = z_ind_bot + Al_ind_H;
+
+x_mid          = Ge_L / 2;
+x_back_min_bot = Ge_L + D2;
+x_back_max_bot = x_back_min_bot + Al_anode_W_bot;
+x_back_min_top = Ge_L + D2;
+x_back_max_top = x_back_min_top + Al_anode_W_top;
+
+V_start    = -2.5;
+V_stop     =  0.0;
+V_num      = 26;
+V_ssac_arr = [-1.0];
+nV_ssac    = length(V_ssac_arr);
+
+Ge_W_arr = [2, 4, 6, 8] * 1e-6;
+nW       = length(Ge_W_arr);
+# Save a private working copy once so the master .ldev is never modified by run()
+tmp_file = project_dir + "/ge_pd_charge_GeW_sweep.ldev";
+load(project_dir + "/ge_pd_charge_oband_ushaped.ldev");
+switchtolayout;
+
+# Patch structure group scripts to prevent duplicate accumulation
+select("Al_cath_group");
+set("script", "deleteall;\n" + get("script"));
+select("Al_anode_group");
+set("script", "deleteall;\n" + get("script"));
+select("Si_ppp_group");
+set("script", "deleteall;\n" + get("script"));
+
+save(tmp_file);
+
+for (iN = 1; iN <= nW; iN = iN+1) {
+
+    Ge_W       = Ge_W_arr(iN);
+    iGe_W_bot  = Ge_W;
+    iGe_W_top  = Ge_W * 0.5;
+    Npp_W      = iGe_W_top;
+    ext_W      = Ge_W * 1.1;
+    Al_cath_Wb = Npp_W * 0.6;
+    Al_cath_Wt = Npp_W * 0.8;
+    y_anode_in_bot  = Ge_W/2 + D1;
+    y_anode_out_bot = y_anode_in_bot + Al_anode_W_bot;
+    y_anode_in_top  = Ge_W/2 + D1;
+    y_anode_out_top = y_anode_in_top + Al_anode_W_top;
+    tag      = num2str(Ge_W*1e6) + "um";
+    gen_file = repo_root + "/results/fdtd/GeW/ge_pd_gen_GeW_" + tag + ".mat";
+
+    switchtolayout;
+
+    select("simulation region");
+    set("y span", (y_anode_out_bot + clad_margin)*2);
+
+    select("iGe");
+    set("y span bottom", iGe_W_bot);
+    set("y span top",    iGe_W_top);
+
+    select("Npp_Ge");
+    set("y min", -Npp_W/2); set("y max", Npp_W/2);
+
+    select("Si_ppp_group");
+    set("ext_W", ext_W);
+
+    select("Al_cath_group");
+    set("Al_cath_W_bot", Al_cath_Wb);
+    set("Al_cath_W_top", Al_cath_Wt);
+
+    select("Al_anode_group");
+    set("y_anode_in_bot", y_anode_in_bot);
+    set("y_anode_out_bot", y_anode_out_bot);
+    set("y_anode_in_top", y_anode_in_top);
+    set("y_anode_out_top", y_anode_out_top);
+
+    runsetup;
+
+    # Re-associate contact boundary conditions to regenerated solids
+    select("CHARGE::boundary conditions::cathode");
+    set("surface type", "solid");
+    set("solid", "Al_cath_group");
+    select("CHARGE::boundary conditions::anode");
+    set("surface type", "solid");
+    set("solid", "Al_anode_group");
+
+    select("CHARGE::iGe_background");
+    set("y min", -iGe_W_bot/2); set("y max", iGe_W_bot/2);
+
+    select("CHARGE::Npp_contact");
+    set("y min", -Npp_W/2); set("y max", Npp_W/2);
+
+    select("CHARGE::mesh_Ge");
+    set("y min", -Ge_W/2 - 100e-9); set("y max", Ge_W/2 + 100e-9);
+
+    select("CHARGE::optical_gen");
+    set("enabled", 0);
+    importdataset(gen_file);
+
+    # Run Dark IV sweep using built-in range sweep from 0.0 to -2.5 V
+    select("CHARGE::boundary conditions::cathode");
+    set("bc mode", "steady state");
+    set("sweep type", "single");
+    set("voltage", 0);
+    set("apply ac small signal", "none");
+    select("CHARGE::boundary conditions::anode");
+    set("bc mode", "steady state");
+    set("sweep type", "range");
+    set("range start", 0.0);
+    set("range stop",  -2.5);
+    set("range num points", V_num);
+    set("apply ac small signal", "none");
+    select("CHARGE");
+    set("solver mode", "steady state");
+    run;
+
+    anode_res = getresult("CHARGE", "anode");
+    V_arr_sweep = anode_res.V_anode;
+    I_anode_arr_sweep = anode_res.I;
+
+    cathode_res = getresult("CHARGE", "cathode");
+    I_cathode_arr_sweep = cathode_res.I;
+
+    # Reverse arrays so that they are in the order [-2.5, ..., 0.0]
+    V_sorted = matrix(V_num);
+    I_anode_sorted = matrix(V_num);
+    I_cathode_sorted = matrix(V_num);
+    for (i = 1; i <= V_num; i = i + 1) {
+        V_sorted(i) = V_arr_sweep(V_num - i + 1);
+        I_anode_sorted(i) = I_anode_arr_sweep(V_num - i + 1);
+        I_cathode_sorted(i) = I_cathode_arr_sweep(V_num - i + 1);
+    }
+
+    anode = matrixdataset("anode");
+    anode.addparameter("V_anode", V_sorted);
+    anode.addattribute("I", I_anode_sorted);
+
+    cathode = matrixdataset("cathode");
+    cathode.addparameter("V_anode", V_sorted);
+    cathode.addattribute("I", I_cathode_sorted);
+
+    matlabsave(res_dir + "ge_pd_charge_GeW_" + tag + "_dark_iv", anode, cathode);
+
+    # Run Illuminated IV sweep using built-in range sweep from 0.0 to -2.5 V
+    switchtolayout;
+    select("CHARGE::optical_gen");
+    set("enabled", 1);
+    select("CHARGE::boundary conditions::cathode");
+    set("bc mode", "steady state");
+    set("sweep type", "single");
+    set("voltage", 0);
+    set("apply ac small signal", "none");
+    select("CHARGE::boundary conditions::anode");
+    set("bc mode", "steady state");
+    set("sweep type", "range");
+    set("range start", 0.0);
+    set("range stop",  -2.5);
+    set("range num points", V_num);
+    set("apply ac small signal", "none");
+    select("CHARGE");
+    set("solver mode", "steady state");
+    run;
+
+    anode_res = getresult("CHARGE", "anode");
+    V_arr_sweep = anode_res.V_anode;
+    I_anode_arr_sweep = anode_res.I;
+
+    cathode_res = getresult("CHARGE", "cathode");
+    I_cathode_arr_sweep = cathode_res.I;
+
+    # Reverse arrays so that they are in the order [-2.5, ..., 0.0]
+    V_sorted = matrix(V_num);
+    I_anode_illum_sorted = matrix(V_num);
+    I_cathode_illum_sorted = matrix(V_num);
+    for (i = 1; i <= V_num; i = i + 1) {
+        V_sorted(i) = V_arr_sweep(V_num - i + 1);
+        I_anode_illum_sorted(i) = I_anode_arr_sweep(V_num - i + 1);
+        I_cathode_illum_sorted(i) = I_cathode_arr_sweep(V_num - i + 1);
+    }
+
+    anode = matrixdataset("anode");
+    anode.addparameter("V_anode", V_sorted);
+    anode.addattribute("I", I_anode_illum_sorted);
+
+    cathode = matrixdataset("cathode");
+    cathode.addparameter("V_anode", V_sorted);
+    cathode.addattribute("I", I_cathode_illum_sorted);
+
+    matlabsave(res_dir + "ge_pd_charge_GeW_" + tag + "_illuminated_iv", anode, cathode);
+
+    switchtolayout;
+    select("CHARGE::optical_gen");
+    set("enabled", 1);
+    select("CHARGE::boundary conditions::cathode");
+    set("bc mode", "steady state");
+    set("sweep type", "single");
+    set("voltage", 0);
+    set("apply ac small signal", "none");
+    select("CHARGE::boundary conditions::anode");
+    set("bc mode", "steady state");
+    set("sweep type", "single");
+    set("voltage", V_ssac_arr(1));
+    set("apply ac small signal", "none");
+    select("CHARGE");
+    set("solver mode", "ssac");
+    set("small signal ac optical generation", true);
+    set("frequency spacing", "log");
+    set("log start frequency", 100e6);
+    set("log stop frequency", 200e9);
+    set("num frequency points per dec", 10);
+    run;
+
+    ssac_res = getresult("CHARGE", "ac_anode");
+    f_arr = ssac_res.f;
+    n_freq = length(f_arr);
+
+    I_anode_matrix = matrix(n_freq, nV_ssac);
+    I_cathode_matrix = matrix(n_freq, nV_ssac);
+
+    I_anode_matrix(1:n_freq, 1) = ssac_res.dI;
+    ssac_res_cath = getresult("CHARGE", "ac_cathode");
+    I_cathode_matrix(1:n_freq, 1) = ssac_res_cath.dI;
+
+    for (iV = 2; iV <= nV_ssac; iV = iV + 1) {
+        switchtolayout;
+        select("CHARGE::optical_gen");
+        set("enabled", 1);
+        select("CHARGE::boundary conditions::cathode");
+        set("bc mode", "steady state");
+        set("sweep type", "single");
+        set("voltage", 0);
+        set("apply ac small signal", "none");
+        select("CHARGE::boundary conditions::anode");
+        set("bc mode", "steady state");
+        set("sweep type", "single");
+        set("voltage", V_ssac_arr(iV));
+        set("apply ac small signal", "none");
+        select("CHARGE");
+        set("solver mode", "ssac");
+        set("small signal ac optical generation", true);
+        set("frequency spacing", "log");
+        set("log start frequency", 100e6);
+        set("log stop frequency", 200e9);
+        set("num frequency points per dec", 10);
+        run;
+        ssac_res = getresult("CHARGE", "ac_anode");
+        I_anode_matrix(1:n_freq, iV) = ssac_res.dI;
+        ssac_res_cath = getresult("CHARGE", "ac_cathode");
+        I_cathode_matrix(1:n_freq, iV) = ssac_res_cath.dI;
+    }
+
+    ssac_I_anode = matrixdataset("I_anode");
+    ssac_I_anode.addparameter("f", f_arr);
+    ssac_I_anode.addparameter("V_anode", V_ssac_arr);
+    ssac_I_anode.addattribute("I", I_anode_matrix);
+
+    ssac_I_cathode = matrixdataset("I_cathode");
+    ssac_I_cathode.addparameter("f", f_arr);
+    ssac_I_cathode.addparameter("V_anode", V_ssac_arr);
+    ssac_I_cathode.addattribute("I", I_cathode_matrix);
+
+    matlabsave(res_dir + "ge_pd_charge_GeW_" + tag + "_ssac", ssac_I_anode, ssac_I_cathode, V_ssac_arr);
+
+    switchtolayout;
+    runsetup;
+
+    # Re-associate contact boundary conditions to regenerated solids
+    select("CHARGE::boundary conditions::cathode");
+    set("surface type", "solid");
+    set("solid", "Al_cath_group");
+    select("CHARGE::boundary conditions::anode");
+    set("surface type", "solid");
+    set("solid", "Al_anode_group");
+
+    select("CHARGE::optical_gen");
+    set("enabled", 1);
+    select("CHARGE::boundary conditions::anode");
+    set("bc mode", "transient");
+    set("transient voltage time steps", [0, 80e-12]);
+    set("transient voltage table", [-1, -1]);
+    select("CHARGE::boundary conditions::cathode");
+    set("bc mode", "transient");
+    set("transient voltage time steps", [0, 80e-12]);
+    set("transient voltage table", [0, 0]);
+    select("CHARGE");
+    set("solver mode", "transient");
+    set("solver type", "newton");
+    set("rel lte limit", 0.001);
+    set("abs lte limit", 0.001);
+    set("shutter mode", "step on");
+    set("shutter ton", 50e-15);
+    set("shutter tslew", 0);
+    set("transient min time step", 50e-15);
+    set("transient max time step", 0.5e-12);
+    run("CHARGE");
+
+    anode_tr = getresult("CHARGE", "anode");
+    matlabsave(res_dir + "ge_pd_charge_GeW_" + tag + "_transient", anode_tr, V_ssac_arr);
+}

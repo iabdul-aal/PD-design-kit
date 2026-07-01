@@ -1,0 +1,25 @@
+######################################################
+
+# Copyright (c) 2003-2020, Ansys, Inc. All rights reserved.  
+
+# Unauthorized use, distribution, or duplication is prohibited.  
+# This product is subject to U.S. laws governing export and re-export.  
+
+# For full Legal Notice, see documentation.
+
+######################################################
+clear;
+foundry_element="ge_pd_cml_oband_ushaped";
+library_name="ge_pd_foundry";
+source_directory = filedirectory(which(currentscriptname));
+foundry_directory = filedirectory(filedirectory(which(source_directory)));
+cd(source_directory);
+jsonload('E:\PD-design-kit\lumerical\interconnect\models/source\ge_pd_cml_oband_ushaped\ge_pd_cml_oband_ushaped.json');
+process_prefix="";
+model = process_prefix + 'ge_pd_cml_oband_ushaped';
+
+
+#Running QA tests
+?"\nRunning ge_pd_cml_oband_ushaped_custom_qa.lsf...\n";
+feval(source_directory + '/ge_pd_cml_oband_ushaped_custom_qa.lsf');
+pause(2);

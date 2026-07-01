@@ -1,0 +1,75 @@
+# Copyright (c) 2026 Islam Ibrahim. All rights reserved.
+
+# ============================================================
+# 05_ssac_cap_all.lsf  — SSAC Capacitance, all bias points
+# Bias points: -0.5, -1, -1.5, -2, -2.5 V
+# Depends on: 01_build.lsf
+# Runs in PARALLEL with 02, 03, 04, 14 after build.
+# Outputs: ge_pd_charge_capacitance_V1.mat ... ge_pd_charge_capacitance_V5.mat
+# ============================================================
+
+script_dir  = filedirectory(which(currentscriptname));
+device_dir  = script_dir + "/../..";
+project_dir = device_dir + "/projects";
+repo_root   = device_dir + "/../..";
+res_dir     = repo_root + "/results/device/main/";
+
+V_ssac_arr = [-0.5, -1, -1.5, -2, -2.5];
+nV_ssac    = length(V_ssac_arr);
+
+# Save a private working copy once so the master .ldev is never modified by run()
+tmp_file = project_dir + "/ge_pd_charge_oband_ushaped_tmp_ssac_cap.ldev";
+load(project_dir + "/ge_pd_charge_oband_ushaped.ldev");
+switchtolayout;
+save(tmp_file);
+
+for (ii = 1; ii <= nV_ssac; ii = ii + 1) {
+    # Reload clean tmp each iteration — prevents solver state carry-over between bias points
+    load(tmp_file);
+    switchtolayout;
+    select("CHARGE::optical_gen");
+    set("enabled", 0);
+    select("CHARGE::boundary conditions::anode");
+    set("bc mode", "steady state");
+    set("sweep type", "single");
+    set("voltage", V_ssac_arr(ii));
+    set("apply ac small signal", "all");
+    # CRITICAL: explicitly ground the cathode AC so only anode gets the perturbation.
+    # Without this the cathode inherits an undefined AC state from prior SSAC runs,
+    # which can result in common-mode AC (delta_V = 0) and meaningless Cj extraction.
+    select("CHARGE::boundary conditions::cathode");
+    set("bc mode", "steady state");
+    set("sweep type", "single");
+    set("voltage", 0);
+    set("apply ac small signal", "none");
+    select("CHARGE");
+    set("solver mode", "ssac");
+    set("small signal ac optical generation", false);
+    set("frequency spacing", "log");
+    set("log start frequency", 1e6);
+    set("log stop frequency", 200e9);
+    set("num frequency points per dec", 10);
+    run;
+
+    ac_anode = getresult("CHARGE", "ac_anode");
+    V_bias   = V_ssac_arr(ii);
+    fname    = "ge_pd_charge_capacitance_V" + num2str(ii);
+    matlabsave(res_dir + fname, ac_anode, V_bias);
+
+    # ── PRINT: Capacitance comparison ───────────────────────────────────
+    freq_cap = pinch(ac_anode.f);
+    I_ac     = pinch(ac_anode.dI);
+    V_ac     = pinch(ac_anode.dVs);
+    f0       = freq_cap(1);
+    Cj_sim   = -imag(I_ac(1)) / (2*pi*f0*abs(V_ac(1)));
+    ?"";
+    ?"╔══════════════════════════════════════════════════════════╗";
+    ?"║   SSAC CAPACITANCE @ V_bias = " + num2str(V_bias, "%.1f") + " V — Sim vs Paper     ║";
+    ?"╠══════════════════════════════════════════════════════════╣";
+    ?"║  Sim  Cj : " + num2str(Cj_sim*1e15, "%.1f") + " fF";
+    ?"║  Paper U-shaped  @ -1 V : 22.6 fF  (Rs = 12.9 Ω)";
+    ?"║  Paper Parallel  @ -1 V : 24.0 fF  (Rs = 20.1 Ω)";
+    ?"╚══════════════════════════════════════════════════════════╝";
+    ?"";
+}
+?"SSAC capacitance all bias points complete.";

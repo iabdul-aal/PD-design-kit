@@ -1,0 +1,334 @@
+<head>
+<style>
+table, th, tr, td{
+border: 1px solid black;
+border-collapse: collapse;
+}
+tr, td{
+padding: .5%;
+}
+</style>
+}
+<body style="font-family:Tahoma;">
+<title>ge_pd_cml_oband_ushaped</title>
+<H1>ge_pd_cml_oband_ushaped (PD)</H1>
+<div class="overview-image"><img src="symbol_ge_pd_cml_oband_ushaped.png" border="1"></div>
+<P>Ge-on-Si PIN Photodetector - O-band TE U-shaped</P>
+<H2>Keywords</H2>
+<P></P>
+<H2>Ports</H2>
+<table class="int-ports">
+<tr>
+<th width="40%">Name</th>
+<th width="60%">Type</th>
+</tr>
+<tr>
+<td>input</td>
+<td>Optical Signal</td>
+</tr>
+<tr>
+<td>output</td>
+<td>Electrical Signal</td>
+</tr>
+</table>
+<H2>Properties</H2>
+<H3>General Properties</H3>
+<table class="int-properties">
+<tr>
+<th width="40%">Name</th>
+<th width="20%">Default value</th>
+<th width="20%">Default unit</th>
+<th width="20%">Range</th>
+</tr>
+<tr>
+<td><p><b>name</b></p>
+<p></p></td>
+<td>ge_pd_cml_oband_ushaped</td>
+<td> - </td>
+<td> - </td>
+</tr>
+<tr>
+<td><p><b>enabled</b></p>
+<p></p></td>
+<td>true</td>
+<td> - </td>
+<td>[true, false]</td>
+</tr>
+<tr>
+<td><p><b>description</b></p>
+<p></p></td>
+<td>Ge-on-Si PIN Photodetector - O-band TE U-shaped</td>
+<td> - </td>
+<td> - </td>
+</tr>
+<tr>
+<td><p><b>prefix</b></p>
+<p></p></td>
+<td>PD</td>
+<td> - </td>
+<td> - </td>
+</tr>
+<tr>
+<td><p><b>model</b></p>
+<p></p></td>
+<td>ge_pd_cml_oband_ushaped</td>
+<td> - </td>
+<td> - </td>
+</tr>
+<tr>
+<td><p><b>library</b></p>
+<p></p></td>
+<td> - </td>
+<td> - </td>
+<td> - </td>
+</tr>
+</table>
+<H3>Thermal Properties</H3>
+<table class="int-properties">
+<tr>
+<th width="40%">Name</th>
+<th width="20%">Default value</th>
+<th width="20%">Default unit</th>
+<th width="20%">Range</th>
+</tr>
+<tr>
+<td><p><b>temperature</b></p>
+<p></p></td>
+<td>&percnt;temperature&percnt;</td>
+<td>K</td>
+<td>(-&infin;, +&infin;)</td>
+</tr>
+</table>
+<H3>Design Kit Properties</H3>
+<table class="int-properties">
+<tr>
+<th width="40%">Name</th>
+<th width="20%">Default value</th>
+<th width="20%">Default unit</th>
+<th width="20%">Range</th>
+</tr>
+<tr>
+<td><p><b>version</b></p>
+<p></p></td>
+<td>1.0</td>
+<td> - </td>
+<td> - </td>
+</tr>
+<tr>
+<td><p><b>internal electrical equivalent</b></p>
+<p></p></td>
+<td>&percnt;internal electrical equivalent&percnt;</td>
+<td> - </td>
+<td>[true, false]</td>
+</tr>
+</table>
+<H3>CML Properties</H3>
+<table class="int-properties">
+<tr>
+<th width="40%">Name</th>
+<th width="20%">Default value</th>
+<th width="20%">Default unit</th>
+<th width="20%">Range</th>
+</tr>
+<tr>
+<td><p><b>thermal_noise</b></p>
+<p></p></td>
+<td>0</td>
+<td> - </td>
+<td>[0, 1]</td>
+</tr>
+<tr>
+<td><p><b>enable_shot_noise</b></p>
+<p></p></td>
+<td>1</td>
+<td> - </td>
+<td>[0, 1]</td>
+</tr>
+<tr>
+<td><p><b>enable_power_saturation</b></p>
+<p></p></td>
+<td>1</td>
+<td> - </td>
+<td>[0, 1]</td>
+</tr>
+<tr>
+<td><p><b>DC_operation_only</b></p>
+<p></p></td>
+<td>0</td>
+<td> - </td>
+<td>[0, 1]</td>
+</tr>
+<tr>
+<td><p><b>frequency_at_max_power</b></p>
+<p></p></td>
+<td>1</td>
+<td> - </td>
+<td>[0, 1]</td>
+</tr>
+<tr>
+<td><p><b>convert_noise_bins</b></p>
+<p></p></td>
+<td>1</td>
+<td> - </td>
+<td>[0, 1]</td>
+</tr>
+<tr>
+<td><p><b>automatic_seed</b></p>
+<p></p></td>
+<td>1</td>
+<td> - </td>
+<td>[0, 1]</td>
+</tr>
+<tr>
+<td><p><b>seed</b></p>
+<p></p></td>
+<td>1</td>
+<td> - </td>
+<td>[1, 2.14748e+09]</td>
+</tr>
+<tr>
+<td><p><b>single_tap_filter</b></p>
+<p></p></td>
+<td>0</td>
+<td> - </td>
+<td>[0, 1]</td>
+</tr>
+<tr>
+<td><p><b>filter_fit_tolerance</b></p>
+<p></p></td>
+<td>0.001</td>
+<td> - </td>
+<td>[1e-10, 1]</td>
+</tr>
+<tr>
+<td><p><b>number_of_fir_taps</b></p>
+<p></p></td>
+<td>256</td>
+<td> - </td>
+<td>[1, 4096]</td>
+</tr>
+<tr>
+<td><p><b>maximum_number_of_fir_taps</b></p>
+<p></p></td>
+<td>4096</td>
+<td> - </td>
+<td>[1, 65536]</td>
+</tr>
+<tr>
+<td><p><b>filter_delay</b></p>
+<p></p></td>
+<td>0</td>
+<td> - </td>
+<td>[0, 1]</td>
+</tr>
+<tr>
+<td><p><b>initialize_filter_taps</b></p>
+<p></p></td>
+<td>0</td>
+<td> - </td>
+<td>[0, 1]</td>
+</tr>
+<tr>
+<td><p><b>run_diagnostic</b></p>
+<p></p></td>
+<td>0</td>
+<td> - </td>
+<td>[0, 1]</td>
+</tr>
+<tr>
+<td><p><b>diagnostic_size</b></p>
+<p></p></td>
+<td>1024</td>
+<td> - </td>
+<td>[1, 65536]</td>
+</tr>
+</table>
+<H3>CML/Statistical Properties</H3>
+<table class="int-properties">
+<tr>
+<th width="40%">Name</th>
+<th width="20%">Default value</th>
+<th width="20%">Default unit</th>
+<th width="20%">Range</th>
+</tr>
+<tr>
+<td><p><b>delta_height</b></p>
+<p></p></td>
+<td>0</td>
+<td> - </td>
+<td>(-&infin;, +&infin;)</td>
+</tr>
+<tr>
+<td><p><b>delta_width</b></p>
+<p></p></td>
+<td>0</td>
+<td> - </td>
+<td>(-&infin;, +&infin;)</td>
+</tr>
+<tr>
+<td><p><b>delta_electrical_BW</b></p>
+<p></p></td>
+<td>0</td>
+<td> - </td>
+<td>(-&infin;, +&infin;)</td>
+</tr>
+</table>
+<H3>CML/notes Properties</H3>
+<table class="int-properties">
+<tr>
+<th width="40%">Name</th>
+<th width="20%">Default value</th>
+<th width="20%">Default unit</th>
+<th width="20%">Range</th>
+</tr>
+<tr>
+<td><p><b>wavelength_range</b></p>
+<p></p></td>
+<td>O-band (1260 - 1360 nm), nominal 1310 nm</td>
+<td> - </td>
+<td> - </td>
+</tr>
+<tr>
+<td><p><b>bias_range</b></p>
+<p></p></td>
+<td>[-2.5 V, 0.5 V]</td>
+<td> - </td>
+<td> - </td>
+</tr>
+<tr>
+<td><p><b>operating_bias</b></p>
+<p></p></td>
+<td>-1.0 V (nominal)</td>
+<td> - </td>
+<td> - </td>
+</tr>
+<tr>
+<td><p><b>geometry</b></p>
+<p></p></td>
+<td>Ge 8 um x 5 um U-shaped absorber on Si waveguide</td>
+<td> - </td>
+<td> - </td>
+</tr>
+<tr>
+<td><p><b>bias_voltage</b></p>
+<p></p></td>
+<td>Nominal -1 V operating bias is folded into the compact model data</td>
+<td> - </td>
+<td> - </td>
+</tr>
+<tr>
+<td><p><b>electrical_ports</b></p>
+<p></p></td>
+<td>Standard compact receiver interface: optical input and electrical photocurrent output</td>
+<td> - </td>
+<td> - </td>
+</tr>
+<tr>
+<td><p><b>bridge_source</b></p>
+<p></p></td>
+<td>Synchronized from matlab/cml-bridge/ge_pd_cml_oband_ushaped.json</td>
+<td> - </td>
+<td> - </td>
+</tr>
+</table>
+</body>
